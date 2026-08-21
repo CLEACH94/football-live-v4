@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111416">
+<title>English Football Live V4</title>
+<style>
+:root{
+ --bg:#f4f5f6;--card:#fff;--ink:#111417;--muted:#747a82;--line:#e4e7e9;
+ --mint:#19d8c5;--mintbg:#e1faf6;--dark:#111416;--green:#e3f6e9;--amber:#fff4d4;
+ --red:#fbe4e4;--blue:#eaf0ff
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink)}
+.app{max-width:860px;margin:auto;min-height:100vh;padding-bottom:90px}
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px 9px}
+.brand{font-size:20px;font-weight:950}
+.connection{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 9px;background:#eef0f2;color:#62676d;font-size:10px;font-weight:900}
+.connection i{width:8px;height:8px;border-radius:50%;background:#969ba0}
+.connection.on{background:var(--mintbg);color:#12645c}.connection.on i{background:#1fad7c}
+.nav{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:0 8px 9px}
+.nav button{border:0;background:transparent;border-radius:10px;padding:9px 3px;font-size:11px;font-weight:850;color:#747a82}
+.nav button.active{background:var(--dark);color:white}
+.section{display:none;padding:12px 10px 24px}.section.active{display:block}
+.panel,.card,.statcard{background:#fff;border-radius:18px;padding:15px;box-shadow:0 4px 15px rgba(0,0,0,.055);margin-bottom:10px}
+.hero{background:var(--dark);color:white;border-radius:19px;padding:16px;margin-bottom:10px}
+.hero h2{margin:0 0 5px;font-size:20px}.hero p{margin:0;color:#bfc5ca;font-size:12px;line-height:1.45}
+.label{font-size:11px;font-weight:900;color:#656b72;margin:12px 0 6px}
+input,select{width:100%;font:inherit;font-size:16px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{border:0;border-radius:12px;background:var(--dark);color:white;padding:11px 13px;font-weight:900;flex:1;min-width:120px}
+.btn.secondary{background:#eef0f2;color:#202428}.btn.mint{background:var(--mint);color:#073d38}
+.note{background:#fff7dd;border:1px solid #ecd98a;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;margin-top:10px}
+.error{background:var(--red);color:#8c3636;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;margin-top:10px}
+.ok{background:var(--green);color:#2b7044;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;margin-top:10px}
+.hidden{display:none}
+.filters{display:flex;gap:7px;overflow:auto;margin-bottom:10px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 10px;white-space:nowrap;font-size:11px;font-weight:850}
+.chip.active{background:var(--dark);border-color:var(--dark);color:#fff}
+.sectiontitle{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin:3px 3px 10px}.sectiontitle h2{margin:0;font-size:19px}.sectiontitle span{font-size:10px;color:var(--muted);text-align:right}
+.fixturetop{display:grid;grid-template-columns:1fr auto;gap:12px}
+.teams{font-size:18px;font-weight:950;line-height:1.25}
+.meta{font-size:11px;color:var(--muted);line-height:1.45;margin-top:4px}
+.score{font-size:25px;font-weight:950;text-align:right}
+.pill{display:inline-block;border-radius:999px;padding:5px 8px;margin-top:7px;background:#eef0f2;font-size:10px;font-weight:900}
+.pill.live{background:var(--mintbg);color:#12645c}.pill.done{background:#edf0f1;color:#575d63}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.metric{background:#f6f7f8;border-radius:11px;padding:9px;text-align:center}.metric b{display:block;font-size:16px}.metric span{font-size:9px;color:var(--muted)}
+.forecast{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+.forecasthead{display:flex;justify-content:space-between;gap:10px;align-items:center}.forecasthead b{font-size:13px}.forecasthead strong{font-size:19px}
+.forecastbar{height:9px;background:#edf0f1;border-radius:99px;overflow:hidden;margin-top:7px}.forecastbar span{height:100%;display:block;background:var(--mint)}
+.small{font-size:11px;color:var(--muted);line-height:1.45}
+.coverage{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.coverage:last-child{border-bottom:0}.coverage b{font-size:13px}.coverage small{display:block;color:var(--muted);margin-top:2px}
+.coverpill{font-size:10px;font-weight:900;border-radius:999px;padding:5px 8px;background:#eef0f2}
+.coverpill.yes{background:var(--green);color:#287043}.coverpill.no{background:var(--red);color:#963b3b}.coverpill.unknown{background:var(--amber);color:#806310}
+.rankrow{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.rankrow:last-child{border-bottom:0}.ranknum{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#eef0f2;font-weight:950}
+.rate{text-align:right}.rate b{font-size:18px}.rate span{display:block;font-size:9px;color:var(--muted)}
+.historyrow{padding:11px 0;border-bottom:1px solid var(--line)}.historyrow:last-child{border-bottom:0}
+.historytop{display:flex;justify-content:space-between;gap:10px}.historytop b{font-size:13px}.resultgood{color:#267345}.resultbad{color:#9a3d3d}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(860px,100%);background:#101315;color:white;padding:10px 13px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px}
+.bottom div{flex:1}.bottom b{font-size:13px}.bottom small{display:block;color:#b8bec3;margin-top:2px}
+@media(max-width:390px){.nav button{font-size:10px}.teams{font-size:16px}.score{font-size:22px}.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div class="head">
+  <div class="brand">Football Live V4</div>
+  <div class="connection" id="conn"><i></i><span>OFFLINE</span></div>
+ </div>
+ <nav class="nav">
+  <button class="active" data-page="today">Today</button>
+  <button data-page="live">Live</button>
+  <button data-page="coverage">Coverage</button>
+  <button data-page="rankings">Accuracy</button>
+  <button data-page="settings">Setup</button>
+ </nav>
+</header>
+
+<section class="section active" id="today">
+ <div class="hero">
+  <h2>Today's football</h2>
+  <p>Live fixtures, scores and entertainment forecasts. Original pre-match forecasts stay separate from live updates.</p>
+ </div>
+ <div class="filters" id="groupFilters">
+  <button class="chip active" data-group="all">All</button>
+  <button class="chip" data-group="england">England</button>
+  <button class="chip" data-group="uefa">UEFA clubs</button>
+  <button class="chip" data-group="international">England / international</button>
+ </div>
+ <div id="todayList"><div class="card"><div class="small">Connect your Cordax token in Setup to load real fixtures.</div></div></div>
+</section>
+
+<section class="section" id="live">
+ <div class="sectiontitle"><h2>Live now</h2><span id="liveStamp">Not connected</span></div>
+ <div id="liveList"><div class="card"><div class="small">Live games will appear here automatically.</div></div></div>
+</section>
+
+<section class="section" id="coverage">
+ <div class="sectiontitle"><h2>Competition coverage</h2><span>Checks Cordax's actual catalogue</span></div>
+ <div class="panel">
+  <div class="small">Green = found in your API catalogue. Amber = not checked yet. Red = not found by exact/fuzzy name matching.</div>
+  <div id="coverageList"></div>
+  <div class="actions"><button class="btn mint" id="checkCoverage">Check coverage</button></div>
+ </div>
+</section>
+
+<section class="section" id="rankings">
+ <div class="sectiontitle"><h2>Forecast accuracy</h2><span>Your logged app results</span></div>
+ <div class="panel">
+  <div id="rankList"></div>
+  <div class="note">This starts empty on a fresh install. The app should only rank a category after it has completed forecasts to score.</div>
+ </div>
+ <div class="panel">
+  <h3 style="margin:0 0 8px;font-size:15px">History</h3>
+  <div id="historyList"><div class="small">No completed forecast history yet.</div></div>
+ </div>
+</section>
+
+<section class="section" id="settings">
+ <div class="sectiontitle"><h2>Cordax setup</h2><span>Bearer-token connection</span></div>
+ <div class="panel">
+  <div class="label">API token</div>
+  <input type="password" id="token" placeholder="cordax_...">
+  <div class="row2">
+   <div>
+    <div class="label">Season</div>
+    <input id="season" value="2026-27">
+   </div>
+   <div>
+    <div class="label">Refresh while open</div>
+    <select id="refresh">
+     <option value="60">Every 60 sec</option>
+     <option value="30">Every 30 sec</option>
+     <option value="120">Every 2 min</option>
+    </select>
+   </div>
+  </div>
+  <div class="actions">
+   <button class="btn mint" id="connectBtn">Test & connect</button>
+   <button class="btn secondary" id="disconnectBtn">Disconnect</button>
+  </div>
+  <div id="setupMsg" class="hidden"></div>
+  <div class="note">The token is kept only in memory by this page. Refreshing/closing it clears the token. For a finished hosted app, the safer design is to keep the Cordax token on a small backend instead of exposing it in browser code.</div>
+ </div>
+ <div class="panel">
+  <h3 style="margin:0 0 7px;font-size:15px">What V4 now does</h3>
+  <div class="small">• Uses Cordax Bearer authentication<br>• Checks the real competition catalogue<br>• Loads today's fixtures across selected competitions<br>• Refreshes while open<br>• Separates live matches<br>• Requests Cordax last-five 1/X/2 form forecasts for supported domestic league fixtures<br>• Keeps the accuracy/history architecture ready for persistent storage in the hosted version</div>
+ </div>
+</section>
+</div>
+
+<div class="bottom">
+ <div><b id="bottomState">Not connected</b><small id="bottomSub">Add your free Cordax token in Setup</small></div>
+ <button class="btn mint" id="refreshNow" style="flex:0 0 auto;min-width:auto">Refresh</button>
+</div>
+
+<script>
+const API="https://api.cordax.net";
+const wanted=[
+ {name:"Premier League",group:"england",aliases:["Premier League"]},
+ {name:"Championship",group:"england",aliases:["Championship"]},
+ {name:"League One",group:"england",aliases:["League One"]},
+ {name:"League Two",group:"england",aliases:["League Two"]},
+ {name:"FA Cup",group:"england",aliases:["FA Cup","F.A. Cup"]},
+ {name:"EFL Cup",group:"england",aliases:["EFL Cup","League Cup","Carabao Cup"]},
+ {name:"EFL Trophy",group:"england",aliases:["EFL Trophy","Football League Trophy","League Trophy"]},
+ {name:"EFL Play-offs",group:"england",aliases:["Play-Offs","Playoffs","Play Offs"]},
+ {name:"UEFA Champions League",group:"uefa",aliases:["UEFA Champions League","Champions League"]},
+ {name:"UEFA Europa League",group:"uefa",aliases:["UEFA Europa League","Europa League"]},
+ {name:"UEFA Conference League",group:"uefa",aliases:["UEFA Conference League","Conference League"]},
+ {name:"FIFA World Cup",group:"international",aliases:["FIFA World Cup","World Cup"]},
+ {name:"UEFA European Championship",group:"international",aliases:["UEFA European Championship","European Championship","Euros"]},
+ {name:"UEFA Nations League",group:"international",aliases:["UEFA Nations League","Nations League"]},
+ {name:"World Cup Qualifying",group:"international",aliases:["World Cup Qualification","World Cup Qualifying","World Cup Qualifiers"]},
+ {name:"Euro Qualifying",group:"international",aliases:["European Championship Qualification","Euro Qualifying","European Qualifiers"]},
+ {name:"International Friendlies",group:"international",aliases:["International Friendlies","Friendlies"]}
+];
+
+let token="", timer=null, group="all", catalogue=[], fixtures=[];
+let history=[];
+
+const $=id=>document.getElementById(id);
+const pick=(o,keys,fb=null)=>{
+ if(!o||typeof o!=="object")return fb;
+ for(const k of keys){ if(o[k]!==undefined&&o[k]!==null&&o[k]!=="")return o[k]; }
+ return fb;
+};
+const arrify=d=>{
+ if(Array.isArray(d))return d;
+ if(!d||typeof d!=="object")return [];
+ for(const k of ["data","items","results","fixtures","competitions","value"]){if(Array.isArray(d[k]))return d[k];}
+ return [];
+};
+function norm(s){return String(s||"").toLowerCase().replace(/uefa|fifa|efl|the/g,"").replace(/[^a-z0-9]+/g," ").trim()}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function apiHeaders(){return {"Authorization":"Bearer "+token,"Accept":"application/json"}}
+async function api(path){
+ const r=await fetch(API+path,{headers:apiHeaders()});
+ if(!r.ok){let t="";try{t=await r.text()}catch(e){};throw new Error("Cordax returned "+r.status+(t?": "+t.slice(0,120):""))}
+ return r.json();
+}
+function setConn(on,text){
+ $("conn").classList.toggle("on",on);$("conn").querySelector("span").textContent=text;
+ $("bottomState").textContent=on?"Connected to Cordax":"Not connected";
+ $("bottomSub").textContent=on?"Real-data refresh active while open":"Add your free Cordax token in Setup";
+}
+function showMsg(text,ok=true){
+ const e=$("setupMsg");e.className=ok?"ok":"error";e.textContent=text;
+}
+function compName(x){return pick(x,["COMPETITION","competition","name","NAME","competitionName","COMPETITION_NAME"],"")}
+function statusOf(f){return String(pick(f,["MATCH_STATUS","status","STATUS","matchStatus"],"Scheduled"))}
+function homeOf(f){return pick(f,["HOME_TEAM","homeTeam","HOME","home","home_team","HOME_NAME"],"Home")}
+function awayOf(f){return pick(f,["AWAY_TEAM","awayTeam","AWAY","away","away_team","AWAY_NAME"],"Away")}
+function compOf(f){return pick(f,["COMPETITION","competition","COMPETITION_NAME","competitionName"],"")}
+function dateOf(f){return pick(f,["MATCH_DATE","matchDate","DATE","date","utcDate","kickoff","KICK_OFF"],"")}
+function minuteOf(f){return pick(f,["MINUTE","minute","MATCH_MINUTE","matchMinute"],"")}
+function scorePair(f){
+ let h=pick(f,["HOME_SCORE","homeScore","HOME_GOALS","homeGoals","scoreHome"],null);
+ let a=pick(f,["AWAY_SCORE","awayScore","AWAY_GOALS","awayGoals","scoreAway"],null);
+ if(h===null&&f.score&&typeof f.score==="object"){h=pick(f.score,["home","HOME"],null);a=pick(f.score,["away","AWAY"],null)}
+ return [h===null?"-":h,a===null?"-":a]
+}
+function isLive(f){const s=statusOf(f).toLowerCase();return /^(live|in.?play|1h|2h|ht)$/.test(s)||/^\d{1,3}$/.test(s)||(/active/.test(s))}
+function isDone(f){return /ft|finished|pens|aet/i.test(statusOf(f))}
+function prettyDate(v){if(!v)return "";const d=new Date(v);return isNaN(d)?String(v):d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
+function matchWantedComp(name){
+ const n=norm(name);
+ return wanted.find(w=>w.aliases.some(a=>{const q=norm(a);return n===q||n.includes(q)||q.includes(n)}));
+}
+async function connect(){
+ token=$("token").value.trim();
+ if(!token){showMsg("Paste your Cordax token first.",false);return}
+ try{
+  showMsg("Testing connection…",true);
+  const d=await api("/Competitions");
+  catalogue=arrify(d);
+  setConn(true,"CONNECTED");
+  showMsg("Connected successfully. Competition catalogue loaded.",true);
+  checkCoverageFromCatalogue();
+  startTimer();
+  await refreshAll();
+ }catch(e){setConn(false,"ERROR");showMsg(e.message,false)}
+}
+function disconnect(){
+ token="";$("token").value="";catalogue=[];fixtures=[];if(timer)clearInterval(timer);timer=null;setConn(false,"OFFLINE");
+ $("todayList").innerHTML='<div class="card"><div class="small">Connect your Cordax token in Setup to load real fixtures.</div></div>';
+ $("liveList").innerHTML='<div class="card"><div class="small">Live games will appear here automatically.</div></div>';
+ renderCoverage();
+}
+function startTimer(){
+ if(timer)clearInterval(timer);
+ const ms=Math.max(30000,Number($("refresh").value||60)*1000);
+ timer=setInterval(refreshAll,ms);
+}
+async function checkCoverage(){
+ if(!token){showMsg("Connect your token first.",false);document.querySelector('[data-page="settings"]').click();return}
+ try{catalogue=arrify(await api("/Competitions"));checkCoverageFromCatalogue()}catch(e){showMsg(e.message,false)}
+}
+function checkCoverageFromCatalogue(){
+ renderCoverage();
+}
+function coverageStatus(w){
+ if(!catalogue.length)return {type:"unknown",text:"NOT CHECKED"};
+ const names=catalogue.map(compName).filter(Boolean);
+ const found=names.find(n=>w.aliases.some(a=>{const x=norm(n),y=norm(a);return x===y||x.includes(y)||y.includes(x)}));
+ return found?{type:"yes",text:"FOUND",actual:found}:{type:"no",text:"NOT FOUND"};
+}
+function renderCoverage(){
+ $("coverageList").innerHTML=wanted.map(w=>{
+  const s=coverageStatus(w);
+  return `<div class="coverage"><div><b>${esc(w.name)}</b><small>${s.actual?"Cordax: "+esc(s.actual):w.group==="england"?"English competition":w.group==="uefa"?"UEFA club competition":"International / England"}</small></div><span class="coverpill ${s.type}">${s.text}</span></div>`
+ }).join("");
+}
+async function refreshAll(){
+ if(!token)return;
+ $("liveStamp").textContent="Updating…";
+ try{
+  if(!catalogue.length)catalogue=arrify(await api("/Competitions"));
+  // One upstream request gets today's fixture slate; filter locally.
+  // This is much friendlier to Cordax's Free/Premium request limits.
+  const d=await api("/Fixtures/from/today/to/today");
+  const raw=arrify(d);
+  const all=[];
+  raw.forEach(f=>{
+    const c=compOf(f);
+    const w=matchWantedComp(c);
+    if(w) all.push({...f,__group:w.group,__wanted:w.name});
+  });
+  fixtures=dedupe(all);
+  renderFixtures();
+  $("liveStamp").textContent="Updated "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+ }catch(e){$("liveStamp").textContent="Update failed";showMsg(e.message,false)}
+}
+function dedupe(a){
+ const m=new Map();
+ a.forEach((f,i)=>{
+  const k=[homeOf(f),awayOf(f),dateOf(f),compOf(f)||f.__wanted].join("|");
+  m.set(k,f);
+ });
+ return [...m.values()];
+}
+async function forecastFor(f){
+ const competition=compOf(f)||f.__wanted;
+ if(!["Premier League","Championship","League One","League Two"].some(x=>norm(competition).includes(norm(x))))return null;
+ const season=$("season").value.trim()||"2026-27";
+ const h=homeOf(f),a=awayOf(f);
+ try{
+  const p="/HeadToHead/"+encodeURIComponent(competition)+"/"+encodeURIComponent(season)+"/"+encodeURIComponent(h)+"/"+encodeURIComponent(a)+"/Predictions";
+  const d=await api(p);
+  return d;
+ }catch(e){return null}
+}
+function parseForecast(d){
+ if(!d)return null;
+ const o=Array.isArray(d)?d[0]:d;
+ const home=Number(pick(o,["HOME","home","homeWin","HOME_PERCENT","homePercent","1"],NaN));
+ const draw=Number(pick(o,["DRAW","draw","drawPercent","DRAW_PERCENT","X"],NaN));
+ const away=Number(pick(o,["AWAY","away","awayWin","AWAY_PERCENT","awayPercent","2"],NaN));
+ if([home,draw,away].every(Number.isFinite)){
+  const total=home+draw+away;
+  const vals=total<=1.01?[home*100,draw*100,away*100]:[home,draw,away];
+  const max=Math.max(...vals),idx=vals.indexOf(max);
+  return {label:["Home","Draw","Away"][idx],pct:Math.round(max),all:vals.map(x=>Math.round(x))}
+ }
+ return null;
+}
+function fixtureCard(f){
+ const [hs,as]=scorePair(f), live=isLive(f), done=isDone(f), min=minuteOf(f);
+ const status=statusOf(f), comp=compOf(f)||f.__wanted;
+ return `<article class="card">
+  <div class="fixturetop">
+   <div><div class="teams">${esc(homeOf(f))}<br>${esc(awayOf(f))}</div><div class="meta">${esc(comp)} · ${esc(prettyDate(dateOf(f)))}</div><span class="pill ${live?"live":done?"done":""}">${live?"LIVE"+(min?" · "+esc(min)+"'":""):done?"FULL TIME":esc(status)}</span></div>
+   <div class="score">${esc(hs)}<br>${esc(as)}</div>
+  </div>
+  <div class="metrics"><div class="metric"><b>${live?esc(min||"LIVE"):"—"}</b><span>MINUTE</span></div><div class="metric"><b>${esc(hs)}-${esc(as)}</b><span>SCORE</span></div><div class="metric"><b>${done?"FT":live?"LIVE":"NEXT"}</b><span>STATE</span></div></div>
+  <div class="forecast" data-forecast-card>
+   <div class="forecasthead"><b>Last-5 form forecast</b><button class="chip forecastBtn" data-comp="${esc(comp)}" data-home="${esc(homeOf(f))}" data-away="${esc(awayOf(f))}">Calculate</button></div>
+   <div class="small" data-forecast-text>Uses Cordax's recent-form 1/X/2 endpoint where supported.</div>
+  </div>
+ </article>`;
+}
+function renderFixtures(){
+ const rows=fixtures.filter(f=>group==="all"||f.__group===group);
+ $("todayList").innerHTML=rows.length?rows.map(fixtureCard).join(""):'<div class="card"><div class="small">No matching fixtures returned for today.</div></div>';
+ const live=fixtures.filter(isLive);
+ $("liveList").innerHTML=live.length?live.map(fixtureCard).join(""):'<div class="card"><div class="small">No live matches returned right now.</div></div>';
+ bindForecastButtons();
+}
+function bindForecastButtons(){
+ document.querySelectorAll(".forecastBtn").forEach(b=>b.addEventListener("click",async()=>{
+  const wrap=b.closest("[data-forecast-card]"),txt=wrap.querySelector("[data-forecast-text]");
+  b.disabled=true;txt.textContent="Calculating from last-five competition form…";
+  try{
+   const season=$("season").value.trim()||"2026-27";
+   const p="/HeadToHead/"+encodeURIComponent(b.dataset.comp)+"/"+encodeURIComponent(season)+"/"+encodeURIComponent(b.dataset.home)+"/"+encodeURIComponent(b.dataset.away)+"/Predictions";
+   const d=await api(p), f=parseForecast(d);
+   txt.innerHTML=f?`Strongest recent-form outcome: <b>${f.label} ${f.pct}%</b> · Home ${f.all[0]}% · Draw ${f.all[1]}% · Away ${f.all[2]}%`:"Cordax responded, but this version could not confidently map the returned prediction fields.";
+  }catch(e){txt.textContent="Forecast unavailable: "+e.message}
+  b.disabled=false;
+ }));
+}
+function renderAccuracy(){
+ const cats=["Home","Draw","Away"];
+ const rows=cats.map(c=>{
+  const r=history.filter(h=>h.category===c),wins=r.filter(h=>h.correct).length;
+  return {name:c,total:r.length,wins,rate:r.length?Math.round(wins/r.length*100):0}
+ }).sort((a,b)=>b.rate-a.rate||b.total-a.total);
+ $("rankList").innerHTML=rows.map((r,i)=>`<div class="rankrow"><div class="ranknum">${i+1}</div><div><b>${r.name}</b><div class="small">${r.wins}/${r.total} correct</div></div><div class="rate"><b>${r.total?r.rate+"%":"—"}</b><span>SUCCESS</span></div></div>`).join("");
+ $("historyList").innerHTML=history.length?history.map(h=>`<div class="historyrow"><div class="historytop"><b>${esc(h.fixture)}</b><b class="${h.correct?"resultgood":"resultbad"}">${h.correct?"CORRECT":"MISSED"}</b></div><div class="small">${esc(h.category)} · forecast ${h.pct}% · ${esc(h.result)}</div></div>`).join(""):'<div class="small">No completed forecast history yet.</div>';
+}
+document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+ document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));$(b.dataset.page).classList.add("active");
+}));
+document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll("[data-group]").forEach(x=>x.classList.remove("active"));b.classList.add("active");group=b.dataset.group;renderFixtures();
+}));
+$("connectBtn").addEventListener("click",connect);
+$("disconnectBtn").addEventListener("click",disconnect);
+$("checkCoverage").addEventListener("click",checkCoverage);
+$("refreshNow").addEventListener("click",()=>token?refreshAll():document.querySelector('[data-page="settings"]').click());
+$("refresh").addEventListener("change",()=>{if(token)startTimer()});
+renderCoverage();renderAccuracy();setConn(false,"OFFLINE");
+</script>
+</body>
+</html>
