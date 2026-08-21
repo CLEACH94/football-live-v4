@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111416">
-<title>Football Live V4 Secure</title>
+<title>Football Live V5</title>
 <style>
 :root{
  --bg:#f4f5f6;--card:#fff;--ink:#111417;--muted:#747a82;--line:#e4e7e9;
  --mint:#19d8c5;--mintbg:#e1faf6;--dark:#111416;--green:#e3f6e9;--amber:#fff4d4;
- --red:#fbe4e4
+ --red:#fbe4e4;--gold:#fff1b8
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink)}
-.app{max-width:860px;margin:auto;min-height:100vh;padding-bottom:90px}
+.app{max-width:900px;margin:auto;min-height:100vh;padding-bottom:90px}
 header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px 9px}
 .brand{font-size:20px;font-weight:950}
@@ -27,16 +27,15 @@ header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);backdro
 .panel,.card{background:#fff;border-radius:18px;padding:15px;box-shadow:0 4px 15px rgba(0,0,0,.055);margin-bottom:10px}
 .hero{background:var(--dark);color:white;border-radius:19px;padding:16px;margin-bottom:10px}
 .hero h2{margin:0 0 5px;font-size:20px}.hero p{margin:0;color:#bfc5ca;font-size:12px;line-height:1.45}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.btn{border:0;border-radius:12px;background:var(--dark);color:white;padding:11px 13px;font-weight:900;flex:1;min-width:120px}
-.btn.secondary{background:#eef0f2;color:#202428}.btn.mint{background:var(--mint);color:#073d38}
-.note{background:#fff7dd;border:1px solid #ecd98a;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;margin-top:10px}
-.error{background:var(--red);color:#8c3636;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;margin-top:10px}
-.ok{background:var(--green);color:#2b7044;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;margin-top:10px}
 .filters{display:flex;gap:7px;overflow:auto;margin-bottom:10px}
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 10px;white-space:nowrap;font-size:11px;font-weight:850}
 .chip.active{background:var(--dark);border-color:var(--dark);color:#fff}
 .sectiontitle{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin:3px 3px 10px}.sectiontitle h2{margin:0;font-size:19px}.sectiontitle span{font-size:10px;color:var(--muted);text-align:right}
+.compgroup{margin-bottom:14px}
+.comphead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:4px 3px 7px}
+.comphead h3{font-size:14px;margin:0}.comphead small{color:var(--muted)}
+.favoriteBtn{border:0;background:#eef0f2;border-radius:999px;padding:7px 9px;font-weight:900}
+.favoriteBtn.on{background:var(--gold)}
 .fixturetop{display:grid;grid-template-columns:1fr auto;gap:12px}
 .teams{font-size:18px;font-weight:950;line-height:1.25}
 .meta{font-size:11px;color:var(--muted);line-height:1.45;margin-top:4px}
@@ -45,17 +44,17 @@ header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);backdro
 .pill.live{background:var(--mintbg);color:#12645c}.pill.done{background:#edf0f1;color:#575d63}
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
 .metric{background:#f6f7f8;border-radius:11px;padding:9px;text-align:center}.metric b{display:block;font-size:16px}.metric span{font-size:9px;color:var(--muted)}
-.forecast{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
-.forecasthead{display:flex;justify-content:space-between;gap:10px;align-items:center}.forecasthead b{font-size:13px}
 .small{font-size:11px;color:var(--muted);line-height:1.45}
-.coverage{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
-.coverage:last-child{border-bottom:0}.coverage b{font-size:13px}.coverage small{display:block;color:var(--muted);margin-top:2px}
-.coverpill{font-size:10px;font-weight:900;border-radius:999px;padding:5px 8px;background:#eef0f2}
-.coverpill.yes{background:var(--green);color:#287043}.coverpill.no{background:var(--red);color:#963b3b}.coverpill.unknown{background:var(--amber);color:#806310}
+.note{background:#fff7dd;border:1px solid #ecd98a;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;margin-top:10px}
+.error{background:var(--red);color:#8c3636;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;margin-top:10px}
+.ok{background:var(--green);color:#2b7044;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;margin-top:10px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{border:0;border-radius:12px;background:var(--dark);color:white;padding:11px 13px;font-weight:900;flex:1;min-width:120px}
+.btn.mint{background:var(--mint);color:#073d38}
 .rankrow{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .rankrow:last-child{border-bottom:0}.ranknum{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#eef0f2;font-weight:950}
 .rate{text-align:right}.rate b{font-size:18px}.rate span{display:block;font-size:9px;color:var(--muted)}
-.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(860px,100%);background:#101315;color:white;padding:10px 13px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(900px,100%);background:#101315;color:white;padding:10px 13px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px}
 .bottom div{flex:1}.bottom b{font-size:13px}.bottom small{display:block;color:#b8bec3;margin-top:2px}
 @media(max-width:390px){.nav button{font-size:10px}.teams{font-size:16px}.score{font-size:22px}}
 </style>
@@ -64,30 +63,31 @@ header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);backdro
 <div class="app">
 <header>
  <div class="head">
-  <div class="brand">Football Live V4</div>
+  <div class="brand">Football Live V5</div>
   <div class="connection" id="conn"><i></i><span>CONNECTING</span></div>
  </div>
  <nav class="nav">
   <button class="active" data-page="today">Today</button>
   <button data-page="live">Live</button>
-  <button data-page="coverage">Coverage</button>
-  <button data-page="rankings">Accuracy</button>
-  <button data-page="settings">Setup</button>
+  <button data-page="favorites">Favourites</button>
+  <button data-page="accuracy">Accuracy</button>
+  <button data-page="setup">Setup</button>
  </nav>
 </header>
 
 <section class="section active" id="today">
  <div class="hero">
-  <h2>Today's football</h2>
-  <p>Real fixtures and live scores from the secure Cordax connection. Forecasts are for entertainment and are tracked separately from live results.</p>
+  <h2>All football, ranked your way</h2>
+  <p>Everything Cordax returns is shown. Live matches rank first, then your favourite competitions, then the rest by kickoff.</p>
  </div>
  <div class="filters">
-  <button class="chip active" data-group="all">All</button>
-  <button class="chip" data-group="england">England</button>
-  <button class="chip" data-group="uefa">UEFA clubs</button>
-  <button class="chip" data-group="international">England / international</button>
+  <button class="chip active" data-view="all">All</button>
+  <button class="chip" data-view="favorites">Favourites first</button>
+  <button class="chip" data-view="england">England</button>
+  <button class="chip" data-view="uefa">UEFA clubs</button>
+  <button class="chip" data-view="international">International</button>
  </div>
- <div id="todayList"><div class="card"><div class="small">Connecting to secure live feed…</div></div></div>
+ <div id="todayList"><div class="card"><div class="small">Loading real fixtures…</div></div></div>
 </section>
 
 <section class="section" id="live">
@@ -95,29 +95,25 @@ header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);backdro
  <div id="liveList"><div class="card"><div class="small">Live games will appear here automatically.</div></div></div>
 </section>
 
-<section class="section" id="coverage">
- <div class="sectiontitle"><h2>Competition coverage</h2><span>Checks Cordax catalogue</span></div>
- <div class="panel">
-  <div class="small">Green = found in the real Cordax catalogue. Red = not matched.</div>
-  <div id="coverageList"></div>
-  <div class="actions"><button class="btn mint" id="checkCoverage">Check again</button></div>
- </div>
+<section class="section" id="favorites">
+ <div class="sectiontitle"><h2>Favourite competitions</h2><span>Tap ☆ beside any competition</span></div>
+ <div id="favoriteList"><div class="card"><div class="small">No favourites yet.</div></div></div>
 </section>
 
-<section class="section" id="rankings">
- <div class="sectiontitle"><h2>Forecast accuracy</h2><span>Starts collecting after forecasts complete</span></div>
+<section class="section" id="accuracy">
+ <div class="sectiontitle"><h2>Forecast accuracy</h2><span>Ready for logged results</span></div>
  <div class="panel">
   <div id="rankList"></div>
-  <div class="note">Persistent history is the next backend step. This version proves the secure real-data pipeline first.</div>
+  <div class="note">Once result logging is enabled, prediction categories will rank by actual success rate and sample size rather than by a raw 5/5 streak.</div>
  </div>
 </section>
 
-<section class="section" id="settings">
+<section class="section" id="setup">
  <div class="sectiontitle"><h2>Secure backend</h2><span>Vercel → Cordax</span></div>
  <div class="panel">
   <div id="backendStatus" class="small">Checking secure connection…</div>
   <div class="actions"><button class="btn mint" id="testBackend">Test backend</button></div>
-  <div class="note">Your Cordax token is stored as a Vercel environment variable. It is not sent to the browser and is not present in this page's source code.</div>
+  <div class="note">The Cordax token stays on Vercel. This page never receives it.</div>
  </div>
 </section>
 </div>
@@ -128,140 +124,140 @@ header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);backdro
 </div>
 
 <script>
-const wanted=[
- {name:"Premier League",group:"england",aliases:["Premier League"]},
- {name:"Championship",group:"england",aliases:["Championship"]},
- {name:"League One",group:"england",aliases:["League One"]},
- {name:"League Two",group:"england",aliases:["League Two"]},
- {name:"FA Cup",group:"england",aliases:["FA Cup","F.A. Cup"]},
- {name:"EFL Cup",group:"england",aliases:["EFL Cup","League Cup","Carabao Cup"]},
- {name:"EFL Trophy",group:"england",aliases:["EFL Trophy","Football League Trophy","League Trophy"]},
- {name:"EFL Play-offs",group:"england",aliases:["Play-Offs","Playoffs","Play Offs"]},
- {name:"UEFA Champions League",group:"uefa",aliases:["UEFA Champions League","Champions League"]},
- {name:"UEFA Europa League",group:"uefa",aliases:["UEFA Europa League","Europa League"]},
- {name:"UEFA Conference League",group:"uefa",aliases:["UEFA Conference League","Conference League"]},
- {name:"FIFA World Cup",group:"international",aliases:["FIFA World Cup","World Cup"]},
- {name:"UEFA European Championship",group:"international",aliases:["UEFA European Championship","European Championship","Euros"]},
- {name:"UEFA Nations League",group:"international",aliases:["UEFA Nations League","Nations League"]},
- {name:"World Cup Qualifying",group:"international",aliases:["World Cup Qualification","World Cup Qualifying","World Cup Qualifiers"]},
- {name:"Euro Qualifying",group:"international",aliases:["European Championship Qualification","Euro Qualifying","European Qualifiers"]},
- {name:"International Friendlies",group:"international",aliases:["International Friendlies","Friendlies"]}
-];
-let group="all",catalogue=[],fixtures=[],timer=null;
+let fixtures=[],catalogue=[],view="all";
+let favorites=JSON.parse(localStorage.getItem("football-live-favorites")||"[]");
 const $=id=>document.getElementById(id);
-function norm(s){return String(s||"").toLowerCase().replace(/uefa|fifa|efl|the/g,"").replace(/[^a-z0-9]+/g," ").trim()}
+
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function pick(o,keys,fb=null){if(!o||typeof o!=="object")return fb;for(const k of keys){if(o[k]!==undefined&&o[k]!==null&&o[k]!=="")return o[k]}return fb}
 function arrify(d){if(Array.isArray(d))return d;if(!d||typeof d!=="object")return [];for(const k of ["data","items","results","fixtures","competitions","value"]){if(Array.isArray(d[k]))return d[k]}return []}
+function pick(o,keys,fb=null){if(!o||typeof o!=="object")return fb;for(const k of keys){if(o[k]!==undefined&&o[k]!==null&&o[k]!=="")return o[k]}return fb}
 async function api(path){
  const r=await fetch("/api/cordax?path="+encodeURIComponent(path),{cache:"no-store"});
  const d=await r.json().catch(()=>({}));
  if(!r.ok)throw new Error(d.error||("Backend returned "+r.status));
  return d;
 }
+function homeOf(f){return pick(f,["HomeTeam","HOME_TEAM","homeTeam","HOME","home","home_team","HOME_NAME"],pick(f.Home,["Team"],"Home"))}
+function awayOf(f){return pick(f,["AwayTeam","AWAY_TEAM","awayTeam","AWAY","away","away_team","AWAY_NAME"],pick(f.Away,["Team"],"Away"))}
+function compOf(f){return pick(f,["Competition","COMPETITION","competition","COMPETITION_NAME","competitionName"],"Unknown competition")}
+function dateOf(f){return pick(f,["FixtureDate","MATCH_DATE","matchDate","DATE","date","utcDate","kickoff","KICK_OFF"],"")}
+function statusOf(f){return String(pick(f,["MatchStatus","MATCH_STATUS","status","STATUS","matchStatus"],"Scheduled"))}
+function minuteOf(f){return pick(f,["Minute","MINUTE","minute","MATCH_MINUTE","matchMinute"],"")}
+function scorePair(f){
+ let h=pick(f,["HomeScore","HOME_SCORE","homeScore","HOME_GOALS","homeGoals","scoreHome"],null);
+ let a=pick(f,["AwayScore","AWAY_SCORE","awayScore","AWAY_GOALS","awayGoals","scoreAway"],null);
+ if(h===null&&f.Home&&typeof f.Home==="object")h=pick(f.Home,["Goals"],null);
+ if(a===null&&f.Away&&typeof f.Away==="object")a=pick(f.Away,["Goals"],null);
+ return [h===null?"-":h,a===null?"-":a]
+}
+function isLive(f){const s=statusOf(f).toLowerCase();return /live|in.?play|1h|2h|half|active/.test(s)}
+function isDone(f){return /ft|finished|pens|aet/i.test(statusOf(f))}
+function prettyDate(v){
+ if(!v)return "";
+ const d=new Date(v);
+ return isNaN(d)?String(v):d.toLocaleString([],{weekday:"short",hour:"2-digit",minute:"2-digit"});
+}
+function competitionBucket(name){
+ const n=String(name||"").toLowerCase();
+ if(/premier league|championship|league one|league two|fa cup|efl cup|carabao|efl trophy|league trophy/.test(n))return "england";
+ if(/champions league|europa league|conference league/.test(n))return "uefa";
+ if(/world cup|european championship|euros|nations league|qualif|friendl/.test(n))return "international";
+ return "other";
+}
 function setConn(on,text){
  $("conn").classList.toggle("on",on);$("conn").querySelector("span").textContent=text;
  $("bottomState").textContent=on?"Secure feed connected":"Connection error";
  $("bottomSub").textContent=on?"Vercel proxy → Cordax":"Open Setup for status";
 }
-function compName(x){return pick(x,["COMPETITION","competition","name","NAME","competitionName","COMPETITION_NAME"],"")}
-function statusOf(f){return String(pick(f,["MATCH_STATUS","status","STATUS","matchStatus"],"Scheduled"))}
-function homeOf(f){return pick(f,["HOME_TEAM","homeTeam","HOME","home","home_team","HOME_NAME"],"Home")}
-function awayOf(f){return pick(f,["AWAY_TEAM","awayTeam","AWAY","away","away_team","AWAY_NAME"],"Away")}
-function compOf(f){return pick(f,["COMPETITION","competition","COMPETITION_NAME","competitionName"],"")}
-function dateOf(f){return pick(f,["MATCH_DATE","matchDate","DATE","date","utcDate","kickoff","KICK_OFF"],"")}
-function minuteOf(f){return pick(f,["MINUTE","minute","MATCH_MINUTE","matchMinute"],"")}
-function scorePair(f){
- let h=pick(f,["HOME_SCORE","homeScore","HOME_GOALS","homeGoals","scoreHome"],null);
- let a=pick(f,["AWAY_SCORE","awayScore","AWAY_GOALS","awayGoals","scoreAway"],null);
- if(h===null&&f.score&&typeof f.score==="object"){h=pick(f.score,["home","HOME"],null);a=pick(f.score,["away","AWAY"],null)}
- return [h===null?"-":h,a===null?"-":a]
-}
-function isLive(f){const s=statusOf(f).toLowerCase();return /live|in.?play|1h|2h|half|active/.test(s)}
-function isDone(f){return /ft|finished|pens|aet/i.test(statusOf(f))}
-function prettyDate(v){if(!v)return "";const d=new Date(v);return isNaN(d)?String(v):d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
-function matchWantedComp(name){
- const n=norm(name);
- return wanted.find(w=>w.aliases.some(a=>{const q=norm(a);return n===q||n.includes(q)||q.includes(n)}));
-}
-function coverageStatus(w){
- if(!catalogue.length)return {type:"unknown",text:"NOT CHECKED"};
- const names=catalogue.map(compName).filter(Boolean);
- const found=names.find(n=>w.aliases.some(a=>{const x=norm(n),y=norm(a);return x===y||x.includes(y)||y.includes(x)}));
- return found?{type:"yes",text:"FOUND",actual:found}:{type:"no",text:"NOT FOUND"};
-}
-function renderCoverage(){
- $("coverageList").innerHTML=wanted.map(w=>{
-  const s=coverageStatus(w);
-  return `<div class="coverage"><div><b>${esc(w.name)}</b><small>${s.actual?"Cordax: "+esc(s.actual):w.group}</small></div><span class="coverpill ${s.type}">${s.text}</span></div>`
- }).join("");
+function toggleFavorite(comp){
+ favorites=favorites.includes(comp)?favorites.filter(x=>x!==comp):[...favorites,comp];
+ localStorage.setItem("football-live-favorites",JSON.stringify(favorites));
+ renderAll();
 }
 function fixtureCard(f){
- const [hs,as]=scorePair(f), live=isLive(f), done=isDone(f), min=minuteOf(f);
- const status=statusOf(f), comp=compOf(f)||f.__wanted;
+ const [hs,as]=scorePair(f), live=isLive(f), done=isDone(f), min=minuteOf(f), comp=compOf(f);
  return `<article class="card">
   <div class="fixturetop">
-   <div><div class="teams">${esc(homeOf(f))}<br>${esc(awayOf(f))}</div><div class="meta">${esc(comp)} · ${esc(prettyDate(dateOf(f)))}</div><span class="pill ${live?"live":done?"done":""}">${live?"LIVE"+(min?" · "+esc(min)+"'":""):done?"FULL TIME":esc(status)}</span></div>
+   <div>
+    <div class="teams">${esc(homeOf(f))}<br>${esc(awayOf(f))}</div>
+    <div class="meta">${esc(comp)} · ${esc(prettyDate(dateOf(f)))}</div>
+    <span class="pill ${live?"live":done?"done":""}">${live?"LIVE"+(min?" · "+esc(min)+"'":""):done?"FULL TIME":esc(statusOf(f))}</span>
+   </div>
    <div class="score">${esc(hs)}<br>${esc(as)}</div>
   </div>
-  <div class="metrics"><div class="metric"><b>${live?esc(min||"LIVE"):"—"}</b><span>MINUTE</span></div><div class="metric"><b>${esc(hs)}-${esc(as)}</b><span>SCORE</span></div><div class="metric"><b>${done?"FT":live?"LIVE":"NEXT"}</b><span>STATE</span></div></div>
-  <div class="forecast"><div class="forecasthead"><b>Recent-form forecast</b><button class="chip forecastBtn" data-comp="${esc(comp)}" data-home="${esc(homeOf(f))}" data-away="${esc(awayOf(f))}">Calculate</button></div><div class="small forecastText">Uses Cordax's documented head-to-head prediction route where available.</div></div>
+  <div class="metrics">
+   <div class="metric"><b>${live?esc(min||"LIVE"):"—"}</b><span>MINUTE</span></div>
+   <div class="metric"><b>${esc(hs)}-${esc(as)}</b><span>SCORE</span></div>
+   <div class="metric"><b>${done?"FT":live?"LIVE":"NEXT"}</b><span>STATE</span></div>
+  </div>
  </article>`;
 }
-function renderFixtures(){
- const rows=fixtures.filter(f=>group==="all"||f.__group===group);
- $("todayList").innerHTML=rows.length?rows.map(fixtureCard).join(""):'<div class="card"><div class="small">No matching fixtures returned for today.</div></div>';
- const live=fixtures.filter(isLive);
- $("liveList").innerHTML=live.length?live.map(fixtureCard).join(""):'<div class="card"><div class="small">No live matches returned right now.</div></div>';
- bindForecasts();
+function rankFixtures(rows){
+ return [...rows].sort((a,b)=>{
+   const liveDiff=(isLive(b)?1:0)-(isLive(a)?1:0); if(liveDiff)return liveDiff;
+   const favDiff=(favorites.includes(compOf(b))?1:0)-(favorites.includes(compOf(a))?1:0); if(favDiff)return favDiff;
+   return new Date(dateOf(a)||0)-new Date(dateOf(b)||0);
+ });
 }
-function bindForecasts(){
- document.querySelectorAll(".forecastBtn").forEach(b=>b.addEventListener("click",async()=>{
-  const txt=b.closest(".forecast").querySelector(".forecastText");
-  b.disabled=true;txt.textContent="Calculating…";
-  try{
-   const path="/HeadToHead/"+encodeURIComponent(b.dataset.comp)+"/2026-27/"+encodeURIComponent(b.dataset.home)+"/"+encodeURIComponent(b.dataset.away)+"/Predictions";
-   const d=await api(path);
-   txt.textContent="Cordax forecast returned successfully. Raw field mapping will be refined after we inspect a real response.";
-  }catch(e){txt.textContent="Forecast unavailable: "+e.message}
-  b.disabled=false;
- }));
+function filteredFixtures(){
+ let rows=fixtures;
+ if(view==="favorites")rows=rows.filter(f=>favorites.includes(compOf(f)));
+ else if(["england","uefa","international"].includes(view))rows=rows.filter(f=>competitionBucket(compOf(f))===view);
+ return rankFixtures(rows);
 }
-function dedupe(a){
- const m=new Map();a.forEach(f=>m.set([homeOf(f),awayOf(f),dateOf(f),compOf(f)||f.__wanted].join("|"),f));return [...m.values()]
+function renderGrouped(targetId,rows){
+ const target=$(targetId);
+ if(!rows.length){target.innerHTML='<div class="card"><div class="small">No matches in this view.</div></div>';return}
+ const groups=new Map();
+ rows.forEach(f=>{const c=compOf(f);if(!groups.has(c))groups.set(c,[]);groups.get(c).push(f)});
+ const ordered=[...groups.entries()].sort((a,b)=>{
+   const af=favorites.includes(a[0])?1:0,bf=favorites.includes(b[0])?1:0;
+   if(bf-af)return bf-af;
+   const al=a[1].some(isLive)?1:0,bl=b[1].some(isLive)?1:0;
+   if(bl-al)return bl-al;
+   return a[0].localeCompare(b[0]);
+ });
+ target.innerHTML=ordered.map(([comp,rows])=>`
+   <div class="compgroup">
+    <div class="comphead">
+     <div><h3>${esc(comp)}</h3><small>${rows.length} match${rows.length===1?"":"es"}</small></div>
+     <button class="favoriteBtn ${favorites.includes(comp)?"on":""}" data-fav="${encodeURIComponent(comp)}">${favorites.includes(comp)?"★ Favourite":"☆ Favourite"}</button>
+    </div>
+    ${rows.map(fixtureCard).join("")}
+   </div>`).join("");
+ document.querySelectorAll("[data-fav]").forEach(b=>b.addEventListener("click",()=>toggleFavorite(decodeURIComponent(b.dataset.fav))));
 }
-async function loadCoverage(){
- catalogue=arrify(await api("/Competitions"));renderCoverage();
+function renderAll(){
+ renderGrouped("todayList",filteredFixtures());
+ renderGrouped("liveList",rankFixtures(fixtures.filter(isLive)));
+ renderGrouped("favoriteList",rankFixtures(fixtures.filter(f=>favorites.includes(compOf(f)))));
 }
 async function refreshAll(){
  $("liveStamp").textContent="Updating…";
  try{
-  if(!catalogue.length)await loadCoverage();
-  const d=await api("/Fixtures/from/today/to/today");
-  const all=[];
-  arrify(d).forEach(f=>{const w=matchWantedComp(compOf(f));if(w)all.push({...f,__group:w.group,__wanted:w.name})});
-  fixtures=dedupe(all);renderFixtures();
-  $("liveStamp").textContent="Updated "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  setConn(true,"LIVE");
-  $("backendStatus").className="ok";$("backendStatus").textContent="Secure backend connected. Cordax token is server-side.";
+   const d=await api("/Fixtures/from/today/to/today");
+   fixtures=arrify(d);
+   renderAll();
+   setConn(true,"LIVE");
+   $("liveStamp").textContent="Updated "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+   $("backendStatus").className="ok";$("backendStatus").textContent=`Secure backend connected. ${fixtures.length} fixtures returned today.`;
  }catch(e){
-  setConn(false,"ERROR");$("liveStamp").textContent="Update failed";
-  $("backendStatus").className="error";$("backendStatus").textContent=e.message;
+   setConn(false,"ERROR");
+   $("backendStatus").className="error";$("backendStatus").textContent=e.message;
  }
 }
 document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>{
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));b.classList.add("active");
  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));$(b.dataset.page).classList.add("active");
 }));
-document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{
- document.querySelectorAll("[data-group]").forEach(x=>x.classList.remove("active"));b.classList.add("active");group=b.dataset.group;renderFixtures();
+document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll("[data-view]").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+ view=b.dataset.view;renderAll();
 }));
-$("checkCoverage").addEventListener("click",()=>loadCoverage().catch(e=>{$("backendStatus").textContent=e.message}));
 $("testBackend").addEventListener("click",refreshAll);
 $("refreshNow").addEventListener("click",refreshAll);
-renderCoverage();
 refreshAll();
-timer=setInterval(refreshAll,60000);
+setInterval(refreshAll,60000);
 </script>
 </body>
 </html>
