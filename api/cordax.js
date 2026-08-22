@@ -1,71 +1,69 @@
-const ALLOWED_PREFIXES = [
+const ALLOWED_PREFIXES=[
   "/Competitions",
-  "/Fixtures/",
-  "/HeadToHead/"
+  "/Competition",
+  "/CompetitionSeasons",
+  "/Fixtures",
+  "/HeadToHead/",
+  "/Standings/"
 ];
 
-module.exports = async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+module.exports=async function handler(req,res){
+  if(req.method!=="GET")return res.status(405).json({error:"Method not allowed"});
 
-  const token = process.env.CORDAX_TOKEN;
+  const token=process.env.CORDAX_TOKEN;
 
-  if (!token) {
-    return res.status(500).json({
-      error: "CORDAX_TOKEN is not configured on Vercel"
-    });
-  }
+  if(!token)return res.status(500).json({
+    error:"CORDAX_TOKEN is not configured on Vercel"
+  });
 
-  const path =
-    typeof req.query.path === "string"
-      ? req.query.path
-      : "";
+  const path=typeof req.query.path==="string"
+    ? req.query.path
+    : "";
 
-  if (
+  if(
     !path.startsWith("/") ||
-    !ALLOWED_PREFIXES.some(prefix => path.startsWith(prefix))
-  ) {
+    !ALLOWED_PREFIXES.some(p=>path.startsWith(p))
+  ){
     return res.status(400).json({
-      error: "Unsupported Cordax route"
+      error:"Unsupported Cordax route"
     });
   }
 
-  try {
-    const upstream = await fetch(
-      "https://api.cordax.net" + path,
+  try{
+    const upstream=await fetch(
+      "https://api.cordax.net"+path,
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json"
+        headers:{
+          Authorization:`Bearer ${token}`,
+          Accept:"application/json"
         }
       }
     );
 
-    const text = await upstream.text();
+    const text=await upstream.text();
 
     res.setHeader(
       "Cache-Control",
+      path.startsWith("/Standings/") ||
       path.startsWith("/Competitions")
-        ? "s-maxage=3600, stale-while-revalidate=86400"
+        ? "s-maxage=300, stale-while-revalidate=1800"
         : "s-maxage=15, stale-while-revalidate=30"
     );
 
-    const contentType =
-      upstream.headers.get("content-type") || "";
+    const ct=upstream.headers.get("content-type")||"";
 
-    if (contentType.includes("application/json")) {
-      try {
+    if(ct.includes("application/json")){
+      try{
         return res
           .status(upstream.status)
           .json(JSON.parse(text));
-      } catch (_) {}
+      }catch{}
     }
 
-    if (!upstream.ok) {
+    if(!upstream.ok){
       return res.status(upstream.status).json({
-        error: `Cordax returned ${upstream.status}`,
-        detail: text.slice(0, 300)
+        error:`Cordax returned ${upstream.status}`,
+        detail:text.slice(0,300)
       });
     }
 
@@ -78,13 +76,12 @@ module.exports = async function handler(req, res) {
       .status(upstream.status)
       .send(text);
 
-  } catch (error) {
+  }catch(e){
+
     return res.status(502).json({
-      error: "Could not reach Cordax",
-      detail:
-        error && error.message
-          ? error.message
-          : String(error)
+      error:"Could not reach Cordax",
+      detail:e?.message||String(e)
     });
+
   }
 };
