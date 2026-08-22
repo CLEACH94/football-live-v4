@@ -1,83 +1,61 @@
 const API = "https://v3.football.api-sports.io";
+const MODEL_VERSION = "v11-strength-calibrated";
 
 const LEAGUES = {
-  "premier league": { id: 39, score: 1.00, label: "Premier" },
-  "championship": { id: 40, score: 0.86, label: "Championship" },
-  "league one": { id: 41, score: 0.74, label: "League One" },
-  "league two": { id: 42, score: 0.64, label: "League Two" },
-
-  "fa cup": { id: 45, score: 0.78, label: "FA Cup" },
-  "league cup": { id: 48, score: 0.78, label: "League Cup" },
-  "efl cup": { id: 48, score: 0.78, label: "League Cup" },
-
-  "champions league": { id: 2, score: 1.00, label: "Champions League" },
-  "uefa champions league": { id: 2, score: 1.00, label: "Champions League" },
-
-  "europa league": { id: 3, score: 0.92, label: "Europa League" },
-  "uefa europa league": { id: 3, score: 0.92, label: "Europa League" },
-
-  "conference league": { id: 848, score: 0.84, label: "Conference League" },
-  "uefa conference league": { id: 848, score: 0.84, label: "Conference League" }
+  39: { score: 1.0, label: "Premier League" },
+  40: { score: 0.9, label: "Championship" },
+  41: { score: 0.82, label: "League One" },
+  42: { score: 0.76, label: "League Two" },
+  45: { score: 0.82, label: "FA Cup" },
+  48: { score: 0.82, label: "League Cup" },
+  2: { score: 1.0, label: "Champions League" },
+  3: { score: 0.94, label: "Europa League" },
+  848: { score: 0.88, label: "Conference League" }
 };
 
 const cache = new Map();
 
-function norm(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[’']/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
+function clamp(x, a, b) {
+  return Math.max(a, Math.min(b, x));
 }
 
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
+function num(v, fallback = null) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
 }
 
 function seasonFor(date) {
   const d = new Date(date);
-  const year = d.getUTCFullYear();
-  const month = d.getUTCMonth() + 1;
-
-  return month >= 7 ? year : year - 1;
+  const y = d.getUTCFullYear();
+  return d.getUTCMonth() + 1 >= 7 ? y : y - 1;
 }
 
 function factorial(n) {
-  let result = 1;
-
-  for (let i = 2; i <= n; i++) {
-    result *= i;
-  }
-
-  return result;
+  let r = 1;
+  for (let i = 2; i <= n; i++) r *= i;
+  return r;
 }
 
 function poisson(k, lambda) {
-  return (
-    Math.exp(-lambda) *
-    Math.pow(lambda, k) /
-    factorial(k)
-  );
+  return Math.exp(-lambda) * Math.pow(lambda, k) / factorial(k);
 }
 
-function scoreMatrix(lambdaHome, lambdaAway) {
+function scoreMatrix(lh, la) {
   let home = 0;
   let draw = 0;
   let away = 0;
+  let total = 0;
 
-  for (let h = 0; h <= 8; h++) {
-    for (let a = 0; a <= 8; a++) {
-      const p =
-        poisson(h, lambdaHome) *
-        poisson(a, lambdaAway);
+  for (let h = 0; h <= 9; h++) {
+    for (let a = 0; a <= 9; a++) {
+      const p = poisson(h, lh) * poisson(a, la);
+      total += p;
 
       if (h > a) home += p;
       else if (h === a) draw += p;
       else away += p;
     }
   }
-
-  const total = home + draw + away;
 
   return {
     home: home / total,
@@ -87,14 +65,12 @@ function scoreMatrix(lambdaHome, lambdaAway) {
 }
 
 async function api(path, key, ttl = 0) {
-  const cacheKey = path;
-
   if (
     ttl &&
-    cache.has(cacheKey) &&
-    Date.now() - cache.get(cacheKey).time < ttl
+    cache.has(path) &&
+    Date.now() - cache.get(path).time < ttl
   ) {
-    return cache.get(cacheKey).data;
+    return cache.get(path).data;
   }
 
   const response = await fetch(API + path, {
@@ -106,9 +82,7 @@ async function api(path, key, ttl = 0) {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      `API-Football HTTP ${response.status}`
-    );
+    throw new Error(`API-Football HTTP ${response.status}`);
   }
 
   if (
@@ -120,14 +94,14 @@ async function api(path, key, ttl = 0) {
     )
   ) {
     throw new Error(
-      typeof data.errors === "string"
-        ? data.errors
+      Array.isArray(data.errors)
+        ? data.errors.join(", ")
         : JSON.stringify(data.errors)
     );
   }
 
   if (ttl) {
-    cache.set(cacheKey, {
+    cache.set(path, {
       time: Date.now(),
       data
     });
@@ -136,140 +110,139 @@ async function api(path, key, ttl = 0) {
   return data;
 }
 
-function responseRows(data) {
+function rows(data) {
   return Array.isArray(data?.response)
     ? data.response
     : [];
 }
 
-function teamName(fixture, side) {
-  return fixture?.teams?.[side]?.name || "";
+function done(fixture) {
+  return ["FT", "AET", "PEN"].includes(
+    fixture?.fixture?.status?.short || ""
+  );
 }
 
-function fixtureDate(fixture) {
-  return fixture?.fixture?.date || "";
+function beforeDate(fixture, before) {
+  return new Date(
+    fixture?.fixture?.date || 0
+  ) < before;
 }
 
-function completed(fixture) {
-  const status =
-    fixture?.fixture?.status?.short || "";
-
-  return [
-    "FT",
-    "AET",
-    "PEN"
-  ].includes(status);
+function teamSide(fixture, id) {
+  if (fixture?.teams?.home?.id === id) return "home";
+  if (fixture?.teams?.away?.id === id) return "away";
+  return null;
 }
 
-function scores(fixture) {
-  const home = fixture?.goals?.home;
-  const away = fixture?.goals?.away;
+function gfga(fixture, id) {
+  const side = teamSide(fixture, id);
 
-  return [
-    Number.isFinite(Number(home))
-      ? Number(home)
-      : null,
+  if (!side) return null;
 
-    Number.isFinite(Number(away))
-      ? Number(away)
-      : null
-  ];
+  const h = num(fixture?.goals?.home);
+  const a = num(fixture?.goals?.away);
+
+  if (h === null || a === null) return null;
+
+  return side === "home"
+    ? [h, a]
+    : [a, h];
 }
 
-function gfga(fixture, teamId) {
-  const [homeGoals, awayGoals] =
-    scores(fixture);
-
-  if (
-    homeGoals === null ||
-    awayGoals === null
-  ) {
-    return null;
-  }
-
-  const isHome =
-    fixture?.teams?.home?.id === teamId;
-
-  return isHome
-    ? [homeGoals, awayGoals]
-    : [awayGoals, homeGoals];
-}
-
-function lastFive(rows, teamId, before) {
-  return rows
-    .filter(completed)
-    .filter(f =>
-      f?.teams?.home?.id === teamId ||
-      f?.teams?.away?.id === teamId
-    )
-    .filter(f =>
-      new Date(fixtureDate(f)) < before
-    )
+function recentMatches(
+  all,
+  id,
+  before,
+  limit = 20,
+  side = null
+) {
+  return all
+    .filter(done)
+    .filter(f => beforeDate(f, before))
+    .filter(f => teamSide(f, id))
+    .filter(f => !side || teamSide(f, id) === side)
     .sort(
       (a, b) =>
-        new Date(fixtureDate(b)) -
-        new Date(fixtureDate(a))
+        new Date(b.fixture.date) -
+        new Date(a.fixture.date)
     )
-    .slice(0, 5);
+    .slice(0, limit);
 }
 
-function weighted(rows, teamId, index) {
-  const weights = [5, 4, 3, 2, 1];
+function weightedAverage(list, id, index) {
+  if (!list.length) return null;
 
   let numerator = 0;
   let denominator = 0;
 
-  rows.forEach((fixture, i) => {
-    const values = gfga(
-      fixture,
-      teamId
-    );
+  list.forEach((fixture, i) => {
+    const values = gfga(fixture, id);
 
     if (!values) return;
 
-    numerator +=
-      values[index] * weights[i];
+    const weight = Math.pow(0.9, i);
 
-    denominator += weights[i];
+    numerator += values[index] * weight;
+    denominator += weight;
   });
 
   return denominator
     ? numerator / denominator
-    : 0;
+    : null;
 }
 
-function form(rows, teamId) {
-  return rows.map(fixture => {
-    const values = gfga(
-      fixture,
-      teamId
-    );
+function ppg(list, id) {
+  if (!list.length) return 1.35;
 
-    if (!values) return "D";
+  let numerator = 0;
+  let denominator = 0;
 
-    if (values[0] > values[1]) {
-      return "W";
-    }
-
-    if (values[0] < values[1]) {
-      return "L";
-    }
-
-    return "D";
-  });
-}
-
-function rawHit(rows, rule, teamId) {
-  if (!rows.length) return 0;
-
-  let hits = 0;
-  let valid = 0;
-
-  rows.forEach(fixture => {
-    const values =
-      gfga(fixture, teamId);
+  list.forEach((fixture, i) => {
+    const values = gfga(fixture, id);
 
     if (!values) return;
+
+    const points =
+      values[0] > values[1]
+        ? 3
+        : values[0] === values[1]
+        ? 1
+        : 0;
+
+    const weight = Math.pow(0.92, i);
+
+    numerator += points * weight;
+    denominator += weight;
+  });
+
+  return denominator
+    ? numerator / denominator
+    : 1.35;
+}
+
+function form(list, id) {
+  return list
+    .slice(0, 5)
+    .map(fixture => {
+      const values = gfga(fixture, id);
+
+      if (!values) return "D";
+
+      if (values[0] > values[1]) return "W";
+      if (values[0] < values[1]) return "L";
+
+      return "D";
+    });
+}
+
+function hitRate(list, rule, id) {
+  let hit = 0;
+  let valid = 0;
+
+  for (const fixture of list.slice(0, 10)) {
+    const values = gfga(fixture, id);
+
+    if (!values) continue;
 
     valid++;
 
@@ -277,180 +250,170 @@ function rawHit(rows, rule, teamId) {
     const ga = values[1];
     const total = gf + ga;
 
-    if (
-      rule === "team05" &&
-      gf >= 1
-    ) {
-      hits++;
-    }
-
-    if (
-      rule === "over15" &&
-      total >= 2
-    ) {
-      hits++;
-    }
-
-    if (
-      rule === "over25" &&
-      total >= 3
-    ) {
-      hits++;
-    }
-
-    if (
-      rule === "btts" &&
-      gf > 0 &&
-      ga > 0
-    ) {
-      hits++;
-    }
-
-    if (
-      rule === "nonloss" &&
-      gf >= ga
-    ) {
-      hits++;
-    }
-
-    if (
-      rule === "win" &&
-      gf > ga
-    ) {
-      hits++;
-    }
-  });
+    if (rule === "team05" && gf >= 1) hit++;
+    if (rule === "over15" && total >= 2) hit++;
+    if (rule === "over25" && total >= 3) hit++;
+    if (rule === "under35" && total <= 3) hit++;
+    if (rule === "under45" && total <= 4) hit++;
+    if (rule === "btts" && gf > 0 && ga > 0) hit++;
+    if (rule === "nonloss" && gf >= ga) hit++;
+    if (rule === "win" && gf > ga) hit++;
+    if (rule === "draw" && gf === ga) hit++;
+  }
 
   return valid
-    ? Math.round(
-        (hits / valid) * 100
-      )
+    ? Math.round((hit / valid) * 100)
     : 0;
 }
 
-function calibrated(p, confidence) {
-  const shrink =
-    0.45 +
-    0.45 *
-      (confidence / 100);
+function seasonAvg(stats, path, fallback) {
+  try {
+    let current = stats?.response;
 
-  return clamp(
-    0.5 +
-      (p - 0.5) * shrink,
-    0.05,
-    0.95
-  );
+    for (const part of path) {
+      current = current?.[part];
+    }
+
+    return num(current, fallback);
+  } catch {
+    return fallback;
+  }
 }
 
-async function findTeam(
-  name,
-  key,
-  suppliedId = null
-) {
-  if (
-    suppliedId &&
-    Number.isFinite(
-      Number(suppliedId)
-    )
-  ) {
-    return {
-      id: Number(suppliedId),
-      name
-    };
-  }
-
-  const data = await api(
-    `/teams?search=${encodeURIComponent(
-      name
-    )}`,
-    key,
-    300000
-  );
-
-  const rows = responseRows(data);
-
-  if (!rows.length) {
-    throw new Error(
-      `Team not found: ${name}`
-    );
-  }
-
-  const exact = rows.find(row =>
-    norm(row?.team?.name) ===
-    norm(name)
-  );
-
-  const chosen =
-    exact || rows[0];
-
-  return {
-    id: chosen.team.id,
-    name: chosen.team.name
-  };
-}
-
-function findStanding(
-  standingsData,
-  teamId
-) {
-  const league =
-    standingsData?.response?.[0]
-      ?.league;
-
+function standing(data, teamId) {
   const tables =
-    league?.standings || [];
+    data?.response?.[0]
+      ?.league
+      ?.standings || [];
 
-  const table =
-    tables.flat();
+  const flat = tables.flat();
 
-  const row = table.find(
+  const row = flat.find(
     x => x?.team?.id === teamId
   );
 
   if (!row) return null;
 
-  const position =
-    Number(row.rank);
-
-  const count =
-    table.length;
-
   return {
-    pos: position,
-
-    percentile:
-      Number.isFinite(position) &&
-      count > 1
-        ? 1 -
-          (position - 1) /
-            (count - 1)
-        : 0.5
+    pos: num(row.rank),
+    total: flat.length,
+    points: num(row.points),
+    gd: num(row.goalsDiff, 0)
   };
 }
 
-async function getH2H(
-  homeId,
-  awayId,
-  key
+function shrink(
+  observed,
+  sample,
+  baseline,
+  strength = 8
 ) {
-  try {
-    const data = await api(
-      `/fixtures/headtohead?h2h=${homeId}-${awayId}&last=5`,
-      key,
-      300000
-    );
-
-    return responseRows(data)
-      .filter(completed)
-      .slice(0, 5);
-
-  } catch {
-    return [];
+  if (!Number.isFinite(observed)) {
+    return baseline;
   }
+
+  const weight =
+    sample / (sample + strength);
+
+  return (
+    observed * weight +
+    baseline * (1 - weight)
+  );
 }
 
-module.exports =
-async function handler(req, res) {
+function goalDistribution(lh, la) {
+  const total = lh + la;
+
+  const over15 =
+    1 -
+    Math.exp(-total) *
+      (1 + total);
+
+  const over25 =
+    1 -
+    Math.exp(-total) *
+      (
+        1 +
+        total +
+        total * total / 2
+      );
+
+  const under35 =
+    Math.exp(-total) *
+    (
+      1 +
+      total +
+      total ** 2 / 2 +
+      total ** 3 / 6
+    );
+
+  const under45 =
+    under35 +
+    Math.exp(-total) *
+      total ** 4 / 24;
+
+  return {
+    over15,
+    over25,
+    under35,
+    under45
+  };
+}
+
+function dataConfidence({
+  homeN,
+  awayN,
+  homeSplitN,
+  awaySplitN,
+  hasSeason,
+  hasTable,
+  h2hN,
+  leagueScore
+}) {
+  let confidence = 45;
+
+  confidence += Math.min(
+    18,
+    (homeN + awayN) * 0.65
+  );
+
+  confidence += Math.min(
+    10,
+    (homeSplitN + awaySplitN) * 0.8
+  );
+
+  if (hasSeason) confidence += 10;
+  if (hasTable) confidence += 5;
+  if (h2hN >= 3) confidence += 3;
+
+  confidence += leagueScore * 4;
+
+  return Math.round(
+    clamp(confidence, 50, 96)
+  );
+}
+
+function confidenceCalibrate(
+  probability,
+  confidence
+) {
+  const reliability =
+    0.52 +
+    0.43 * (confidence / 100);
+
+  return clamp(
+    0.5 +
+      (probability - 0.5) *
+        reliability,
+    0.04,
+    0.96
+  );
+}
+
+module.exports = async function handler(
+  req,
+  res
+) {
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Method not allowed"
@@ -462,332 +425,617 @@ async function handler(req, res) {
 
   if (!key) {
     return res.status(500).json({
-      error:
-        "API_FOOTBALL_KEY missing"
+      error: "API_FOOTBALL_KEY missing"
     });
   }
 
-  const {
-    homeTeam,
-    awayTeam,
-    competition,
-    fixtureDate: requestedDate,
-    homeTeamId,
-    awayTeamId,
-    leagueId,
-    season
-  } = req.body || {};
+  const body = req.body || {};
+
+  const homeId = num(body.homeTeamId);
+  const awayId = num(body.awayTeamId);
+  const leagueId = num(body.leagueId);
+
+  const before = new Date(
+    body.fixtureDate || Date.now()
+  );
+
+  const season = num(
+    body.season,
+    seasonFor(before)
+  );
 
   if (
-    !homeTeam ||
-    !awayTeam
+    !homeId ||
+    !awayId ||
+    !body.homeTeam ||
+    !body.awayTeam
   ) {
     return res.status(400).json({
-      error:
-        "Missing fixture fields"
+      error: "Missing fixture/team IDs"
     });
   }
 
   try {
-    const before =
-      new Date(
-        requestedDate ||
-        Date.now()
-      );
-
-    const seasonYear =
-      Number(season) ||
-      seasonFor(before);
-
-    const leagueInfo =
-      LEAGUES[norm(competition)] ||
-      null;
-
-    const resolvedLeagueId =
-      Number(leagueId) ||
-      leagueInfo?.id ||
-      null;
-
     const [
-      home,
-      away
-    ] = await Promise.all([
-      findTeam(
-        homeTeam,
-        key,
-        homeTeamId
-      ),
-
-      findTeam(
-        awayTeam,
-        key,
-        awayTeamId
-      )
-    ]);
-
-    const [
-      homeData,
-      awayData
+      homeRecentData,
+      awayRecentData
     ] = await Promise.all([
       api(
-        `/fixtures?team=${home.id}&last=10`,
+        `/fixtures?team=${homeId}&last=20`,
         key,
         120000
       ),
 
       api(
-        `/fixtures?team=${away.id}&last=10`,
+        `/fixtures?team=${awayId}&last=20`,
         key,
         120000
       )
     ]);
 
     const homeAll =
-      responseRows(homeData);
+      rows(homeRecentData);
 
     const awayAll =
-      responseRows(awayData);
+      rows(awayRecentData);
 
-    const home5 =
-      lastFive(
+    const home20 =
+      recentMatches(
         homeAll,
-        home.id,
-        before
+        homeId,
+        before,
+        20
       );
 
-    const away5 =
-      lastFive(
+    const away20 =
+      recentMatches(
         awayAll,
-        away.id,
-        before
+        awayId,
+        before,
+        20
+      );
+
+    const homeHome =
+      recentMatches(
+        homeAll,
+        homeId,
+        before,
+        10,
+        "home"
+      );
+
+    const awayAway =
+      recentMatches(
+        awayAll,
+        awayId,
+        before,
+        10,
+        "away"
       );
 
     if (
-      home5.length < 3 ||
-      away5.length < 3
+      home20.length < 5 ||
+      away20.length < 5
     ) {
-      return res
-        .status(422)
-        .json({
-          error:
-            "Not enough recent completed matches"
-        });
+      return res.status(422).json({
+        error:
+          "Not enough recent completed matches"
+      });
     }
 
-    let homeStanding = null;
-    let awayStanding = null;
+    let homeStats = null;
+    let awayStats = null;
+    let standings = null;
+    let h2h = [];
 
-    if (resolvedLeagueId) {
-      try {
-        const standings =
-          await api(
-            `/standings?league=${resolvedLeagueId}&season=${seasonYear}`,
-            key,
-            300000
+    if (leagueId) {
+      const date =
+        before
+          .toISOString()
+          .slice(0, 10);
+
+      const [
+        hs,
+        as,
+        st,
+        hh
+      ] = await Promise.all([
+        api(
+          `/teams/statistics?league=${leagueId}&season=${season}&team=${homeId}&date=${date}`,
+          key,
+          300000
+        ).catch(() => null),
+
+        api(
+          `/teams/statistics?league=${leagueId}&season=${season}&team=${awayId}&date=${date}`,
+          key,
+          300000
+        ).catch(() => null),
+
+        api(
+          `/standings?league=${leagueId}&season=${season}`,
+          key,
+          300000
+        ).catch(() => null),
+
+        api(
+          `/fixtures/headtohead?h2h=${homeId}-${awayId}&last=5`,
+          key,
+          300000
+        ).catch(() => null)
+      ]);
+
+      homeStats = hs;
+      awayStats = as;
+      standings = st;
+
+      h2h =
+        rows(hh)
+          .filter(done)
+          .slice(0, 5);
+    }
+
+    const hGF20 =
+      weightedAverage(
+        home20,
+        homeId,
+        0
+      ) ?? 1.25;
+
+    const hGA20 =
+      weightedAverage(
+        home20,
+        homeId,
+        1
+      ) ?? 1.25;
+
+    const aGF20 =
+      weightedAverage(
+        away20,
+        awayId,
+        0
+      ) ?? 1.25;
+
+    const aGA20 =
+      weightedAverage(
+        away20,
+        awayId,
+        1
+      ) ?? 1.25;
+
+    const hGFhome =
+      weightedAverage(
+        homeHome,
+        homeId,
+        0
+      );
+
+    const hGAhome =
+      weightedAverage(
+        homeHome,
+        homeId,
+        1
+      );
+
+    const aGFaway =
+      weightedAverage(
+        awayAway,
+        awayId,
+        0
+      );
+
+    const aGAaway =
+      weightedAverage(
+        awayAway,
+        awayId,
+        1
+      );
+
+    const hsPlayedHome =
+      seasonAvg(
+        homeStats,
+        ["fixtures", "played", "home"],
+        0
+      );
+
+    const asPlayedAway =
+      seasonAvg(
+        awayStats,
+        ["fixtures", "played", "away"],
+        0
+      );
+
+    const hsGFhome =
+      seasonAvg(
+        homeStats,
+        [
+          "goals",
+          "for",
+          "average",
+          "home"
+        ],
+        null
+      );
+
+    const hsGAhome =
+      seasonAvg(
+        homeStats,
+        [
+          "goals",
+          "against",
+          "average",
+          "home"
+        ],
+        null
+      );
+
+    const asGFaway =
+      seasonAvg(
+        awayStats,
+        [
+          "goals",
+          "for",
+          "average",
+          "away"
+        ],
+        null
+      );
+
+    const asGAaway =
+      seasonAvg(
+        awayStats,
+        [
+          "goals",
+          "against",
+          "average",
+          "away"
+        ],
+        null
+      );
+
+    const hSeasonTotalGF =
+      seasonAvg(
+        homeStats,
+        [
+          "goals",
+          "for",
+          "average",
+          "total"
+        ],
+        null
+      );
+
+    const aSeasonTotalGF =
+      seasonAvg(
+        awayStats,
+        [
+          "goals",
+          "for",
+          "average",
+          "total"
+        ],
+        null
+      );
+
+    const availableBaseline =
+      [
+        hSeasonTotalGF,
+        aSeasonTotalGF
+      ].filter(Number.isFinite);
+
+    const leagueBaseline =
+      clamp(
+        availableBaseline.length
+          ? availableBaseline.reduce(
+              (a, b) => a + b,
+              0
+            ) /
+              availableBaseline.length
+          : 1.35,
+        0.95,
+        1.85
+      );
+
+    const recentHomeAttack =
+      shrink(
+        hGFhome ?? hGF20,
+        homeHome.length,
+        leagueBaseline,
+        7
+      );
+
+    const recentHomeDef =
+      shrink(
+        hGAhome ?? hGA20,
+        homeHome.length,
+        leagueBaseline,
+        7
+      );
+
+    const recentAwayAttack =
+      shrink(
+        aGFaway ?? aGF20,
+        awayAway.length,
+        leagueBaseline,
+        7
+      );
+
+    const recentAwayDef =
+      shrink(
+        aGAaway ?? aGA20,
+        awayAway.length,
+        leagueBaseline,
+        7
+      );
+
+    const seasonHomeAttack =
+      shrink(
+        hsGFhome ??
+          recentHomeAttack,
+        hsPlayedHome,
+        leagueBaseline,
+        10
+      );
+
+    const seasonHomeDef =
+      shrink(
+        hsGAhome ??
+          recentHomeDef,
+        hsPlayedHome,
+        leagueBaseline,
+        10
+      );
+
+    const seasonAwayAttack =
+      shrink(
+        asGFaway ??
+          recentAwayAttack,
+        asPlayedAway,
+        leagueBaseline,
+        10
+      );
+
+    const seasonAwayDef =
+      shrink(
+        asGAaway ??
+          recentAwayDef,
+        asPlayedAway,
+        leagueBaseline,
+        10
+      );
+
+    let expHome =
+      0.52 * recentHomeAttack +
+      0.23 * seasonHomeAttack +
+      0.25 * seasonAwayDef;
+
+    let expAway =
+      0.52 * recentAwayAttack +
+      0.23 * seasonAwayAttack +
+      0.25 * seasonHomeDef;
+
+    const hPpg =
+      ppg(home20, homeId);
+
+    const aPpg =
+      ppg(away20, awayId);
+
+    expHome *= clamp(
+      1 +
+        (hPpg - aPpg) * 0.055,
+      0.88,
+      1.13
+    );
+
+    expAway *= clamp(
+      1 +
+        (aPpg - hPpg) * 0.05,
+      0.89,
+      1.12
+    );
+
+    const homeStanding =
+      standing(
+        standings,
+        homeId
+      );
+
+    const awayStanding =
+      standing(
+        standings,
+        awayId
+      );
+
+    if (
+      homeStanding &&
+      awayStanding &&
+      homeStanding.total > 1
+    ) {
+      const tableDelta =
+        (
+          awayStanding.pos -
+          homeStanding.pos
+        ) /
+        (
+          homeStanding.total -
+          1
+        );
+
+      const seasonSample =
+        Math.min(
+          hsPlayedHome +
+            asPlayedAway,
+          20
+        ) / 20;
+
+      expHome *=
+        1 +
+        tableDelta *
+          0.1 *
+          seasonSample;
+
+      expAway *=
+        1 -
+        tableDelta *
+          0.08 *
+          seasonSample;
+    }
+
+    expHome *= 1.055;
+    expAway *= 0.975;
+
+    if (h2h.length >= 3) {
+      let h2hHomeGF = 0;
+      let h2hAwayGF = 0;
+      let count = 0;
+
+      for (const fixture of h2h) {
+        const hg =
+          num(
+            fixture?.goals?.home
           );
 
-        homeStanding =
-          findStanding(
-            standings,
-            home.id
+        const ag =
+          num(
+            fixture?.goals?.away
           );
 
-        awayStanding =
-          findStanding(
-            standings,
-            away.id
-          );
+        if (
+          hg === null ||
+          ag === null
+        ) {
+          continue;
+        }
 
-      } catch {
-        // Standings aren't available
-        // for every cup/competition.
+        if (
+          fixture?.teams
+            ?.home?.id ===
+          homeId
+        ) {
+          h2hHomeGF += hg;
+          h2hAwayGF += ag;
+        } else {
+          h2hHomeGF += ag;
+          h2hAwayGF += hg;
+        }
+
+        count++;
+      }
+
+      if (count) {
+        expHome =
+          expHome * 0.96 +
+          (
+            h2hHomeGF /
+            count
+          ) * 0.04;
+
+        expAway =
+          expAway * 0.96 +
+          (
+            h2hAwayGF /
+            count
+          ) * 0.04;
       }
     }
 
-    const h2h =
-      await getH2H(
-        home.id,
-        away.id,
-        key
-      );
-
-    const hGF =
-      weighted(
-        home5,
-        home.id,
-        0
-      );
-
-    const hGA =
-      weighted(
-        home5,
-        home.id,
-        1
-      );
-
-    const aGF =
-      weighted(
-        away5,
-        away.id,
-        0
-      );
-
-    const aGA =
-      weighted(
-        away5,
-        away.id,
-        1
-      );
-
-    const tableDelta =
-      homeStanding &&
-      awayStanding
-        ? homeStanding.percentile -
-          awayStanding.percentile
-        : 0;
-
-    const tierScore =
-      leagueInfo?.score || 0.78;
-
-    const baseHome =
-      hGF * 0.58 +
-      aGA * 0.42;
-
-    const baseAway =
-      aGF * 0.58 +
-      hGA * 0.42;
-
-    const expectedHome =
+    expHome =
       clamp(
-        baseHome *
-          1.08 *
-          (
-            1 +
-            tableDelta * 0.20
-          ),
+        expHome,
+        0.18,
+        3.6
+      );
+
+    expAway =
+      clamp(
+        expAway,
         0.15,
-        3.8
+        3.4
       );
-
-    const expectedAway =
-      clamp(
-        baseAway *
-          (1 / 1.08) *
-          (
-            1 -
-            tableDelta * 0.20
-          ),
-        0.12,
-        3.5
-      );
-
-    const totalExpected =
-      expectedHome +
-      expectedAway;
 
     const matrix =
       scoreMatrix(
-        expectedHome,
-        expectedAway
+        expHome,
+        expAway
       );
 
-    const probabilities = {
-      home05:
-        1 -
-        Math.exp(-expectedHome),
+    const goals =
+      goalDistribution(
+        expHome,
+        expAway
+      );
 
-      away05:
-        1 -
-        Math.exp(-expectedAway),
+    const home05 =
+      1 -
+      Math.exp(-expHome);
 
-      over15:
-        1 -
-        Math.exp(
-          -totalExpected
-        ) *
-        (
-          1 +
-          totalExpected
-        ),
+    const away05 =
+      1 -
+      Math.exp(-expAway);
 
-      over25:
-        1 -
-        Math.exp(
-          -totalExpected
-        ) *
-        (
-          1 +
-          totalExpected +
-          (
-            totalExpected *
-            totalExpected
-          ) / 2
-        ),
+    const btts =
+      home05 * away05;
 
-      btts:
-        (
-          1 -
-          Math.exp(
-            -expectedHome
-          )
-        ) *
-        (
-          1 -
-          Math.exp(
-            -expectedAway
-          )
-        ),
+    const leagueInfo =
+      LEAGUES[leagueId] || {
+        score: 0.8,
+        label:
+          body.competition ||
+          "Competition"
+      };
 
-      homeWin:
-        matrix.home,
+    const confidence =
+      dataConfidence({
+        homeN:
+          home20.length,
 
-      awayWin:
-        matrix.away,
+        awayN:
+          away20.length,
 
-      homeOrDraw:
-        matrix.home +
-        matrix.draw,
+        homeSplitN:
+          homeHome.length,
 
-      awayOrDraw:
-        matrix.away +
-        matrix.draw
-    };
+        awaySplitN:
+          awayAway.length,
 
-    const dataConfidence =
-      Math.round(
-        clamp(
-          60 +
-          (
-            home5.length +
-            away5.length
-          ) * 2 +
-          (
+        hasSeason:
+          !!(
+            homeStats &&
+            awayStats
+          ),
+
+        hasTable:
+          !!(
             homeStanding &&
             awayStanding
-              ? 12
-              : 0
-          ) +
-          (
-            h2h.length
-              ? 8
-              : 0
-          ) +
-          tierScore * 5,
-          55,
-          96
-        )
-      );
+          ),
 
-    const makePrediction =
-      (
-        type,
-        title,
-        rule,
-        probability,
-        last5HitRate
-      ) => ({
+        h2hN:
+          h2h.length,
+
+        leagueScore:
+          leagueInfo.score
+      });
+
+    const makePrediction = (
+      type,
+      title,
+      rule,
+      rawProbability,
+      hit
+    ) => {
+      const calibrated =
+        confidenceCalibrate(
+          rawProbability,
+          confidence
+        );
+
+      return {
         id:
-          `${home.name}|${away.name}|${rule}`,
+          `${
+            body.fixtureId ||
+            "fixture"
+          }|${rule}`,
 
         type,
         title,
@@ -795,28 +1043,30 @@ async function handler(req, res) {
 
         p:
           Math.round(
-            calibrated(
-              probability,
-              dataConfidence
-            ) * 100
+            calibrated * 100
+          ),
+
+        rawP:
+          Math.round(
+            rawProbability * 100
           ),
 
         explanation:
-          `Expected goals ${expectedHome.toFixed(
+          `Built from last-20 recency-weighted form, home/away splits, current-season attack/defence rates, opponent strength, home advantage and small table/H2H adjustments. Expected goals ${expHome.toFixed(
             2
-          )}-${expectedAway.toFixed(
+          )}–${expAway.toFixed(
             2
-          )}. Recent attack and defence are adjusted for opponent strength, home advantage and table position where available.`,
+          )}.`,
 
         stats: {
           expectedHome:
             Number(
-              expectedHome.toFixed(2)
+              expHome.toFixed(2)
             ),
 
           expectedAway:
             Number(
-              expectedAway.toFixed(2)
+              expAway.toFixed(2)
             ),
 
           homePosition:
@@ -828,58 +1078,69 @@ async function handler(req, res) {
             null,
 
           homeTierLabel:
-            leagueInfo?.label ||
-            competition ||
-            "Other",
+            leagueInfo.label,
 
           awayTierLabel:
-            leagueInfo?.label ||
-            competition ||
-            "Other",
+            leagueInfo.label,
 
           h2hGames:
             h2h.length,
 
-          dataConfidence,
+          dataConfidence:
+            confidence,
 
-          last5HitRate,
+          last5HitRate:
+            hit,
 
           homeForm:
             form(
-              home5,
-              home.id
+              home20,
+              homeId
             ),
 
           awayForm:
             form(
-              away5,
-              away.id
-            )
+              away20,
+              awayId
+            ),
+
+          homeSample:
+            home20.length,
+
+          awaySample:
+            away20.length,
+
+          homeVenueSample:
+            homeHome.length,
+
+          awayVenueSample:
+            awayAway.length
         }
-      });
+      };
+    };
 
     const predictions = [
       makePrediction(
         "teamgoal",
-        `${home.name} over 0.5 goals`,
+        `${body.homeTeam} over 0.5 goals`,
         "home0.5",
-        probabilities.home05,
-        rawHit(
-          home5,
+        home05,
+        hitRate(
+          home20,
           "team05",
-          home.id
+          homeId
         )
       ),
 
       makePrediction(
         "teamgoal",
-        `${away.name} over 0.5 goals`,
+        `${body.awayTeam} over 0.5 goals`,
         "away0.5",
-        probabilities.away05,
-        rawHit(
-          away5,
+        away05,
+        hitRate(
+          away20,
           "team05",
-          away.id
+          awayId
         )
       ),
 
@@ -887,18 +1148,18 @@ async function handler(req, res) {
         "goals",
         "Over 1.5 match goals",
         "over1.5",
-        probabilities.over15,
+        goals.over15,
         Math.round(
           (
-            rawHit(
-              home5,
+            hitRate(
+              home20,
               "over15",
-              home.id
+              homeId
             ) +
-            rawHit(
-              away5,
+            hitRate(
+              away20,
               "over15",
-              away.id
+              awayId
             )
           ) / 2
         )
@@ -908,18 +1169,60 @@ async function handler(req, res) {
         "goals",
         "Over 2.5 match goals",
         "over2.5",
-        probabilities.over25,
+        goals.over25,
         Math.round(
           (
-            rawHit(
-              home5,
+            hitRate(
+              home20,
               "over25",
-              home.id
+              homeId
             ) +
-            rawHit(
-              away5,
+            hitRate(
+              away20,
               "over25",
-              away.id
+              awayId
+            )
+          ) / 2
+        )
+      ),
+
+      makePrediction(
+        "goals",
+        "Under 3.5 match goals",
+        "under3.5",
+        goals.under35,
+        Math.round(
+          (
+            hitRate(
+              home20,
+              "under35",
+              homeId
+            ) +
+            hitRate(
+              away20,
+              "under35",
+              awayId
+            )
+          ) / 2
+        )
+      ),
+
+      makePrediction(
+        "goals",
+        "Under 4.5 match goals",
+        "under4.5",
+        goals.under45,
+        Math.round(
+          (
+            hitRate(
+              home20,
+              "under45",
+              homeId
+            ) +
+            hitRate(
+              away20,
+              "under45",
+              awayId
             )
           ) / 2
         )
@@ -929,18 +1232,18 @@ async function handler(req, res) {
         "btts",
         "Both teams to score",
         "btts",
-        probabilities.btts,
+        btts,
         Math.round(
           (
-            rawHit(
-              home5,
+            hitRate(
+              home20,
               "btts",
-              home.id
+              homeId
             ) +
-            rawHit(
-              away5,
+            hitRate(
+              away20,
               "btts",
-              away.id
+              awayId
             )
           ) / 2
         )
@@ -948,92 +1251,101 @@ async function handler(req, res) {
 
       makePrediction(
         "double",
-        `${home.name} or draw`,
+        `${body.homeTeam} or draw`,
         "homeOrDraw",
-        probabilities.homeOrDraw,
-        rawHit(
-          home5,
+        matrix.home +
+          matrix.draw,
+        hitRate(
+          home20,
           "nonloss",
-          home.id
+          homeId
         )
       ),
 
       makePrediction(
         "double",
-        `${away.name} or draw`,
+        `${body.awayTeam} or draw`,
         "awayOrDraw",
-        probabilities.awayOrDraw,
-        rawHit(
-          away5,
+        matrix.away +
+          matrix.draw,
+        hitRate(
+          away20,
           "nonloss",
-          away.id
+          awayId
         )
       ),
 
       makePrediction(
         "result",
-        `${home.name} win`,
+        `${body.homeTeam} win`,
         "homeWin",
-        probabilities.homeWin,
-        rawHit(
-          home5,
+        matrix.home,
+        hitRate(
+          home20,
           "win",
-          home.id
+          homeId
         )
       ),
 
       makePrediction(
         "result",
-        `${away.name} win`,
+        "Draw",
+        "draw",
+        matrix.draw,
+        Math.round(
+          (
+            hitRate(
+              home20,
+              "draw",
+              homeId
+            ) +
+            hitRate(
+              away20,
+              "draw",
+              awayId
+            )
+          ) / 2
+        )
+      ),
+
+      makePrediction(
+        "result",
+        `${body.awayTeam} win`,
         "awayWin",
-        probabilities.awayWin,
-        rawHit(
-          away5,
+        matrix.away,
+        hitRate(
+          away20,
           "win",
-          away.id
+          awayId
         )
       )
-    ]
-      .filter(x => x.p >= 50)
-      .sort(
-        (a, b) =>
-          b.p - a.p
-      );
+    ].sort(
+      (a, b) =>
+        b.p - a.p
+    );
 
-    return res
-      .status(200)
-      .json({
-        model:
-          "v9-api-football-strength-calibrated",
+    return res.status(200).json({
+      model:
+        MODEL_VERSION,
 
-        source:
-          "API-Football",
+      source:
+        "API-Football",
 
-        teams: {
-          home: {
-            id: home.id,
-            name: home.name
-          },
+      fixtureId:
+        body.fixtureId ||
+        null,
 
-          away: {
-            id: away.id,
-            name: away.name
-          }
-        },
-
-        predictions
-      });
+      predictions
+    });
 
   } catch (error) {
-    return res
-      .status(502)
-      .json({
-        error:
-          "Prediction model failed",
+    return res.status(502).json({
+      error:
+        "Prediction model failed",
 
-        detail:
-          error?.message ||
-          String(error)
-      });
+      detail:
+        error?.message ||
+        String(error)
+    });
   }
 };
