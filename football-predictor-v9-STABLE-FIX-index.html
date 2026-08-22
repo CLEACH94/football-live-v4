@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1f66">
+<title>Football Predictor V8</title>
+<style>
+:root{
+  --blue:#0b1f66;
+  --blue-2:#153d9b;
+  --blue-3:#eef3ff;
+  --gold:#d7b54a;
+  --gold-2:#f4e9bd;
+  --paper:#fbfbf8;
+  --card:#ffffff;
+  --ink:#0b1f66;
+  --text:#17203a;
+  --muted:#6d7585;
+  --line:#e4e7ed;
+  --good:#18724c;
+  --good-bg:#e3f4ea;
+  --bad:#9a3d3d;
+  --bad-bg:#f8e4e4;
+  --warn:#7a6100;
+  --warn-bg:#fff4cf;
+  --shadow:0 7px 20px rgba(14,32,75,.07);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:920px;margin:auto;min-height:100vh;padding-bottom:98px}
+header{position:sticky;top:0;z-index:30;background:rgba(251,251,248,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 14px 10px}
+.brand{display:flex;align-items:center;gap:9px}
+.mark{width:10px;height:32px;background:var(--gold)}
+.brand strong{font-size:20px;letter-spacing:.2px;color:var(--blue)}
+.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:.8px;font-weight:700;margin-top:1px}
+.feed{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:9px;font-weight:800}
+.feed i{width:8px;height:8px;border-radius:50%;background:#aab0ba}
+.feed.on{color:var(--good)}.feed.on i{background:#22a66d}
+.mainnav{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding:0 8px 9px}
+.mainnav button{border:0;background:transparent;color:#6e7690;padding:9px 4px;font-size:10px;font-weight:800;border-bottom:3px solid transparent}
+.mainnav button.active{color:var(--blue);border-color:var(--gold)}
+.section{display:none;padding:12px 10px 22px}.section.active{display:block}
+.searchwrap{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:10px;margin-bottom:10px}
+.searchline{display:grid;grid-template-columns:1fr auto;gap:7px}
+.searchline input{width:100%;border:1px solid var(--line);padding:11px 12px;font-size:16px;color:var(--text);outline:none}
+.searchline input:focus{border-color:var(--blue-2);box-shadow:0 0 0 2px #e7edff}
+.iconbtn{border:0;background:var(--blue);color:#fff;padding:0 14px;font-weight:800}
+.datebar,.filterbar{display:flex;gap:6px;overflow:auto;padding-bottom:9px}
+.pill{border:1px solid var(--line);background:#fff;color:#42516f;padding:8px 10px;white-space:nowrap;font-size:10px;font-weight:800}
+.pill.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.pill.gold{background:var(--gold);border-color:var(--gold);color:#2d2605}
+.hero{background:#fff;border-top:5px solid var(--gold);border-bottom:1px solid var(--line);padding:16px 14px;margin-bottom:10px}
+.hero h1{margin:0;color:var(--blue);font-size:23px;letter-spacing:-.3px}
+.hero p{margin:5px 0 0;color:#5f6778;font-size:11px;line-height:1.45;max-width:720px}
+.herofoot{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:11px}
+.herofoot .metricbig b{font-size:25px;color:var(--blue)}.herofoot .metricbig span{display:block;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.7px}
+.sectiontitle{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:3px 2px 8px}
+.sectiontitle h2{margin:0;color:var(--blue);font-size:18px}.sectiontitle span{font-size:9px;color:var(--muted);text-align:right}
+.card{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);margin-bottom:8px}
+.predcard{padding:13px}
+.predtop{display:grid;grid-template-columns:1fr 82px;gap:12px;align-items:center}
+.predtitle{font-size:17px;color:var(--blue);font-weight:800;line-height:1.15}
+.fixture{font-size:13px;font-weight:700;margin-top:5px}
+.meta{font-size:10px;color:var(--muted);line-height:1.4;margin-top:3px}
+.prob{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--blue-2) calc(var(--p)*1%),#e8ecf3 0);position:relative}
+.prob:after{content:"";position:absolute;width:56px;height:56px;background:#fff;border-radius:50%}
+.prob b{position:relative;z-index:2;color:var(--blue);font-size:17px}
+.problabel{text-align:center;font-size:8px;color:var(--muted);font-weight:800;margin-top:4px}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.tag{font-size:8px;font-weight:800;border:1px solid #dfe4ef;background:#f6f8fc;color:#4f5d79;padding:4px 6px}
+.tag.gold{background:var(--gold-2);border-color:#e7d37f;color:#6f5800}
+.tag.good{background:var(--good-bg);border-color:#c8e7d4;color:var(--good)}
+.actions{display:flex;gap:7px;margin-top:10px}
+.btn{border:0;padding:9px 10px;font-size:10px;font-weight:800;background:#edf1f7;color:#32496e;flex:1}
+.btn.blue{background:var(--blue);color:#fff}.btn.gold{background:var(--gold);color:#2d2605}.btn.outline{background:#fff;border:1px solid var(--line)}
+.stats{display:none;border-top:1px solid var(--line);margin-top:11px;padding-top:11px}.stats.open{display:block}
+.statsgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{background:#f7f8fa;border:1px solid #edf0f3;padding:8px;text-align:center}.stat b{display:block;color:var(--blue);font-size:14px}.stat span{display:block;color:var(--muted);font-size:7px;font-weight:800;margin-top:2px}
+.explain{margin-top:9px;font-size:10px;line-height:1.5;color:#5d6676}
+.form{display:flex;gap:4px;margin-top:5px}.form span{width:23px;height:23px;display:grid;place-items:center;font-size:9px;font-weight:800}.W{background:#dff2e7;color:#176b47}.D{background:#edf0f4;color:#5b6370}.L{background:#f6dfdf;color:#913c3c}
+.fixturecard{padding:12px}
+.fixturetop{display:grid;grid-template-columns:1fr auto;gap:12px}.teams{font-size:15px;color:var(--blue);font-weight:800;line-height:1.25}.score{font-size:20px;color:var(--blue);font-weight:800;text-align:right}
+.status{display:inline-block;margin-top:5px;background:#eef1f5;color:#596271;padding:4px 6px;font-size:8px;font-weight:800}.status.live{background:var(--good-bg);color:var(--good)}.status.done{background:#e8ebef;color:#535a64}
+.comphead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 2px 6px}.comphead h3{font-size:13px;color:var(--blue);margin:0}.comphead small{color:var(--muted);font-size:8px}
+.favbtn{border:0;background:#edf1f7;color:#4c5c77;padding:6px 8px;font-size:8px;font-weight:800}.favbtn.on{background:var(--gold-2);color:#6a5500}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:9px}.summary div{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:11px;text-align:center}.summary b{display:block;color:var(--blue);font-size:19px}.summary span{font-size:7px;color:var(--muted);font-weight:800}
+.lockbox{background:var(--blue);color:#fff;padding:12px;margin-bottom:8px}.lockbox h3{margin:0 0 3px;font-size:14px}.lockbox p{margin:0;color:#ccd5ea;font-size:9px;line-height:1.4}
+.pickrow,.historyrow{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:11px;margin-bottom:7px}
+.pickhead,.historyhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.pickhead b,.historyhead b{font-size:12px;color:var(--blue)}
+.small{font-size:9px;color:var(--muted);line-height:1.45;margin-top:3px}
+.outcome{padding:4px 6px;font-size:8px;font-weight:800}.outcome.correct{background:var(--good-bg);color:var(--good)}.outcome.missed{background:var(--bad-bg);color:var(--bad)}.outcome.pending{background:var(--warn-bg);color:var(--warn)}.outcome.live{background:#e7efff;color:#245ca8}
+.rankrow{display:grid;grid-template-columns:30px 1fr auto;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.rankrow:last-child{border-bottom:0}.ranknum{width:30px;height:30px;background:#eef2f7;color:var(--blue);display:grid;place-items:center;font-weight:800;font-size:10px}.rate{text-align:right}.rate b{font-size:16px;color:var(--blue)}.rate span{display:block;font-size:7px;color:var(--muted)}
+.panel{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:13px;margin-bottom:8px}
+.note{background:#fff6d6;border:1px solid #ead77d;color:#705b09;padding:9px;font-size:9px;line-height:1.45}
+.ok{background:var(--good-bg);color:var(--good);padding:9px;font-size:9px;line-height:1.45}.error{background:var(--bad-bg);color:var(--bad);padding:9px;font-size:9px;line-height:1.45}
+.bottomslip{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(920px,100%);background:var(--blue);color:#fff;padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px;z-index:40}
+.bottomslip .info{flex:1}.bottomslip b{font-size:11px}.bottomslip small{display:block;color:#cbd4e7;font-size:8px;margin-top:2px}
+.drawer{display:none;position:fixed;inset:0;background:rgba(5,15,45,.55);z-index:60;align-items:flex-end;justify-content:center}.drawer.open{display:flex}
+.sheet{width:min(920px,100%);max-height:82vh;overflow:auto;background:var(--paper);border-top:5px solid var(--gold);padding:13px 13px calc(18px + env(safe-area-inset-bottom))}
+.empty{background:#fff;border:1px solid var(--line);padding:18px;text-align:center;color:var(--muted);font-size:10px}
+.progress{height:3px;background:#edf0f4;margin-top:8px;overflow:hidden}.progress span{display:block;height:100%;background:var(--gold);width:0}
+@media(max-width:390px){
+  .mainnav button{font-size:9px}
+  .statsgrid{grid-template-columns:repeat(2,1fr)}
+  .predtop{grid-template-columns:1fr 72px}
+  .prob{width:66px;height:66px}.prob:after{width:50px;height:50px}
+  .predtitle{font-size:15px}
+}
+
+.leaguegroup{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);margin-bottom:9px}
+.leaguegroup h3{margin:0;padding:11px 12px;border-bottom:1px solid var(--line);font-size:13px;color:var(--blue)}
+.leaguerow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid #edf0f3}
+.leaguerow:last-child{border-bottom:0}
+.leaguerow b{display:block;font-size:11px;color:var(--blue)}
+.leaguerow small{display:block;font-size:8px;color:var(--muted);margin-top:2px;line-height:1.35}
+.switch{position:relative;width:43px;height:25px;display:inline-block}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#dfe3ea;transition:.18s}
+.slider:before{content:"";position:absolute;width:19px;height:19px;left:3px;top:3px;background:#fff;transition:.18s;box-shadow:0 1px 4px rgba(0,0,0,.14)}
+.switch input:checked + .slider{background:var(--blue)}
+.switch input:checked + .slider:before{transform:translateX(18px)}
+.exactname{color:var(--good)!important}
+.missingname{color:#9a6d00!important}
+
+
+.switchlabel{font-size:8px;font-weight:900;min-width:25px;text-align:right;color:var(--muted)}
+.leaguecontrol{display:flex;align-items:center;gap:7px}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brandbar">
+    <div class="brand"><div class="mark"></div><div><strong>FOOTBALL PREDICTOR</strong><small>LIVE DATA • MODELLED PROBABILITIES</small></div></div>
+    <div class="feed" id="feed"><i></i><span>CONNECTING</span></div>
+  </div>
+  <nav class="mainnav" style="grid-template-columns:repeat(6,1fr)">
+    <button class="active" data-page="predictions">Predictions</button>
+    <button data-page="matches">Matches</button>
+    <button data-page="leagues">Leagues</button>
+    <button data-page="picks">My Picks</button>
+    <button data-page="history">History</button>
+    <button data-page="accuracy">Accuracy</button>
+  </nav>
+</header>
+
+<section class="section active" id="predictions">
+  <div class="searchwrap">
+    <div class="searchline">
+      <input id="teamSearch" type="search" placeholder="Search team e.g. Oxford United">
+      <button class="iconbtn" id="clearSearch">Clear</button>
+    </div>
+  </div>
+
+  <div class="datebar">
+    <button class="pill active" data-date="today">Today</button>
+    <button class="pill" data-date="tomorrow">Tomorrow</button>
+    <button class="pill" data-date="upcoming">Next 7 days</button>
+  </div>
+  <div class="filterbar">
+    <button class="pill active" data-feedview="selected">My leagues</button>
+    <button class="pill" data-feedview="favorites">Favourites only</button>
+  </div>
+
+  <div class="hero">
+    <h1>Ranked football predictions</h1>
+    <p>Model probability is calculated separately from the raw last-five hit rate, with opponent strength, home advantage, league level and table position included where the data supports it.</p>
+    <div class="herofoot">
+      <div class="metricbig"><b id="readyCount">0</b><span>PREDICTIONS READY</span></div>
+      <div class="metricbig"><b id="fixtureCount">0</b><span>FIXTURES IN VIEW</span></div>
+    </div>
+  </div>
+
+  <div class="filterbar">
+    <button class="pill active" data-market="all">All</button>
+    <button class="pill" data-market="favorites">Favourites</button>
+    <button class="pill" data-market="teamgoal">Team 0.5+</button>
+    <button class="pill" data-market="goals">Goals</button>
+    <button class="pill" data-market="btts">BTTS</button>
+    <button class="pill" data-market="double">Double chance</button>
+    <button class="pill" data-market="result">Result</button>
+  </div>
+
+  <div class="panel">
+    <div class="sectiontitle" style="margin:0 0 6px"><h2>Automatic model</h2><span id="queueState">Starting…</span></div>
+    <div class="small">Predictions are generated automatically from your saved competitions. Searching a team moves that fixture to the front of the queue.</div>
+    <div class="progress"><span id="queueBar"></span></div>
+  </div>
+
+  <div id="predictionList"><div class="empty">Loading real fixtures…</div></div>
+</section>
+
+<section class="section" id="matches">
+  <div class="searchwrap">
+    <div class="searchline">
+      <input id="matchSearch" type="search" placeholder="Search fixtures by team">
+      <button class="iconbtn" id="clearMatchSearch">Clear</button>
+    </div>
+  </div>
+  <div class="datebar">
+    <button class="pill active" data-mdate="today">Today</button>
+    <button class="pill" data-mdate="tomorrow">Tomorrow</button>
+    <button class="pill" data-mdate="upcoming">Next 7 days</button>
+  </div>
+  <div class="filterbar">
+    <button class="pill active" data-compfilter="all">My leagues</button>
+    <button class="pill" data-compfilter="favorites">Favourites</button>
+  </div>
+
+  <div class="sectiontitle"><h2>Fixtures</h2><span id="matchStamp">Loading…</span></div>
+  <div id="matchList"></div>
+</section>
+
+
+<section class="section" id="leagues">
+  <div class="hero">
+    <h1>My leagues</h1>
+    <p>Choose the competitions you want once. V9 Stable Stable remembers them and automatically loads their fixtures and predictions from your Premium feed every time the app opens.</p>
+    <div class="herofoot">
+      <div class="metricbig"><b id="selectedLeagueCount">0</b><span>SELECTED</span></div>
+      <div class="metricbig"><b id="catalogueCount">0</b><span>CORDAX COMPETITIONS FOUND</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="sectiontitle" style="margin:0 0 7px"><h2>Competition catalogue</h2><span id="catalogueStatus">Loading exact Cordax names…</span></div>
+    <div class="small">The app reads Cordax's competition catalogue, downloads the live fixture feed once, then filters it to the competitions you have switched ON. This uses the same fixture route that already proved it can return real matches.</div>
+    <div class="progress"><span id="leagueLoadBar"></span></div>
+    <div class="small" id="leagueLoadText" style="margin-top:7px">Waiting to sync…</div>
+  </div>
+
+  <div id="leagueSelector"></div>
+
+  <div class="panel">
+    <div class="actions">
+      <button class="btn blue" id="saveLeagues">Save & reload</button>
+      <button class="btn outline" id="restoreLeagues">Restore defaults</button>
+    </div>
+    <div class="note" style="margin-top:9px">The app requests every selected competition directly. If Cordax has no fixture for a competition in the next 14 days, that competition will correctly show zero rather than being replaced by unrelated matches.</div>
+  </div>
+</section>
+
+<section class="section" id="picks">
+  <div class="sectiontitle"><h2>My predictions</h2><span>Build → lock → track live</span></div>
+  <div class="summary">
+    <div><b id="currentCount">0</b><span>CURRENT</span></div>
+    <div><b id="lockedCount">0</b><span>LOCKED</span></div>
+    <div><b id="liveCount">0</b><span>LIVE</span></div>
+  </div>
+  <div id="picksList"></div>
+</section>
+
+<section class="section" id="history">
+  <div class="sectiontitle"><h2>Prediction history</h2><span>Original probability stays locked</span></div>
+  <div class="summary">
+    <div><b id="histTotal">0</b><span>RESULTS</span></div>
+    <div><b id="histCorrect">0</b><span>CORRECT</span></div>
+    <div><b id="histRate">0%</b><span>SUCCESS</span></div>
+  </div>
+  <div id="historyList"></div>
+</section>
+
+<section class="section" id="accuracy">
+  <div class="datebar">
+    <button class="pill active" data-window="all">All time</button>
+    <button class="pill" data-window="30">30 days</button>
+    <button class="pill" data-window="7">7 days</button>
+  </div>
+  <div class="sectiontitle"><h2>Category rankings</h2><span>Success rate weighted by sample size</span></div>
+  <div class="panel"><div id="categoryList"></div></div>
+  <div class="panel">
+    <div id="backendStatus" class="small">Checking secure live feed…</div>
+    <div class="actions"><button class="btn blue" id="refresh">Refresh data</button></div>
+    <div class="note" style="margin-top:9px">Percentages are model estimates, not certainties. This app is a standalone football statistics and prediction-for-fun tracker.</div>
+  </div>
+</section>
+</div>
+
+<div class="bottomslip">
+  <div class="info"><b><span id="slipCount">0</span> predictions in current slip</b><small>Lock before kick-off to start result tracking</small></div>
+  <button class="btn gold" id="openSlip" style="flex:0 0 auto">View slip</button>
+</div>
+
+<div class="drawer" id="drawer">
+  <div class="sheet">
+    <div class="sectiontitle"><h2>Current prediction slip</h2><span id="sheetCount">0 picks</span></div>
+    <div id="sheetItems"></div>
+    <div class="actions">
+      <button class="btn gold" id="lockSlip">Lock predictions</button>
+      <button class="btn outline" id="closeSlip">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRIORITY=[
+ "Premier League","Championship","League One","League Two","FA Cup","EFL Cup","Carabao Cup","EFL Trophy",
+ "UEFA Champions League","UEFA Europa League","UEFA Conference League","FIFA World Cup","UEFA European Championship",
+ "UEFA Nations League","World Cup Qualification","European Championship Qualification"
+];
+
+const LEAGUE_DEFS = [
+ {id:"premier",group:"English leagues",label:"Premier League",scope:"england",aliases:["Premier League"]},
+ {id:"championship",group:"English leagues",label:"Championship",scope:"england",aliases:["Championship","EFL Championship"]},
+ {id:"league1",group:"English leagues",label:"League One",scope:"england",aliases:["League One","EFL League One"]},
+ {id:"league2",group:"English leagues",label:"League Two",scope:"england",aliases:["League Two","EFL League Two"]},
+ {id:"facup",group:"English cups",label:"FA Cup",scope:"england",aliases:["FA Cup"]},
+ {id:"leaguecup",group:"English cups",label:"League Cup",scope:"england",aliases:["EFL Cup","Carabao Cup","League Cup","Carabao League Cup"]},
+ {id:"efltrophy",group:"English cups",label:"EFL Trophy",scope:"england",aliases:["EFL Trophy","Football League Trophy","Bristol Street Motors Trophy","Vertu Trophy","English Football League Trophy"]},
+ {id:"eflplayoffs",group:"English cups",label:"EFL Play-offs",scope:"england",aliases:["Championship Play-Offs","Championship Playoffs","League One Play-Offs","League One Playoffs","League Two Play-Offs","League Two Playoffs","EFL Play-Offs","EFL Playoffs"]},
+ {id:"ucl",group:"UEFA clubs",label:"UEFA Champions League",scope:"global",aliases:["UEFA Champions League","Champions League"]},
+ {id:"uel",group:"UEFA clubs",label:"UEFA Europa League",scope:"global",aliases:["UEFA Europa League","Europa League"]},
+ {id:"uecl",group:"UEFA clubs",label:"UEFA Conference League",scope:"global",aliases:["UEFA Conference League","Conference League"]},
+ {id:"nations",group:"England / International",label:"UEFA Nations League",scope:"global",aliases:["UEFA Nations League","Nations League"]},
+ {id:"worldcup",group:"England / International",label:"FIFA World Cup",scope:"global",aliases:["FIFA World Cup","World Cup"]},
+ {id:"euros",group:"England / International",label:"UEFA European Championship",scope:"global",aliases:["UEFA European Championship","European Championship","EURO"]},
+ {id:"wcq",group:"England / International",label:"World Cup Qualification",scope:"global",aliases:["World Cup Qualification","World Cup Qualifying","World Cup Qualification UEFA"]},
+ {id:"euroq",group:"England / International",label:"European Championship Qualification",scope:"global",aliases:["European Championship Qualification","EURO Qualification","Euro Qualification"]}
+];
+
+const DEFAULT_SELECTED = LEAGUE_DEFS.map(x=>x.id);
+let selectedLeagueIds = JSON.parse(localStorage.getItem("fp83-selected-leagues")||"null") || DEFAULT_SELECTED;
+let competitionCatalogue=[], resolvedLeagues={};
+
+let fixtures=[], predictions=[];
+let dateView="today", matchDateView="today", marketFilter="all", compFilter="all", accuracyWindow="all", feedView="selected";
+let teamQuery="", matchQuery="";
+let favorites=JSON.parse(localStorage.getItem("fp8-favorites")||"null") || ["Premier League","Championship","League One","League Two","FA Cup","EFL Cup","EFL Trophy","UEFA Champions League","UEFA Europa League","UEFA Conference League"];
+let currentSlip=JSON.parse(localStorage.getItem("fp8-current")||"[]");
+let locked=JSON.parse(localStorage.getItem("fp8-locked")||"[]");
+let history=JSON.parse(localStorage.getItem("fp8-history")||"[]");
+let predictionCache=JSON.parse(localStorage.getItem("fp8-predictions")||"{}");
+let analysing=false, queueTimer=null, lastAnalysisAt=0, initialLeagueLoadComplete=false, liveRefreshTimer=null;
+
+const $=id=>document.getElementById(id);
+
+function save(){
+ localStorage.setItem("fp83-selected-leagues",JSON.stringify(selectedLeagueIds));
+ localStorage.setItem("fp8-favorites",JSON.stringify(favorites));
+ localStorage.setItem("fp8-current",JSON.stringify(currentSlip));
+ localStorage.setItem("fp8-locked",JSON.stringify(locked));
+ localStorage.setItem("fp8-history",JSON.stringify(history));
+ localStorage.setItem("fp8-predictions",JSON.stringify(predictionCache));
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function pick(o,keys,fb=null){if(!o||typeof o!=="object")return fb;for(const k of keys){if(o[k]!==undefined&&o[k]!==null&&o[k]!=="")return o[k]}return fb}
+function arrify(d){if(Array.isArray(d))return d;if(!d||typeof d!=="object")return [];for(const k of ["data","items","results","fixtures","competitions","value"]){if(Array.isArray(d[k]))return d[k]}return []}
+async function api(path){
+ const r=await fetch("/api/cordax?path="+encodeURIComponent(path),{cache:"no-store"});
+ const d=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(d.error||("Backend returned "+r.status));
+ return d;
+}
+function normalCompName(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()}
+function catalogueName(row){
+ if(typeof row==="string") return row;
+ return pick(row,["Competition","competition","Name","name","COMPETITION","CompetitionName","competitionName","League","league"],"");
+}
+function catalogueCountry(row){
+ if(typeof row==="string") return "";
+ return pick(row,["Country","country","COUNTRY","CountryName","countryName"],"");
+}
+function wordSet(s){return new Set(normalCompName(s).split(" ").filter(Boolean))}
+function similarity(a,b){
+ const A=wordSet(a),B=wordSet(b);
+ if(!A.size||!B.size)return 0;
+ let inter=0;A.forEach(x=>{if(B.has(x))inter++});
+ return inter/Math.max(A.size,B.size);
+}
+function matchAlias(name,aliases){
+ const n=normalCompName(name);
+ if(!n)return false;
+ return aliases.some(a=>{
+   const x=normalCompName(a);
+   if(!x)return false;
+   return n===x || n.includes(x) || x.includes(n) || similarity(n,x)>=0.75;
+ });
+}
+function resolveCatalogue(){
+ resolvedLeagues={};
+ for(const def of LEAGUE_DEFS){
+   let candidates=competitionCatalogue.map(r=>({
+     row:r,name:catalogueName(r),country:catalogueCountry(r),
+     score:Math.max(...def.aliases.map(a=>similarity(catalogueName(r),a)))
+   })).filter(x=>x.name);
+
+   if(def.scope==="england"){
+     const englandOnly=candidates.filter(x=>{
+       const c=normalCompName(x.country);
+       return !c || c==="england";
+     });
+     if(englandOnly.length)candidates=englandOnly;
+   }
+
+   const exact=candidates.filter(x=>matchAlias(x.name,def.aliases));
+   const pool=exact.length?exact:candidates.filter(x=>x.score>=0.6);
+   pool.sort((a,b)=>b.score-a.score || a.name.length-b.name.length);
+   if(pool.length)resolvedLeagues[def.id]=pool[0].name;
+ }
+}
+async function loadCatalogue(){
+ $("catalogueStatus").textContent="Loading exact Cordax names…";
+ let england=[],global=[];
+ try{ england=arrify(await api("/Competitions/country/England")); }catch{}
+ try{ global=arrify(await api("/Competitions")); }catch{}
+ const merged=[],seen=new Set();
+ [...england,...global].forEach(r=>{
+   const key=normalCompName(catalogueName(r))+"|"+normalCompName(catalogueCountry(r));
+   if(catalogueName(r)&&!seen.has(key)){seen.add(key);merged.push(r)}
+ });
+ competitionCatalogue=merged;
+ resolveCatalogue();
+ $("catalogueCount").textContent=competitionCatalogue.length;
+ const matched=Object.keys(resolvedLeagues).length;
+ $("catalogueStatus").textContent=matched+" of "+LEAGUE_DEFS.length+" preferred competitions matched";
+ renderLeagueSelector();
+}
+function selectedResolvedNames(){
+ return selectedLeagueIds.map(id=>resolvedLeagues[id]).filter(Boolean);
+}
+async function loadSelectedFixtures(){
+ const from=new Date(),to=new Date();to.setDate(to.getDate()+14);
+ const fromS=ymd(from),toS=ymd(to);
+
+ $("leagueLoadText").textContent="Downloading live fixture feed…";
+ $("leagueLoadBar").style.width="30%";
+ $("queueState").textContent="Loading fixtures…";
+ $("feed").querySelector("span").textContent="SYNCING";
+
+ // This is deliberately the same broad Fixtures route that already returned
+ // real matches in the earlier working build. We filter it locally afterwards.
+ const d=await api("/Fixtures/from/"+fromS+"/to/"+toS);
+ const all=arrify(d);
+
+ $("leagueLoadBar").style.width="65%";
+ $("leagueLoadText").textContent=all.length+" live fixtures downloaded · filtering your leagues…";
+
+ // Use the live feed itself to improve competition-name resolution.
+ const liveNames=[...new Set(all.map(compOf).filter(Boolean))];
+ for(const def of LEAGUE_DEFS){
+   if(resolvedLeagues[def.id])continue;
+   const candidates=liveNames.map(name=>({
+     name,
+     score:Math.max(...def.aliases.map(a=>similarity(name,a)))
+   })).filter(x=>x.score>=0.6).sort((a,b)=>b.score-a.score);
+   if(candidates.length)resolvedLeagues[def.id]=candidates[0].name;
+ }
+
+ const selectedDefs=LEAGUE_DEFS.filter(def=>selectedLeagueIds.includes(def.id));
+ const selectedExact=new Set(
+   selectedDefs.map(def=>resolvedLeagues[def.id]).filter(Boolean).map(normalCompName)
+ );
+
+ const filtered=all.filter(f=>{
+   const comp=normalCompName(compOf(f));
+   if(!comp)return false;
+   if(selectedExact.has(comp))return true;
+   return selectedDefs.some(def=>matchAlias(compOf(f),def.aliases));
+ });
+
+ $("leagueLoadBar").style.width="100%";
+ $("leagueLoadText").textContent=filtered.length+" fixtures matched your selected competitions";
+ initialLeagueLoadComplete=true;
+ return filtered;
+}
+function renderLeagueSelector(){
+ const groups=[...new Set(LEAGUE_DEFS.map(x=>x.group))];
+ $("selectedLeagueCount").textContent=selectedLeagueIds.length;
+ $("leagueSelector").innerHTML=groups.map(group=>{
+   const rows=LEAGUE_DEFS.filter(x=>x.group===group).map(def=>{
+     const exact=resolvedLeagues[def.id];
+     const checked=selectedLeagueIds.includes(def.id);
+     return `<div class="leaguerow">
+       <div><b>${esc(def.label)}</b><small class="${exact?"exactname":"missingname"}">${exact?("Cordax: "+esc(exact)):"Will match from live fixture feed if available"}</small></div>
+       <div class="leaguecontrol"><span class="switchlabel">${checked?"ON":"OFF"}</span><label class="switch"><input type="checkbox" class="leagueToggle" data-id="${def.id}" ${checked?"checked":""}><span class="slider"></span></label></div>
+     </div>`;
+   }).join("");
+   return `<div class="leaguegroup"><h3>${esc(group)}</h3>${rows}</div>`;
+ }).join("");
+ document.querySelectorAll(".leagueToggle").forEach(el=>el.onchange=()=>{
+   const id=el.dataset.id;
+   if(el.checked&&!selectedLeagueIds.includes(id))selectedLeagueIds.push(id);
+   if(!el.checked)selectedLeagueIds=selectedLeagueIds.filter(x=>x!==id);
+   save();renderLeagueSelector();
+ });
+}
+
+function homeOf(f){return pick(f,["HomeTeam","HOME_TEAM","homeTeam"],pick(f.Home,["Team"],"Home"))}
+function awayOf(f){return pick(f,["AwayTeam","AWAY_TEAM","awayTeam"],pick(f.Away,["Team"],"Away"))}
+function compOf(f){return pick(f,["Competition","COMPETITION","competition"],"Unknown competition")}
+function dateOf(f){return pick(f,["FixtureDate","MATCH_DATE","matchDate","date","utcDate"],"")}
+function statusOf(f){return String(pick(f,["MatchStatus","MATCH_STATUS","status"],"Scheduled"))}
+function minuteOf(f){return pick(f,["Minute","MINUTE","minute","MATCH_MINUTE","matchMinute"],"")}
+function idOf(f){return String(pick(f,["Id","ID","id"],[homeOf(f),awayOf(f),dateOf(f)].join("|")))}
+function scorePair(f){
+ let h=pick(f,["HomeScore","HOME_SCORE","homeScore"],null),a=pick(f,["AwayScore","AWAY_SCORE","awayScore"],null);
+ if(h===null&&f.Home)h=pick(f.Home,["Goals"],null);if(a===null&&f.Away)a=pick(f.Away,["Goals"],null);
+ return [h===null?null:Number(h),a===null?null:Number(a)]
+}
+function isLive(f){return /live|in.?play|1h|2h|half|active|^\d{1,3}$/i.test(statusOf(f))}
+function isDone(f){return /ft|finished|pens|aet/i.test(statusOf(f))}
+function isScheduled(f){return !isLive(f)&&!isDone(f)}
+function prettyDate(v){
+ if(!v)return "";
+ const d=new Date(v);
+ if(isNaN(d))return String(v);
+ const raw=String(v);
+ const midnight=/T00:00(?::00)?(?:Z|[+-]\d\d:?\d\d)?$/.test(raw);
+ const datePart=d.toLocaleDateString([],{weekday:"short",day:"numeric",month:"short"});
+ return midnight ? datePart+" · TBC" : d.toLocaleString([],{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+}
+function ymd(d){return d.toISOString().slice(0,10)}
+function dayKey(v){const d=new Date(v);return isNaN(d)?"":ymd(d)}
+function todayKey(){return ymd(new Date())}
+function tomorrowKey(){const d=new Date();d.setDate(d.getDate()+1);return ymd(d)}
+function priorityScore(comp){const c=String(comp).toLowerCase();const i=PRIORITY.findIndex(x=>c.includes(x.toLowerCase()));return i<0?999:i}
+function bucket(comp){
+ const n=String(comp||"").toLowerCase();
+ if(/premier league|championship|league one|league two|fa cup|efl cup|carabao|efl trophy|league trophy/.test(n))return "england";
+ if(/champions league|europa league|conference league/.test(n))return "uefa";
+ if(/world cup|european championship|nations league|qualif|friendl/.test(n))return "international";
+ return "other";
+}
+function isFavorite(comp){return favorites.some(x=>String(comp).toLowerCase().includes(String(x).toLowerCase())||String(x).toLowerCase().includes(String(comp).toLowerCase()))}
+function inDateView(f,view){
+ const k=dayKey(dateOf(f));
+ if(view==="today")return k===todayKey();
+ if(view==="tomorrow")return k===tomorrowKey();
+ return true;
+}
+function matchText(f,q){return !q || (homeOf(f)+" "+awayOf(f)+" "+compOf(f)).toLowerCase().includes(q.toLowerCase())}
+function fixtureById(id){return fixtures.find(f=>idOf(f)===String(id))}
+function visibleFixtures(view=dateView,q=teamQuery){
+ let rows=fixtures.filter(f=>inDateView(f,view)).filter(f=>matchText(f,q));
+ return rows.sort((a,b)=>{
+   if(isLive(a)!==isLive(b))return isLive(b)-isLive(a);
+   if(isFavorite(compOf(a))!==isFavorite(compOf(b)))return isFavorite(compOf(b))-isFavorite(compOf(a));
+   const ps=priorityScore(compOf(a))-priorityScore(compOf(b));if(ps)return ps;
+   return new Date(dateOf(a))-new Date(dateOf(b));
+ });
+}
+function predictionRows(){
+ let rows=Object.values(predictionCache).flatMap(x=>x.predictions||[]);
+ rows=rows.filter(p=>inDateView({FixtureDate:p.kickoff},dateView));
+ if(teamQuery)rows=rows.filter(p=>(p.fixture+" "+p.competition).toLowerCase().includes(teamQuery.toLowerCase()));
+ if(feedView==="favorites")rows=rows.filter(p=>isFavorite(p.competition));
+ if(marketFilter==="favorites")rows=rows.filter(p=>isFavorite(p.competition));
+ else if(marketFilter!=="all")rows=rows.filter(p=>p.type===marketFilter);
+ return rows.sort((a,b)=>b.p-a.p);
+}
+function predictionStatus(p,f){
+ if(!f)return {state:"pending",label:"Waiting"};
+ const [h,a]=scorePair(f);if(h===null||a===null)return {state:"pending",label:"Waiting"};
+ const total=h+a;let hit=false;
+ if(p.rule==="home0.5")hit=h>=1;
+ if(p.rule==="away0.5")hit=a>=1;
+ if(p.rule==="over1.5")hit=total>=2;
+ if(p.rule==="over2.5")hit=total>=3;
+ if(p.rule==="btts")hit=h>0&&a>0;
+ if(p.rule==="homeOrDraw")hit=h>=a;
+ if(p.rule==="awayOrDraw")hit=a>=h;
+ if(p.rule==="homeWin")hit=h>a;
+ if(p.rule==="awayWin")hit=a>h;
+ if(isDone(f))return hit?{state:"correct",label:"Correct"}:{state:"missed",label:"Missed"};
+ if(isLive(f))return hit?{state:"live",label:"Going well"}:{state:"pending",label:"Still open"};
+ return {state:"pending",label:"Pending"};
+}
+function formHTML(arr){return (arr||[]).map(x=>`<span class="${x}">${x}</span>`).join("")}
+function predCard(p,rank){
+ const inSlip=currentSlip.some(x=>x.id===p.id);
+ const s=p.stats||{};
+ return `<article class="card predcard">
+  <div class="predtop">
+   <div>
+    <div class="predtitle">${esc(p.title)}</div>
+    <div class="fixture">${esc(p.fixture)}</div>
+    <div class="meta">${esc(p.competition)} · ${esc(prettyDate(p.kickoff))}</div>
+    <div class="tags">
+      ${rank<=3?`<span class="tag gold">#${rank} ranked</span>`:""}
+      <span class="tag">${s.last5HitRate??"—"}% raw last-5 hit rate</span>
+      <span class="tag ${s.dataConfidence>=75?"good":""}">${s.dataConfidence??"—"}% data confidence</span>
+    </div>
+   </div>
+   <div><div class="prob" style="--p:${p.p}"><b>${p.p}%</b></div><div class="problabel">MODEL PROBABILITY</div></div>
+  </div>
+  <div class="actions">
+    <button class="btn outline showStats" data-id="${esc(p.id)}">Show stats</button>
+    <button class="btn ${inSlip?"gold":"blue"} addPick" data-id="${esc(p.id)}">${inSlip?"Added":"Add"}</button>
+  </div>
+  <div class="stats" id="stats-${CSS.escape(p.id)}">
+    <div class="statsgrid">
+      <div class="stat"><b>${s.expectedHome??"—"}</b><span>HOME xGOALS</span></div>
+      <div class="stat"><b>${s.expectedAway??"—"}</b><span>AWAY xGOALS</span></div>
+      <div class="stat"><b>${s.homePosition??"—"}</b><span>HOME POS</span></div>
+      <div class="stat"><b>${s.awayPosition??"—"}</b><span>AWAY POS</span></div>
+    </div>
+    <div class="statsgrid" style="margin-top:6px">
+      <div class="stat"><b>${s.homeTierLabel??"—"}</b><span>HOME LEVEL</span></div>
+      <div class="stat"><b>${s.awayTierLabel??"—"}</b><span>AWAY LEVEL</span></div>
+      <div class="stat"><b>${s.h2hGames??0}</b><span>H2H GAMES</span></div>
+      <div class="stat"><b>${s.last5HitRate??"—"}%</b><span>RAW HIT RATE</span></div>
+    </div>
+    <div class="explain"><b>Home last 5</b><div class="form">${formHTML(s.homeForm)}</div></div>
+    <div class="explain"><b>Away last 5</b><div class="form">${formHTML(s.awayForm)}</div></div>
+    <div class="explain">${esc(p.explanation||"Recent attack and defence are blended against this opponent, then adjusted for home advantage, team level, league position and head-to-head evidence where available. The displayed model probability is kept separate from the raw last-five hit rate.")}</div>
+  </div>
+ </article>`;
+}
+function renderPredictions(){
+ const rows=predictionRows();
+ $("readyCount").textContent=rows.length;
+ $("fixtureCount").textContent=visibleFixtures().length;
+ $("predictionList").innerHTML=rows.length?rows.map((p,i)=>predCard(p,i+1)).join(""):`<div class="empty">${teamQuery?"No model predictions for this team yet. The search has pushed its next fixture to the front of the automatic queue.":"Predictions are generated automatically as fixtures move through the model queue."}</div>`;
+ document.querySelectorAll(".showStats").forEach(b=>b.onclick=()=>{const el=document.getElementById("stats-"+CSS.escape(b.dataset.id));if(el)el.classList.toggle("open")});
+ document.querySelectorAll(".addPick").forEach(b=>b.onclick=()=>togglePick(b.dataset.id));
+}
+function fixtureCard(f){
+ const [h,a]=scorePair(f),live=isLive(f),done=isDone(f),comp=compOf(f);
+ const display=isScheduled(f)?"v":`${h??"-"} - ${a??"-"}`;
+ const cached=predictionCache[idOf(f)];
+ return `<article class="card fixturecard">
+  <div class="fixturetop">
+    <div>
+      <div class="teams">${esc(homeOf(f))}<br>${esc(awayOf(f))}</div>
+      <div class="meta">${esc(comp)} · ${esc(prettyDate(dateOf(f)))}</div>
+      <span class="status ${live?"live":done?"done":""}">${live?"LIVE"+(minuteOf(f)?" · "+esc(minuteOf(f))+"'":""):done?"FULL TIME":esc(statusOf(f))}</span>
+    </div>
+    <div class="score">${esc(display)}</div>
+  </div>
+  <div class="actions">
+    <button class="btn outline favFixture" data-comp="${encodeURIComponent(comp)}">${isFavorite(comp)?"★ Favourite":"☆ Favourite"}</button>
+  </div>
+ </article>`;
+}
+function renderMatches(){
+ let rows=fixtures.filter(f=>inDateView(f,matchDateView)).filter(f=>matchText(f,matchQuery));
+ if(compFilter==="favorites")rows=rows.filter(f=>isFavorite(compOf(f)));
+ else if(["england","uefa","international"].includes(compFilter)) rows=rows.filter(f=>bucket(compOf(f))===compFilter);
+ rows.sort((a,b)=>priorityScore(compOf(a))-priorityScore(compOf(b))||new Date(dateOf(a))-new Date(dateOf(b)));
+ const groups=new Map();rows.forEach(f=>{const c=compOf(f);if(!groups.has(c))groups.set(c,[]);groups.get(c).push(f)});
+ $("matchList").innerHTML=rows.length?[...groups.entries()].map(([comp,rs])=>`<div class="comphead"><h3>${esc(comp)}</h3><small>${rs.length} fixture${rs.length===1?"":"s"}</small></div>${rs.map(fixtureCard).join("")}`).join(""):`<div class="empty">No fixtures from your selected competitions in this date view. Try Next 7 days, or check the Leagues tab.</div>`;
+ document.querySelectorAll(".favFixture").forEach(b=>b.onclick=()=>{const c=decodeURIComponent(b.dataset.comp);toggleFavorite(c)});
+}
+function toggleFavorite(comp){
+ if(isFavorite(comp))favorites=favorites.filter(x=>String(comp).toLowerCase().indexOf(String(x).toLowerCase())<0&&String(x).toLowerCase().indexOf(String(comp).toLowerCase())<0);
+ else favorites.push(comp);
+ save();renderAll();
+}
+function togglePick(id){
+ const all=Object.values(predictionCache).flatMap(x=>x.predictions||[]);
+ const p=all.find(x=>x.id===id);if(!p)return;
+ currentSlip=currentSlip.some(x=>x.id===id)?currentSlip.filter(x=>x.id!==id):[...currentSlip,p];
+ save();renderAll();
+}
+async function analyse(f,manual=false){
+ if(!f||analysing)return;
+ analysing=true;lastAnalysisAt=Date.now();
+ $("queueState").textContent="Analysing "+homeOf(f)+" v "+awayOf(f);
+ $("queueBar").style.width="65%";
+ try{
+   const r=await fetch("/api/predict",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+     fixtureId:idOf(f),homeTeam:homeOf(f),awayTeam:awayOf(f),competition:compOf(f),fixtureDate:dateOf(f)
+   })});
+   const d=await r.json();
+   if(!r.ok)throw new Error(d.error||("Model returned "+r.status));
+   predictionCache[idOf(f)]={ts:Date.now(),predictions:(d.predictions||[]).map(p=>({...p,fixtureId:idOf(f),fixture:`${homeOf(f)} v ${awayOf(f)}`,competition:compOf(f),kickoff:dateOf(f)}))};
+   save();$("queueState").textContent="Model updated";$("queueBar").style.width="100%";renderAll();
+ }catch(e){
+   $("queueState").textContent="Model unavailable";$("queueBar").style.width="0";
+   if(manual)alert("Analysis unavailable: "+e.message);
+ }
+ analysing=false;
+ setTimeout(()=>{$("queueBar").style.width="0"},1000);
+}
+function queueCandidates(){
+ let rows=visibleFixtures("upcoming",teamQuery).filter(f=>!isDone(f)&&new Date(dateOf(f))>new Date());
+ rows.sort((a,b)=>{
+   const qa=teamQuery&&matchText(a,teamQuery)?-1000:0,qb=teamQuery&&matchText(b,teamQuery)?-1000:0;
+   if(qa!==qb)return qa-qb;
+   const fav=isFavorite(compOf(b))-isFavorite(compOf(a));if(fav)return fav;
+   return priorityScore(compOf(a))-priorityScore(compOf(b))||new Date(dateOf(a))-new Date(dateOf(b));
+ });
+ return rows;
+}
+function nextUnanalysed(){
+ const stale=20*60*1000;
+ return queueCandidates().find(f=>!predictionCache[idOf(f)]||Date.now()-predictionCache[idOf(f)].ts>stale);
+}
+function startQueue(){
+ if(queueTimer)clearInterval(queueTimer);
+ queueTimer=setInterval(()=>{
+   if(!initialLeagueLoadComplete||analysing)return;
+   if(Date.now()-lastAnalysisAt<15000)return;
+   const f=nextUnanalysed();
+   if(f)analyse(f,false);
+   else $("queueState").textContent="Up to date";
+ },3000);
+}
+async function refreshLiveMatches(){
+ if(!initialLeagueLoadComplete)return;
+ try{
+   const d=await api("/Fixtures/status/active");
+   const active=arrify(d);
+   if(!active.length)return;
+   const selectedDefs=LEAGUE_DEFS.filter(def=>selectedLeagueIds.includes(def.id));
+   const relevant=active.filter(f=>selectedDefs.some(def=>matchAlias(compOf(f),def.aliases)));
+   const byId=new Map(fixtures.map(f=>[idOf(f),f]));
+   relevant.forEach(f=>byId.set(idOf(f),f));
+   fixtures=[...byId.values()];
+   renderAll();
+ }catch{}
+}
+function startLiveRefresh(){
+ if(liveRefreshTimer)clearInterval(liveRefreshTimer);
+ liveRefreshTimer=setInterval(refreshLiveMatches,60000);
+}
+
+function renderPicks(){
+ $("currentCount").textContent=currentSlip.length;
+ $("lockedCount").textContent=locked.reduce((n,s)=>n+s.picks.length,0);
+ const lc=locked.flatMap(s=>s.picks).filter(p=>{const f=fixtureById(p.fixtureId);return f&&isLive(f)}).length;$("liveCount").textContent=lc;
+ let html="";
+ if(currentSlip.length){
+   html+=`<div class="lockbox"><h3>Current slip · ${currentSlip.length} predictions</h3><p>Edit these until you lock them. Once locked, the original probability is frozen for history and calibration.</p><div class="actions"><button class="btn gold" id="lockFromPicks">Lock predictions</button></div></div>`;
+   html+=currentSlip.map(p=>`<div class="pickrow"><div class="pickhead"><div><b>${esc(p.title)}</b><div class="small">${esc(p.fixture)} · ${p.p}% model</div></div><button class="btn outline removePick" style="flex:0 0 auto" data-id="${esc(p.id)}">Remove</button></div></div>`).join("");
+ }
+ locked.forEach(s=>{
+   html+=`<div class="lockbox"><h3>Locked ${new Date(s.lockedAt).toLocaleString()}</h3><p>${s.picks.length} predictions · original percentages frozen</p></div>`;
+   html+=s.picks.map(p=>{const st=predictionStatus(p,fixtureById(p.fixtureId));return `<div class="pickrow"><div class="pickhead"><div><b>${esc(p.title)}</b><div class="small">${esc(p.fixture)} · locked ${p.lockedP??p.p}%</div></div><span class="outcome ${st.state}">${st.label}</span></div></div>`}).join("");
+ });
+ $("picksList").innerHTML=html||`<div class="empty">No predictions added yet.</div>`;
+ const l=$("lockFromPicks");if(l)l.onclick=lockCurrent;
+ document.querySelectorAll(".removePick").forEach(b=>b.onclick=()=>{currentSlip=currentSlip.filter(x=>x.id!==b.dataset.id);save();renderAll()});
+}
+function lockCurrent(){
+ if(!currentSlip.length)return;
+ const valid=currentSlip.filter(p=>new Date(p.kickoff)>new Date());
+ if(!valid.length){alert("These fixtures have already kicked off.");return}
+ locked.unshift({id:"s-"+Date.now(),lockedAt:new Date().toISOString(),picks:valid.map(p=>({...p,lockedP:p.p}))});
+ currentSlip=[];save();renderAll();$("drawer").classList.remove("open");
+}
+function settle(){
+ let changed=false;
+ locked.forEach(s=>s.picks.forEach(p=>{
+   const f=fixtureById(p.fixtureId);if(!f||!isDone(f)||history.some(h=>h.slipId===s.id&&h.pickId===p.id))return;
+   const st=predictionStatus(p,f),[hs,as]=scorePair(f);
+   history.unshift({id:"h-"+Date.now()+"-"+Math.random(),slipId:s.id,pickId:p.id,title:p.title,fixture:p.fixture,category:p.type,p:p.lockedP??p.p,correct:st.state==="correct",result:`${hs}-${as}`,settledAt:new Date().toISOString()});
+   changed=true;
+ }));
+ if(changed)save();
+}
+function historyWindowRows(){
+ if(accuracyWindow==="all")return history;
+ const days=Number(accuracyWindow),cut=Date.now()-days*86400000;
+ return history.filter(h=>new Date(h.settledAt).getTime()>=cut);
+}
+function renderHistory(){
+ const c=history.filter(h=>h.correct).length;$("histTotal").textContent=history.length;$("histCorrect").textContent=c;$("histRate").textContent=(history.length?Math.round(c/history.length*100):0)+"%";
+ $("historyList").innerHTML=history.length?history.map(h=>`<div class="historyrow"><div class="historyhead"><div><b>${esc(h.title)}</b><div class="small">${esc(h.fixture)} · locked ${h.p}% · final ${esc(h.result)}</div></div><span class="outcome ${h.correct?"correct":"missed"}">${h.correct?"CORRECT":"MISSED"}</span></div></div>`).join(""):`<div class="empty">Completed locked predictions will appear here automatically.</div>`;
+}
+function renderAccuracy(){
+ const rows=historyWindowRows();const names={teamgoal:"Team 0.5+ goals",goals:"Goal totals",btts:"BTTS",double:"Double chance",result:"Match result"};
+ const cats=Object.keys(names).map(k=>{const r=rows.filter(h=>h.category===k),c=r.filter(h=>h.correct).length,rate=r.length?Math.round(c/r.length*100):0,confidence=Math.min(1,r.length/40),score=Math.round(rate*.85+confidence*15);return {k,name:names[k],total:r.length,c,rate,score}}).sort((a,b)=>b.score-a.score);
+ $("categoryList").innerHTML=cats.map((r,i)=>`<div class="rankrow"><div class="ranknum">${i+1}</div><div><b>${r.name}</b><div class="small">${r.c}/${r.total} correct · confidence-adjusted score ${r.total?r.score:"—"}</div></div><div class="rate"><b>${r.total?r.rate+"%":"—"}</b><span>SUCCESS</span></div></div>`).join("");
+}
+function renderSlip(){
+ $("slipCount").textContent=currentSlip.length;$("sheetCount").textContent=currentSlip.length+" picks";
+ $("sheetItems").innerHTML=currentSlip.length?currentSlip.map(p=>`<div class="pickrow"><div class="pickhead"><div><b>${esc(p.title)}</b><div class="small">${esc(p.fixture)} · ${p.p}%</div></div><button class="btn outline sheetRemove" style="flex:0 0 auto" data-id="${esc(p.id)}">Remove</button></div></div>`).join(""):`<div class="empty">No predictions in the current slip.</div>`;
+ document.querySelectorAll(".sheetRemove").forEach(b=>b.onclick=()=>{currentSlip=currentSlip.filter(x=>x.id!==b.dataset.id);save();renderAll()});
+}
+function renderAll(){settle();renderPredictions();renderMatches();renderPicks();renderHistory();renderAccuracy();renderSlip()}
+async function loadFixtures(){
+ try{
+   $("feed").classList.remove("on");$("feed").querySelector("span").textContent="SYNCING";
+   initialLeagueLoadComplete=false;
+   fixtures=await loadSelectedFixtures();
+   $("feed").classList.add("on");$("feed").querySelector("span").textContent="LIVE FEED";
+   $("matchStamp").textContent=fixtures.length+" fixtures from your saved competitions · synced "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+   $("backendStatus").className="ok";
+   $("backendStatus").textContent="Premium Cordax feed connected. The app downloads the working global fixture feed once, then keeps only your selected competitions.";
+   renderLeagueSelector();
+   renderAll();
+   startQueue();
+   startLiveRefresh();
+ }catch(e){
+   $("feed").classList.remove("on");$("feed").querySelector("span").textContent="ERROR";
+   $("backendStatus").className="error";$("backendStatus").textContent=e.message;
+ }
+}
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));$(b.dataset.page).classList.add("active")});
+document.querySelectorAll("[data-date]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-date]").forEach(x=>x.classList.remove("active"));b.classList.add("active");dateView=b.dataset.date;renderPredictions()});
+document.querySelectorAll("[data-mdate]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-mdate]").forEach(x=>x.classList.remove("active"));b.classList.add("active");matchDateView=b.dataset.mdate;renderMatches()});
+document.querySelectorAll("[data-market]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-market]").forEach(x=>x.classList.remove("active"));b.classList.add("active");marketFilter=b.dataset.market;renderPredictions()});
+document.querySelectorAll("[data-compfilter]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-compfilter]").forEach(x=>x.classList.remove("active"));b.classList.add("active");compFilter=b.dataset.compfilter;renderMatches()});
+document.querySelectorAll("[data-window]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-window]").forEach(x=>x.classList.remove("active"));b.classList.add("active");accuracyWindow=b.dataset.window;renderAccuracy()});
+document.querySelectorAll("[data-feedview]").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll("[data-feedview]").forEach(x=>x.classList.remove("active"));
+ b.classList.add("active");feedView=b.dataset.feedview;renderPredictions();
+});
+$("saveLeagues").onclick=async()=>{
+ save();
+ predictionCache={}; localStorage.setItem("fp8-predictions","{}");
+ $("catalogueStatus").textContent="Saved. Starting Premium sync…";
+ await loadFixtures();
+ document.querySelector('[data-page="predictions"]').click();
+};
+$("restoreLeagues").onclick=()=>{
+ selectedLeagueIds=[...DEFAULT_SELECTED];save();renderLeagueSelector();
+};
+
+$("teamSearch").oninput=e=>{teamQuery=e.target.value.trim();renderPredictions();startQueue()};
+$("clearSearch").onclick=()=>{$("teamSearch").value="";teamQuery="";renderPredictions()};
+$("matchSearch").oninput=e=>{matchQuery=e.target.value.trim();renderMatches()};
+$("clearMatchSearch").onclick=()=>{$("matchSearch").value="";matchQuery="";renderMatches()};
+$("refresh").onclick=loadFixtures;
+$("openSlip").onclick=()=>$("drawer").classList.add("open");
+$("closeSlip").onclick=()=>$("drawer").classList.remove("open");
+$("drawer").onclick=e=>{if(e.target.id==="drawer")$("drawer").classList.remove("open")};
+$("lockSlip").onclick=lockCurrent;
+
+(async()=>{
+ try{await loadCatalogue();}catch{}
+ await loadFixtures();
+})();
+</script>
+</body>
+</html>
