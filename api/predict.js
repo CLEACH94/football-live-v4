@@ -1,155 +1,55 @@
-const CORDAX = "https://api.cordax.net";
+const API = "https://v3.football.api-sports.io";
 
-const ENGLISH_TIER = {
-  "premier league": { score: 1.00, label: "Premier" },
-  "championship": { score: 0.86, label: "Championship" },
-  "league one": { score: 0.74, label: "League One" },
-  "league two": { score: 0.64, label: "League Two" },
-  "national league": { score: 0.55, label: "National" }
+const LEAGUES = {
+  "premier league": { id: 39, score: 1.00, label: "Premier" },
+  "championship": { id: 40, score: 0.86, label: "Championship" },
+  "league one": { id: 41, score: 0.74, label: "League One" },
+  "league two": { id: 42, score: 0.64, label: "League Two" },
+
+  "fa cup": { id: 45, score: 0.78, label: "FA Cup" },
+  "league cup": { id: 48, score: 0.78, label: "League Cup" },
+  "efl cup": { id: 48, score: 0.78, label: "League Cup" },
+
+  "champions league": { id: 2, score: 1.00, label: "Champions League" },
+  "uefa champions league": { id: 2, score: 1.00, label: "Champions League" },
+
+  "europa league": { id: 3, score: 0.92, label: "Europa League" },
+  "uefa europa league": { id: 3, score: 0.92, label: "Europa League" },
+
+  "conference league": { id: 848, score: 0.84, label: "Conference League" },
+  "uefa conference league": { id: 848, score: 0.84, label: "Conference League" }
 };
 
 const cache = new Map();
 
-function norm(s) {
-  return String(s || "").toLowerCase().trim();
+function norm(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[’']/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
-function clamp(x, a, b) {
-  return Math.max(a, Math.min(b, x));
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
 }
 
-function arrify(d) {
-  if (Array.isArray(d)) return d;
-  if (!d || typeof d !== "object") return [];
+function seasonFor(date) {
+  const d = new Date(date);
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + 1;
 
-  for (const k of [
-    "data",
-    "items",
-    "results",
-    "fixtures",
-    "value"
-  ]) {
-    if (Array.isArray(d[k])) return d[k];
-  }
-
-  return [];
-}
-
-function pick(o, keys, fallback = null) {
-  if (!o || typeof o !== "object") return fallback;
-
-  for (const k of keys) {
-    if (
-      o[k] !== undefined &&
-      o[k] !== null &&
-      o[k] !== ""
-    ) {
-      return o[k];
-    }
-  }
-
-  return fallback;
-}
-
-function homeOf(f) {
-  return pick(
-    f,
-    ["HomeTeam", "HOME_TEAM", "homeTeam"],
-    pick(f.Home, ["Team"], "")
-  );
-}
-
-function awayOf(f) {
-  return pick(
-    f,
-    ["AwayTeam", "AWAY_TEAM", "awayTeam"],
-    pick(f.Away, ["Team"], "")
-  );
-}
-
-function compOf(f) {
-  return pick(
-    f,
-    ["Competition", "COMPETITION", "competition"],
-    ""
-  );
-}
-
-function dateOf(f) {
-  return pick(
-    f,
-    [
-      "FixtureDate",
-      "MATCH_DATE",
-      "matchDate",
-      "date",
-      "utcDate"
-    ],
-    ""
-  );
-}
-
-function statusOf(f) {
-  return String(
-    pick(
-      f,
-      ["MatchStatus", "MATCH_STATUS", "status"],
-      ""
-    )
-  );
-}
-
-function scorePair(f) {
-  let h = pick(
-    f,
-    ["HomeScore", "HOME_SCORE", "homeScore"],
-    null
-  );
-
-  let a = pick(
-    f,
-    ["AwayScore", "AWAY_SCORE", "awayScore"],
-    null
-  );
-
-  if (h === null && f.Home) {
-    h = pick(f.Home, ["Goals"], null);
-  }
-
-  if (a === null && f.Away) {
-    a = pick(f.Away, ["Goals"], null);
-  }
-
-  return [
-    h === null ? null : Number(h),
-    a === null ? null : Number(a)
-  ];
-}
-
-function done(f) {
-  return /ft|finished|pens|aet/i.test(statusOf(f));
-}
-
-function gfga(f, team) {
-  const [h, a] = scorePair(f);
-
-  if (!Number.isFinite(h) || !Number.isFinite(a)) {
-    return null;
-  }
-
-  return homeOf(f) === team
-    ? [h, a]
-    : [a, h];
+  return month >= 7 ? year : year - 1;
 }
 
 function factorial(n) {
-  let x = 1;
+  let result = 1;
 
   for (let i = 2; i <= n; i++) {
-    x *= i;
+    result *= i;
   }
 
-  return x;
+  return result;
 }
 
 function poisson(k, lambda) {
@@ -158,193 +58,6 @@ function poisson(k, lambda) {
     Math.pow(lambda, k) /
     factorial(k)
   );
-}
-
-function seasonFor(d) {
-  const year = d.getFullYear();
-  const month = d.getMonth() + 1;
-
-  return month >= 7
-    ? `${year}-${String(year + 1).slice(-2)}`
-    : `${year - 1}-${String(year).slice(-2)}`;
-}
-
-async function cordax(path, token, ttl = 0) {
-  if (
-    ttl &&
-    cache.has(path) &&
-    Date.now() - cache.get(path).ts < ttl
-  ) {
-    return cache.get(path).data;
-  }
-
-  const response = await fetch(
-    CORDAX + path,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json"
-      }
-    }
-  );
-
-  const text = await response.text();
-
-  let data;
-
-  try {
-    data = JSON.parse(text);
-  } catch {
-    data = text;
-  }
-
-  if (!response.ok) {
-    throw new Error(`Cordax ${response.status}`);
-  }
-
-  if (ttl) {
-    cache.set(path, {
-      ts: Date.now(),
-      data
-    });
-  }
-
-  return data;
-}
-
-function last5(rows, team, before) {
-  return rows
-    .filter(done)
-    .filter(
-      f =>
-        homeOf(f) === team ||
-        awayOf(f) === team
-    )
-    .filter(
-      f =>
-        new Date(dateOf(f)) < before
-    )
-    .sort(
-      (a, b) =>
-        new Date(dateOf(b)) -
-        new Date(dateOf(a))
-    )
-    .slice(0, 5);
-}
-
-function weighted(rows, team, index) {
-  const weights = [5, 4, 3, 2, 1];
-
-  let numerator = 0;
-  let denominator = 0;
-
-  rows.forEach((f, i) => {
-    const g = gfga(f, team);
-
-    if (!g) return;
-
-    numerator += g[index] * weights[i];
-    denominator += weights[i];
-  });
-
-  return denominator
-    ? numerator / denominator
-    : 0;
-}
-
-function form(rows, team) {
-  return rows.map(f => {
-    const g = gfga(f, team);
-
-    if (!g) return "D";
-
-    if (g[0] > g[1]) return "W";
-    if (g[0] < g[1]) return "L";
-
-    return "D";
-  });
-}
-
-function inferredTier(rows) {
-  const counts = {};
-
-  rows.forEach(f => {
-    const competition = norm(compOf(f));
-
-    if (ENGLISH_TIER[competition]) {
-      counts[competition] =
-        (counts[competition] || 0) + 1;
-    }
-  });
-
-  const key = Object
-    .keys(counts)
-    .sort(
-      (a, b) =>
-        counts[b] - counts[a]
-    )[0];
-
-  return key
-    ? {
-        ...ENGLISH_TIER[key],
-        key
-      }
-    : {
-        score: 0.78,
-        label: "Unknown/Other",
-        key: null
-      };
-}
-
-function standingsStrength(data, team) {
-  const rows = arrify(data);
-
-  if (!rows.length) return null;
-
-  const row = rows.find(
-    x =>
-      norm(
-        pick(
-          x,
-          [
-            "Team",
-            "team",
-            "TEAM",
-            "TeamName",
-            "teamName",
-            "Name",
-            "NAME"
-          ],
-          ""
-        )
-      ) === norm(team)
-  );
-
-  if (!row) return null;
-
-  const pos = Number(
-    pick(
-      row,
-      [
-        "Position",
-        "position",
-        "POS",
-        "Rank",
-        "rank"
-      ],
-      NaN
-    )
-  );
-
-  const n = rows.length;
-
-  return {
-    pos,
-    percentile:
-      Number.isFinite(pos) && n > 1
-        ? 1 - (pos - 1) / (n - 1)
-        : 0.5
-  };
 }
 
 function scoreMatrix(lambdaHome, lambdaAway) {
@@ -373,40 +86,196 @@ function scoreMatrix(lambdaHome, lambdaAway) {
   };
 }
 
-function calibrated(p, confidence) {
-  const shrink =
-    0.45 +
-    0.45 * (confidence / 100);
+async function api(path, key, ttl = 0) {
+  const cacheKey = path;
 
-  return clamp(
-    0.5 +
-      (p - 0.5) * shrink,
-    0.05,
-    0.95
-  );
+  if (
+    ttl &&
+    cache.has(cacheKey) &&
+    Date.now() - cache.get(cacheKey).time < ttl
+  ) {
+    return cache.get(cacheKey).data;
+  }
+
+  const response = await fetch(API + path, {
+    headers: {
+      "x-apisports-key": key
+    }
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      `API-Football HTTP ${response.status}`
+    );
+  }
+
+  if (
+    data?.errors &&
+    (
+      Array.isArray(data.errors)
+        ? data.errors.length
+        : Object.keys(data.errors).length
+    )
+  ) {
+    throw new Error(
+      typeof data.errors === "string"
+        ? data.errors
+        : JSON.stringify(data.errors)
+    );
+  }
+
+  if (ttl) {
+    cache.set(cacheKey, {
+      time: Date.now(),
+      data
+    });
+  }
+
+  return data;
 }
 
-function rawHit(rows, rule, team) {
+function responseRows(data) {
+  return Array.isArray(data?.response)
+    ? data.response
+    : [];
+}
+
+function teamName(fixture, side) {
+  return fixture?.teams?.[side]?.name || "";
+}
+
+function fixtureDate(fixture) {
+  return fixture?.fixture?.date || "";
+}
+
+function completed(fixture) {
+  const status =
+    fixture?.fixture?.status?.short || "";
+
+  return [
+    "FT",
+    "AET",
+    "PEN"
+  ].includes(status);
+}
+
+function scores(fixture) {
+  const home = fixture?.goals?.home;
+  const away = fixture?.goals?.away;
+
+  return [
+    Number.isFinite(Number(home))
+      ? Number(home)
+      : null,
+
+    Number.isFinite(Number(away))
+      ? Number(away)
+      : null
+  ];
+}
+
+function gfga(fixture, teamId) {
+  const [homeGoals, awayGoals] =
+    scores(fixture);
+
+  if (
+    homeGoals === null ||
+    awayGoals === null
+  ) {
+    return null;
+  }
+
+  const isHome =
+    fixture?.teams?.home?.id === teamId;
+
+  return isHome
+    ? [homeGoals, awayGoals]
+    : [awayGoals, homeGoals];
+}
+
+function lastFive(rows, teamId, before) {
+  return rows
+    .filter(completed)
+    .filter(f =>
+      f?.teams?.home?.id === teamId ||
+      f?.teams?.away?.id === teamId
+    )
+    .filter(f =>
+      new Date(fixtureDate(f)) < before
+    )
+    .sort(
+      (a, b) =>
+        new Date(fixtureDate(b)) -
+        new Date(fixtureDate(a))
+    )
+    .slice(0, 5);
+}
+
+function weighted(rows, teamId, index) {
+  const weights = [5, 4, 3, 2, 1];
+
+  let numerator = 0;
+  let denominator = 0;
+
+  rows.forEach((fixture, i) => {
+    const values = gfga(
+      fixture,
+      teamId
+    );
+
+    if (!values) return;
+
+    numerator +=
+      values[index] * weights[i];
+
+    denominator += weights[i];
+  });
+
+  return denominator
+    ? numerator / denominator
+    : 0;
+}
+
+function form(rows, teamId) {
+  return rows.map(fixture => {
+    const values = gfga(
+      fixture,
+      teamId
+    );
+
+    if (!values) return "D";
+
+    if (values[0] > values[1]) {
+      return "W";
+    }
+
+    if (values[0] < values[1]) {
+      return "L";
+    }
+
+    return "D";
+  });
+}
+
+function rawHit(rows, rule, teamId) {
   if (!rows.length) return 0;
 
   let hits = 0;
+  let valid = 0;
 
-  rows.forEach(f => {
-    const [h, a] = scorePair(f);
+  rows.forEach(fixture => {
+    const values =
+      gfga(fixture, teamId);
 
-    if (
-      !Number.isFinite(h) ||
-      !Number.isFinite(a)
-    ) {
-      return;
-    }
+    if (!values) return;
 
-    const isHome =
-      homeOf(f) === team;
+    valid++;
 
-    const gf = isHome ? h : a;
-    const ga = isHome ? a : h;
-    const total = h + a;
+    const gf = values[0];
+    const ga = values[1];
+    const total = gf + ga;
 
     if (
       rule === "team05" &&
@@ -431,8 +300,8 @@ function rawHit(rows, rule, team) {
 
     if (
       rule === "btts" &&
-      h > 0 &&
-      a > 0
+      gf > 0 &&
+      ga > 0
     ) {
       hits++;
     }
@@ -452,35 +321,127 @@ function rawHit(rows, rule, team) {
     }
   });
 
-  return Math.round(
-    (hits / rows.length) * 100
+  return valid
+    ? Math.round(
+        (hits / valid) * 100
+      )
+    : 0;
+}
+
+function calibrated(p, confidence) {
+  const shrink =
+    0.45 +
+    0.45 *
+      (confidence / 100);
+
+  return clamp(
+    0.5 +
+      (p - 0.5) * shrink,
+    0.05,
+    0.95
   );
 }
 
-async function tryH2H(
-  home,
-  away,
-  competition,
-  season,
-  token
+async function findTeam(
+  name,
+  key,
+  suppliedId = null
+) {
+  if (
+    suppliedId &&
+    Number.isFinite(
+      Number(suppliedId)
+    )
+  ) {
+    return {
+      id: Number(suppliedId),
+      name
+    };
+  }
+
+  const data = await api(
+    `/teams?search=${encodeURIComponent(
+      name
+    )}`,
+    key,
+    300000
+  );
+
+  const rows = responseRows(data);
+
+  if (!rows.length) {
+    throw new Error(
+      `Team not found: ${name}`
+    );
+  }
+
+  const exact = rows.find(row =>
+    norm(row?.team?.name) ===
+    norm(name)
+  );
+
+  const chosen =
+    exact || rows[0];
+
+  return {
+    id: chosen.team.id,
+    name: chosen.team.name
+  };
+}
+
+function findStanding(
+  standingsData,
+  teamId
+) {
+  const league =
+    standingsData?.response?.[0]
+      ?.league;
+
+  const tables =
+    league?.standings || [];
+
+  const table =
+    tables.flat();
+
+  const row = table.find(
+    x => x?.team?.id === teamId
+  );
+
+  if (!row) return null;
+
+  const position =
+    Number(row.rank);
+
+  const count =
+    table.length;
+
+  return {
+    pos: position,
+
+    percentile:
+      Number.isFinite(position) &&
+      count > 1
+        ? 1 -
+          (position - 1) /
+            (count - 1)
+        : 0.5
+  };
+}
+
+async function getH2H(
+  homeId,
+  awayId,
+  key
 ) {
   try {
-    const data = await cordax(
-      `/HeadToHead/${encodeURIComponent(
-        competition
-      )}/${encodeURIComponent(
-        season
-      )}/${encodeURIComponent(
-        home
-      )}/${encodeURIComponent(
-        away
-      )}`,
-      token,
+    const data = await api(
+      `/fixtures/headtohead?h2h=${homeId}-${awayId}&last=5`,
+      key,
       300000
     );
 
-    return arrify(data)
-      .filter(done)
+    return responseRows(data)
+      .filter(completed)
       .slice(0, 5);
 
   } catch {
@@ -488,22 +449,21 @@ async function tryH2H(
   }
 }
 
-module.exports = async function handler(
-  req,
-  res
-) {
+module.exports =
+async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Method not allowed"
     });
   }
 
-  const token =
-    process.env.CORDAX_TOKEN;
+  const key =
+    process.env.API_FOOTBALL_KEY;
 
-  if (!token) {
+  if (!key) {
     return res.status(500).json({
-      error: "CORDAX_TOKEN missing"
+      error:
+        "API_FOOTBALL_KEY missing"
     });
   }
 
@@ -511,85 +471,94 @@ module.exports = async function handler(
     homeTeam,
     awayTeam,
     competition,
-    fixtureDate
+    fixtureDate: requestedDate,
+    homeTeamId,
+    awayTeamId,
+    leagueId,
+    season
   } = req.body || {};
 
   if (
     !homeTeam ||
-    !awayTeam ||
-    !competition
+    !awayTeam
   ) {
     return res.status(400).json({
-      error: "Missing fixture fields"
+      error:
+        "Missing fixture fields"
     });
   }
 
   try {
     const before =
       new Date(
-        fixtureDate ||
+        requestedDate ||
         Date.now()
       );
 
-    const from =
-      new Date(before);
-
-    from.setDate(
-      from.getDate() - 150
-    );
-
-    const fromS =
-      from
-        .toISOString()
-        .slice(0, 10);
-
-    const toS =
-      before
-        .toISOString()
-        .slice(0, 10);
-
-    const season =
+    const seasonYear =
+      Number(season) ||
       seasonFor(before);
+
+    const leagueInfo =
+      LEAGUES[norm(competition)] ||
+      null;
+
+    const resolvedLeagueId =
+      Number(leagueId) ||
+      leagueInfo?.id ||
+      null;
+
+    const [
+      home,
+      away
+    ] = await Promise.all([
+      findTeam(
+        homeTeam,
+        key,
+        homeTeamId
+      ),
+
+      findTeam(
+        awayTeam,
+        key,
+        awayTeamId
+      )
+    ]);
 
     const [
       homeData,
       awayData
-    ] =
-      await Promise.all([
-        cordax(
-          `/Fixtures/from/${fromS}/to/${toS}/team/${encodeURIComponent(
-            homeTeam
-          )}`,
-          token,
-          120000
-        ),
+    ] = await Promise.all([
+      api(
+        `/fixtures?team=${home.id}&last=10`,
+        key,
+        120000
+      ),
 
-        cordax(
-          `/Fixtures/from/${fromS}/to/${toS}/team/${encodeURIComponent(
-            awayTeam
-          )}`,
-          token,
-          120000
-        )
-      ]);
+      api(
+        `/fixtures?team=${away.id}&last=10`,
+        key,
+        120000
+      )
+    ]);
 
     const homeAll =
-      arrify(homeData);
+      responseRows(homeData);
 
     const awayAll =
-      arrify(awayData);
+      responseRows(awayData);
 
     const home5 =
-      last5(
+      lastFive(
         homeAll,
-        homeTeam,
+        home.id,
         before
       );
 
     const away5 =
-      last5(
+      lastFive(
         awayAll,
-        awayTeam,
+        away.id,
         before
       );
 
@@ -597,96 +566,78 @@ module.exports = async function handler(
       home5.length < 3 ||
       away5.length < 3
     ) {
-      return res.status(422).json({
-        error:
-          "Not enough recent completed matches"
-      });
+      return res
+        .status(422)
+        .json({
+          error:
+            "Not enough recent completed matches"
+        });
     }
-
-    const homeTier =
-      inferredTier(home5);
-
-    const awayTier =
-      inferredTier(away5);
 
     let homeStanding = null;
     let awayStanding = null;
 
-    const competitionKey =
-      norm(competition);
-
-    if (
-      ENGLISH_TIER[
-        competitionKey
-      ]
-    ) {
+    if (resolvedLeagueId) {
       try {
         const standings =
-          await cordax(
-            `/Standings/${encodeURIComponent(
-              competition
-            )}/${encodeURIComponent(
-              season
-            )}`,
-            token,
+          await api(
+            `/standings?league=${resolvedLeagueId}&season=${seasonYear}`,
+            key,
             300000
           );
 
         homeStanding =
-          standingsStrength(
+          findStanding(
             standings,
-            homeTeam
+            home.id
           );
 
         awayStanding =
-          standingsStrength(
+          findStanding(
             standings,
-            awayTeam
+            away.id
           );
 
-      } catch {}
+      } catch {
+        // Standings aren't available
+        // for every cup/competition.
+      }
     }
 
     const h2h =
-      await tryH2H(
-        homeTeam,
-        awayTeam,
-        competition,
-        season,
-        token
+      await getH2H(
+        home.id,
+        away.id,
+        key
       );
 
     const hGF =
       weighted(
         home5,
-        homeTeam,
+        home.id,
         0
       );
 
     const hGA =
       weighted(
         home5,
-        homeTeam,
+        home.id,
         1
       );
 
     const aGF =
       weighted(
         away5,
-        awayTeam,
+        away.id,
         0
       );
 
     const aGA =
       weighted(
         away5,
-        awayTeam,
+        away.id,
         1
       );
-
-    const tierDelta =
-      homeTier.score -
-      awayTier.score;
 
     const tableDelta =
       homeStanding &&
@@ -694,6 +645,9 @@ module.exports = async function handler(
         ? homeStanding.percentile -
           awayStanding.percentile
         : 0;
+
+    const tierScore =
+      leagueInfo?.score || 0.78;
 
     const baseHome =
       hGF * 0.58 +
@@ -703,29 +657,14 @@ module.exports = async function handler(
       aGF * 0.58 +
       hGA * 0.42;
 
-    const strengthHome =
-      clamp(
-        1 +
-          tierDelta * 0.48 +
-          tableDelta * 0.20,
-        0.70,
-        1.35
-      );
-
-    const strengthAway =
-      clamp(
-        1 -
-          tierDelta * 0.48 -
-          tableDelta * 0.20,
-        0.70,
-        1.35
-      );
-
     const expectedHome =
       clamp(
         baseHome *
           1.08 *
-          strengthHome,
+          (
+            1 +
+            tableDelta * 0.20
+          ),
         0.15,
         3.8
       );
@@ -734,7 +673,10 @@ module.exports = async function handler(
       clamp(
         baseAway *
           (1 / 1.08) *
-          strengthAway,
+          (
+            1 -
+            tableDelta * 0.20
+          ),
         0.12,
         3.5
       );
@@ -752,39 +694,35 @@ module.exports = async function handler(
     const probabilities = {
       home05:
         1 -
-        Math.exp(
-          -expectedHome
-        ),
+        Math.exp(-expectedHome),
 
       away05:
         1 -
-        Math.exp(
-          -expectedAway
-        ),
+        Math.exp(-expectedAway),
 
       over15:
         1 -
         Math.exp(
           -totalExpected
         ) *
-          (
-            1 +
-            totalExpected
-          ),
+        (
+          1 +
+          totalExpected
+        ),
 
       over25:
         1 -
         Math.exp(
           -totalExpected
         ) *
+        (
+          1 +
+          totalExpected +
           (
-            1 +
-            totalExpected +
-            (
-              totalExpected *
-              totalExpected
-            ) / 2
-          ),
+            totalExpected *
+            totalExpected
+          ) / 2
+        ),
 
       btts:
         (
@@ -818,28 +756,23 @@ module.exports = async function handler(
     const dataConfidence =
       Math.round(
         clamp(
-          58 +
-            (
-              home5.length +
-              away5.length
-            ) * 2 +
-            (
-              homeStanding &&
-              awayStanding
-                ? 12
-                : 0
-            ) +
-            (
-              homeTier.key &&
-              awayTier.key
-                ? 8
-                : 0
-            ) +
-            (
-              h2h.length
-                ? 8
-                : 0
-            ),
+          60 +
+          (
+            home5.length +
+            away5.length
+          ) * 2 +
+          (
+            homeStanding &&
+            awayStanding
+              ? 12
+              : 0
+          ) +
+          (
+            h2h.length
+              ? 8
+              : 0
+          ) +
+          tierScore * 5,
           55,
           96
         )
@@ -854,7 +787,7 @@ module.exports = async function handler(
         last5HitRate
       ) => ({
         id:
-          `${homeTeam}|${awayTeam}|${rule}`,
+          `${home.name}|${away.name}|${rule}`,
 
         type,
         title,
@@ -873,21 +806,17 @@ module.exports = async function handler(
             2
           )}-${expectedAway.toFixed(
             2
-          )}. Recent attack and defence are adjusted for this opponent, home advantage, team strength and table position where available.`,
+          )}. Recent attack and defence are adjusted for opponent strength, home advantage and table position where available.`,
 
         stats: {
           expectedHome:
             Number(
-              expectedHome.toFixed(
-                2
-              )
+              expectedHome.toFixed(2)
             ),
 
           expectedAway:
             Number(
-              expectedAway.toFixed(
-                2
-              )
+              expectedAway.toFixed(2)
             ),
 
           homePosition:
@@ -899,10 +828,14 @@ module.exports = async function handler(
             null,
 
           homeTierLabel:
-            homeTier.label,
+            leagueInfo?.label ||
+            competition ||
+            "Other",
 
           awayTierLabel:
-            awayTier.label,
+            leagueInfo?.label ||
+            competition ||
+            "Other",
 
           h2hGames:
             h2h.length,
@@ -914,13 +847,13 @@ module.exports = async function handler(
           homeForm:
             form(
               home5,
-              homeTeam
+              home.id
             ),
 
           awayForm:
             form(
               away5,
-              awayTeam
+              away.id
             )
         }
       });
@@ -928,25 +861,25 @@ module.exports = async function handler(
     const predictions = [
       makePrediction(
         "teamgoal",
-        `${homeTeam} over 0.5 goals`,
+        `${home.name} over 0.5 goals`,
         "home0.5",
         probabilities.home05,
         rawHit(
           home5,
           "team05",
-          homeTeam
+          home.id
         )
       ),
 
       makePrediction(
         "teamgoal",
-        `${awayTeam} over 0.5 goals`,
+        `${away.name} over 0.5 goals`,
         "away0.5",
         probabilities.away05,
         rawHit(
           away5,
           "team05",
-          awayTeam
+          away.id
         )
       ),
 
@@ -960,12 +893,12 @@ module.exports = async function handler(
             rawHit(
               home5,
               "over15",
-              homeTeam
+              home.id
             ) +
             rawHit(
               away5,
               "over15",
-              awayTeam
+              away.id
             )
           ) / 2
         )
@@ -981,12 +914,12 @@ module.exports = async function handler(
             rawHit(
               home5,
               "over25",
-              homeTeam
+              home.id
             ) +
             rawHit(
               away5,
               "over25",
-              awayTeam
+              away.id
             )
           ) / 2
         )
@@ -1002,12 +935,12 @@ module.exports = async function handler(
             rawHit(
               home5,
               "btts",
-              homeTeam
+              home.id
             ) +
             rawHit(
               away5,
               "btts",
-              awayTeam
+              away.id
             )
           ) / 2
         )
@@ -1015,49 +948,49 @@ module.exports = async function handler(
 
       makePrediction(
         "double",
-        `${homeTeam} or draw`,
+        `${home.name} or draw`,
         "homeOrDraw",
         probabilities.homeOrDraw,
         rawHit(
           home5,
           "nonloss",
-          homeTeam
+          home.id
         )
       ),
 
       makePrediction(
         "double",
-        `${awayTeam} or draw`,
+        `${away.name} or draw`,
         "awayOrDraw",
         probabilities.awayOrDraw,
         rawHit(
           away5,
           "nonloss",
-          awayTeam
+          away.id
         )
       ),
 
       makePrediction(
         "result",
-        `${homeTeam} win`,
+        `${home.name} win`,
         "homeWin",
         probabilities.homeWin,
         rawHit(
           home5,
           "win",
-          homeTeam
+          home.id
         )
       ),
 
       makePrediction(
         "result",
-        `${awayTeam} win`,
+        `${away.name} win`,
         "awayWin",
         probabilities.awayWin,
         rawHit(
           away5,
           "win",
-          awayTeam
+          away.id
         )
       )
     ]
@@ -1071,13 +1004,27 @@ module.exports = async function handler(
       .status(200)
       .json({
         model:
-          "v8-strength-opponent-calibrated",
+          "v9-api-football-strength-calibrated",
+
+        source:
+          "API-Football",
+
+        teams: {
+          home: {
+            id: home.id,
+            name: home.name
+          },
+
+          away: {
+            id: away.id,
+            name: away.name
+          }
+        },
 
         predictions
       });
 
-  } catch (e) {
-
+  } catch (error) {
     return res
       .status(502)
       .json({
@@ -1085,8 +1032,8 @@ module.exports = async function handler(
           "Prediction model failed",
 
         detail:
-          e?.message ||
-          String(e)
+          error?.message ||
+          String(error)
       });
   }
 };
