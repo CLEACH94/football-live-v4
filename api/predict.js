@@ -1,75 +1,32 @@
 const API = "https://v3.football.api-sports.io";
-const MODEL_VERSION = "v12-ensemble-lineup";
+const MODEL_VERSION = "v13-schedule-aware-ensemble";
 
 const LEAGUES = {
-  39:{score:1.00,label:"Premier League"},
-  40:{score:.90,label:"Championship"},
-  41:{score:.82,label:"League One"},
-  42:{score:.76,label:"League Two"},
-  45:{score:.82,label:"FA Cup"},
-  48:{score:.82,label:"League Cup"},
-  2:{score:1.00,label:"Champions League"},
-  3:{score:.94,label:"Europa League"},
-  848:{score:.88,label:"Conference League"},
-  179:{score:.78,label:"Scottish Premiership"},
-  140:{score:.96,label:"La Liga"},
-  78:{score:.96,label:"Bundesliga"},
-  135:{score:.95,label:"Serie A"},
-  61:{score:.93,label:"Ligue 1"},
-  88:{score:.86,label:"Eredivisie"},
-  94:{score:.86,label:"Primeira Liga"}
+  39:{score:1.00,label:"Premier League"},40:{score:.90,label:"Championship"},
+  41:{score:.82,label:"League One"},42:{score:.76,label:"League Two"},
+  45:{score:.82,label:"FA Cup"},48:{score:.82,label:"League Cup"},
+  2:{score:1.00,label:"Champions League"},3:{score:.94,label:"Europa League"},
+  848:{score:.88,label:"Conference League"},179:{score:.78,label:"Scottish Premiership"},
+  140:{score:.96,label:"La Liga"},78:{score:.96,label:"Bundesliga"},
+  135:{score:.95,label:"Serie A"},61:{score:.93,label:"Ligue 1"},
+  88:{score:.86,label:"Eredivisie"},94:{score:.86,label:"Primeira Liga"}
 };
 
 const cache = new Map();
-
-const wait = ms => new Promise(r => setTimeout(r, ms));
-const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
-const num = (v,f=null) => Number.isFinite(Number(v)) ? Number(v) : f;
-const rows = d => Array.isArray(d?.response) ? d.response : [];
+const wait = ms => new Promise(r=>setTimeout(r,ms));
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const num=(v,f=null)=>Number.isFinite(Number(v))?Number(v):f;
+const rows=d=>Array.isArray(d?.response)?d.response:[];
 
 async function api(path,key,ttl=0){
-  if(
-    ttl &&
-    cache.has(path) &&
-    Date.now()-cache.get(path).time < ttl
-  ){
-    return cache.get(path).data;
+  if(ttl&&cache.has(path)&&Date.now()-cache.get(path).time<ttl)return cache.get(path).data;
+  const r=await fetch(API+path,{headers:{"x-apisports-key":key}});
+  const d=await r.json();
+  if(!r.ok)throw new Error(`API-Football HTTP ${r.status}`);
+  if(d?.errors&&(Array.isArray(d.errors)?d.errors.length:Object.keys(d.errors).length)){
+    throw new Error(Array.isArray(d.errors)?d.errors.join(", "):JSON.stringify(d.errors));
   }
-
-  const r = await fetch(API+path,{
-    headers:{
-      "x-apisports-key":key
-    }
-  });
-
-  const d = await r.json();
-
-  if(!r.ok){
-    throw new Error(`API-Football HTTP ${r.status}`);
-  }
-
-  if(
-    d?.errors &&
-    (
-      Array.isArray(d.errors)
-        ? d.errors.length
-        : Object.keys(d.errors).length
-    )
-  ){
-    throw new Error(
-      Array.isArray(d.errors)
-        ? d.errors.join(", ")
-        : JSON.stringify(d.errors)
-    );
-  }
-
-  if(ttl){
-    cache.set(path,{
-      time:Date.now(),
-      data:d
-    });
-  }
-
+  if(ttl)cache.set(path,{time:Date.now(),data:d});
   return d;
 }
 
@@ -91,9 +48,7 @@ async function mapLimit(items,limit,fn){
 
   await Promise.all(
     Array.from(
-      {
-        length:Math.min(limit,items.length)
-      },
+      {length:Math.min(limit,items.length)},
       worker
     )
   );
@@ -104,76 +59,114 @@ async function mapLimit(items,limit,fn){
 function seasonFor(date){
   const d=new Date(date);
   const y=d.getUTCFullYear();
-
-  return d.getUTCMonth()+1>=7
-    ? y
-    : y-1;
+  return d.getUTCMonth()+1>=7?y:y-1;
 }
 
 function done(f){
-  return [
-    "FT",
-    "AET",
-    "PEN"
-  ].includes(
-    f?.fixture?.status?.short || ""
+  return ["FT","AET","PEN"].includes(
+    f?.fixture?.status?.short||""
   );
 }
 
 function teamSide(f,id){
-  if(f?.teams?.home?.id===id) return "home";
-  if(f?.teams?.away?.id===id) return "away";
-  return null;
+  return f?.teams?.home?.id===id
+    ? "home"
+    : f?.teams?.away?.id===id
+    ? "away"
+    : null;
 }
 
 function gfga(f,id){
   const side=teamSide(f,id);
-
   const h=num(f?.goals?.home);
   const a=num(f?.goals?.away);
 
-  if(
-    !side ||
-    h===null ||
-    a===null
-  ){
-    return null;
-  }
+  if(!side||h===null||a===null)return null;
 
   return side==="home"
     ? [h,a]
     : [a,h];
 }
 
-function recent(
-  all,
-  id,
-  before,
-  limit=20,
-  side=null
-){
+function recent(all,id,before,limit=20,side=null){
   return all
     .filter(done)
-    .filter(
-      f =>
-        new Date(f.fixture.date) <
-        before
-    )
-    .filter(
-      f =>
-        teamSide(f,id)
-    )
-    .filter(
-      f =>
-        !side ||
-        teamSide(f,id)===side
-    )
+    .filter(f=>new Date(f.fixture.date)<before)
+    .filter(f=>teamSide(f,id))
+    .filter(f=>!side||teamSide(f,id)===side)
     .sort(
-      (a,b) =>
-        new Date(b.fixture.date) -
+      (a,b)=>
+        new Date(b.fixture.date)-
         new Date(a.fixture.date)
     )
     .slice(0,limit);
+}
+
+function daysBetween(a,b){
+  return Math.max(
+    0,
+    (new Date(b)-new Date(a))/86400000
+  );
+}
+
+function lastMatchRest(list,target){
+  if(!list.length)return null;
+
+  return +daysBetween(
+    list[0].fixture.date,
+    target
+  ).toFixed(1);
+}
+
+function congestion(list,target,days=14){
+  const cut=
+    new Date(target).getTime()-
+    days*86400000;
+
+  return list.filter(
+    f=>
+      new Date(
+        f.fixture.date
+      ).getTime()>=cut
+  ).length;
+}
+
+function interveningFixtures(
+  data,
+  targetFixtureId,
+  targetDate
+){
+  const now=Date.now();
+  const target=
+    new Date(targetDate).getTime();
+
+  return rows(data)
+    .filter(
+      f=>
+        f?.fixture?.id!==
+        targetFixtureId
+    )
+    .filter(f=>{
+      const t=
+        new Date(
+          f?.fixture?.date||0
+        ).getTime();
+
+      const s=
+        f?.fixture?.status?.short||
+        "";
+
+      return (
+        t>now &&
+        t<target &&
+        ["NS","TBD"].includes(s)
+      );
+    })
+    .sort(
+      (a,b)=>
+        new Date(a.fixture.date)-
+        new Date(b.fixture.date)
+    );
 }
 
 function weightedAvg(
@@ -186,20 +179,20 @@ function weightedAvg(
   let d=0;
 
   list.forEach(
-    (f,i) => {
+    (f,i)=>{
       const x=gfga(f,id);
-      if(!x) return;
 
-      const w=Math.pow(decay,i);
+      if(!x)return;
 
-      n += x[index]*w;
-      d += w;
+      const w=
+        Math.pow(decay,i);
+
+      n+=x[index]*w;
+      d+=w;
     }
   );
 
-  return d
-    ? n/d
-    : null;
+  return d?n/d:null;
 }
 
 function ppg(list,id){
@@ -207,222 +200,129 @@ function ppg(list,id){
   let d=0;
 
   list.forEach(
-    (f,i) => {
+    (f,i)=>{
       const x=gfga(f,id);
-      if(!x) return;
 
-      const pts =
+      if(!x)return;
+
+      const pts=
         x[0]>x[1]
           ? 3
           : x[0]===x[1]
           ? 1
           : 0;
 
-      const w=Math.pow(.92,i);
+      const w=
+        Math.pow(.92,i);
 
-      n += pts*w;
-      d += w;
+      n+=pts*w;
+      d+=w;
     }
   );
 
-  return d
-    ? n/d
-    : 1.35;
+  return d?n/d:1.35;
 }
 
 function form(list,id){
   return list
     .slice(0,5)
-    .map(
-      f => {
-        const x=gfga(f,id);
+    .map(f=>{
+      const x=gfga(f,id);
 
-        if(!x) return "D";
-        if(x[0]>x[1]) return "W";
-        if(x[0]<x[1]) return "L";
-
-        return "D";
-      }
-    );
+      return !x
+        ? "D"
+        : x[0]>x[1]
+        ? "W"
+        : x[0]<x[1]
+        ? "L"
+        : "D";
+    });
 }
 
-function hitRate(
-  list,
-  rule,
-  id
-){
+function hitRate(list,rule,id){
   let hit=0;
-  let valid=0;
+  let n=0;
 
   for(
     const f of list.slice(0,10)
   ){
     const x=gfga(f,id);
 
-    if(!x) continue;
+    if(!x)continue;
 
-    valid++;
+    n++;
 
     const gf=x[0];
     const ga=x[1];
     const t=gf+ga;
 
-    if(
-      rule==="team05" &&
-      gf>=1
-    ){
-      hit++;
-    }
-
-    if(
-      rule==="over15" &&
-      t>=2
-    ){
-      hit++;
-    }
-
-    if(
-      rule==="over25" &&
-      t>=3
-    ){
-      hit++;
-    }
-
-    if(
-      rule==="under35" &&
-      t<=3
-    ){
-      hit++;
-    }
-
-    if(
-      rule==="under45" &&
-      t<=4
-    ){
-      hit++;
-    }
-
-    if(
-      rule==="btts" &&
-      gf>0 &&
-      ga>0
-    ){
-      hit++;
-    }
-
-    if(
-      rule==="nonloss" &&
-      gf>=ga
-    ){
-      hit++;
-    }
-
-    if(
-      rule==="win" &&
-      gf>ga
-    ){
-      hit++;
-    }
-
-    if(
-      rule==="draw" &&
-      gf===ga
-    ){
-      hit++;
-    }
+    if(rule==="team05"&&gf>=1)hit++;
+    if(rule==="over15"&&t>=2)hit++;
+    if(rule==="over25"&&t>=3)hit++;
+    if(rule==="under35"&&t<=3)hit++;
+    if(rule==="under45"&&t<=4)hit++;
+    if(rule==="btts"&&gf>0&&ga>0)hit++;
+    if(rule==="nonloss"&&gf>=ga)hit++;
+    if(rule==="win"&&gf>ga)hit++;
+    if(rule==="draw"&&gf===ga)hit++;
   }
 
-  return valid
-    ? Math.round(
-        100*hit/valid
-      )
+  return n
+    ? Math.round(100*hit/n)
     : 0;
 }
 
-function shrink(
-  obs,
-  n,
-  base,
-  strength=8
-){
-  if(
-    !Number.isFinite(obs)
-  ){
-    return base;
-  }
+function shrink(obs,n,base,strength=8){
+  if(!Number.isFinite(obs))return base;
 
-  const w =
+  const w=
     n/(n+strength);
 
   return (
-    obs*w +
+    obs*w+
     base*(1-w)
   );
 }
 
-function seasonStat(
-  d,
-  path,
-  fallback=null
-){
+function seasonStat(d,path,f=null){
   let x=d?.response;
 
-  for(
-    const p of path
-  ){
+  for(const p of path){
     x=x?.[p];
   }
 
-  return num(
-    x,
-    fallback
-  );
+  return num(x,f);
 }
 
-function standing(
-  d,
-  id
-){
+function standing(d,id){
   const flat=
     (
       d?.response?.[0]
         ?.league
-        ?.standings ||
+        ?.standings||
       []
     ).flat();
 
   const r=
     flat.find(
-      x =>
+      x=>
         x?.team?.id===id
     );
 
-  if(!r){
-    return null;
-  }
-
-  return {
-    pos:num(r.rank),
-    total:flat.length,
-    gd:num(
-      r.goalsDiff,
-      0
-    ),
-    points:num(
-      r.points,
-      0
-    )
-  };
+  return r
+    ? {
+        pos:num(r.rank),
+        total:flat.length,
+        gd:num(r.goalsDiff,0),
+        points:num(r.points,0)
+      }
+    : null;
 }
 
 function factorial(n){
   let r=1;
 
-  for(
-    let i=2;
-    i<=n;
-    i++
-  ){
+  for(let i=2;i<=n;i++){
     r*=i;
   }
 
@@ -431,8 +331,8 @@ function factorial(n){
 
 function pois(k,l){
   return (
-    Math.exp(-l) *
-    Math.pow(l,k) /
+    Math.exp(-l)*
+    Math.pow(l,k)/
     factorial(k)
   );
 }
@@ -447,59 +347,33 @@ function dixonColesMatrix(
   let away=0;
   let total=0;
 
-  for(
-    let h=0;
-    h<=9;
-    h++
-  ){
-    for(
-      let a=0;
-      a<=9;
-      a++
-    ){
+  for(let h=0;h<=9;h++){
+    for(let a=0;a<=9;a++){
       let tau=1;
 
-      if(
-        h===0 &&
-        a===0
-      ){
-        tau=
-          1 -
-          lh*la*rho;
+      if(h===0&&a===0){
+        tau=1-lh*la*rho;
       }
 
-      if(
-        h===0 &&
-        a===1
-      ){
-        tau=
-          1 +
-          lh*rho;
+      if(h===0&&a===1){
+        tau=1+lh*rho;
       }
 
-      if(
-        h===1 &&
-        a===0
-      ){
-        tau=
-          1 +
-          la*rho;
+      if(h===1&&a===0){
+        tau=1+la*rho;
       }
 
-      if(
-        h===1 &&
-        a===1
-      ){
-        tau=
-          1-rho;
+      if(h===1&&a===1){
+        tau=1-rho;
       }
 
-      const p=Math.max(
-        0,
-        pois(h,lh) *
-        pois(a,la) *
-        tau
-      );
+      const p=
+        Math.max(
+          0,
+          pois(h,lh)*
+          pois(a,la)*
+          tau
+        );
 
       total+=p;
 
@@ -520,40 +394,33 @@ function dixonColesMatrix(
   };
 }
 
-function goalProbs(
-  lh,
-  la
-){
+function goalProbs(lh,la){
   const t=lh+la;
   const e=Math.exp(-t);
 
   return {
     over15:
-      1 -
-      e*(1+t),
+      1-e*(1+t),
 
     over25:
-      1 -
-      e*(
-        1 +
-        t +
-        t*t/2
+      1-e*(
+        1+t+t*t/2
       ),
 
     under35:
       e*(
-        1 +
-        t +
-        t*t/2 +
+        1+
+        t+
+        t*t/2+
         t*t*t/6
       ),
 
     under45:
       e*(
-        1 +
-        t +
-        t*t/2 +
-        t*t*t/6 +
+        1+
+        t+
+        t*t/2+
+        t*t*t/6+
         t**4/24
       )
   };
@@ -566,7 +433,7 @@ function statValue(
   const item=
     (teamStats||[])
       .find(
-        x =>
+        x=>
           String(
             x?.type||""
           ).toLowerCase()
@@ -577,7 +444,7 @@ function statValue(
   const v=item?.value;
 
   if(
-    typeof v==="string" &&
+    typeof v==="string"&&
     v.endsWith("%")
   ){
     return num(
@@ -605,16 +472,14 @@ function chanceProfile(
     const team=
       d?.response
         ?.find(
-          x =>
+          x=>
             x?.team?.id===teamId
         );
 
-    if(!team){
-      continue;
-    }
+    if(!team)continue;
 
     const s=
-      team.statistics || [];
+      team.statistics||[];
 
     const a=
       statValue(
@@ -641,23 +506,20 @@ function chanceProfile(
       );
 
     if(
-      a===null &&
+      a===null&&
       b===null
     ){
       continue;
     }
 
-    sot += a || 0;
-    shots += b || 0;
-    corners += c || 0;
-    poss += p || 50;
-
+    sot+=a||0;
+    shots+=b||0;
+    corners+=c||0;
+    poss+=p||50;
     n++;
   }
 
-  if(!n){
-    return null;
-  }
+  if(!n)return null;
 
   const sotAvg=sot/n;
   const shotsAvg=shots/n;
@@ -666,30 +528,20 @@ function chanceProfile(
 
   const pressure=
     clamp(
-      .45*sotAvg +
-      .075*shotsAvg +
-      .055*cornersAvg +
+      .45*sotAvg+
+      .075*shotsAvg+
+      .055*cornersAvg+
       .012*(possAvg-50),
       0,
       5
     );
 
   return {
-    sot:
-      +sotAvg.toFixed(1),
-
-    shots:
-      +shotsAvg.toFixed(1),
-
-    corners:
-      +cornersAvg.toFixed(1),
-
-    poss:
-      +possAvg.toFixed(1),
-
-    pressure:
-      +pressure.toFixed(2),
-
+    sot:+sotAvg.toFixed(1),
+    shots:+shotsAvg.toFixed(1),
+    corners:+cornersAvg.toFixed(1),
+    poss:+possAvg.toFixed(1),
+    pressure:+pressure.toFixed(2),
     sample:n
   };
 }
@@ -706,10 +558,10 @@ function lineupInfo(d){
 
   const good=
     ls.filter(
-      x =>
+      x=>
         Array.isArray(
           x?.startXI
-        ) &&
+        )&&
         x.startXI.length>=11
     );
 
@@ -725,28 +577,30 @@ function lineupFor(
   info,
   teamId
 ){
-  return info.lineups
-    .find(
-      x =>
-        x?.team?.id===teamId
-    ) || null;
+  return (
+    info.lineups
+      .find(
+        x=>
+          x?.team?.id===teamId
+      )||
+    null
+  );
 }
 
 function xiIds(lineup){
   return (
-    lineup?.startXI || []
+    lineup?.startXI||
+    []
   )
     .map(
-      x =>
+      x=>
         x?.player?.id
     )
     .filter(Boolean);
 }
 
-function playerMap(
-  playerData
-){
-  const map=new Map();
+function playerMap(playerData){
+  const m=new Map();
 
   for(
     const r of
@@ -755,16 +609,16 @@ function playerMap(
     const id=
       r?.player?.id;
 
-    if(!id){
-      continue;
-    }
+    if(!id)continue;
 
     const stats=
       (
-        r.statistics || []
-      )[0] || {};
+        r.statistics||
+        []
+      )[0]||
+      {};
 
-    map.set(
+    m.set(
       id,
       {
         rating:
@@ -818,57 +672,50 @@ function playerMap(
     );
   }
 
-  return map;
+  return m;
 }
 
-function xiStrength(
-  ids,
-  map
-){
-  if(!ids.length){
-    return null;
-  }
+function xiStrength(ids,map){
+  if(!ids.length)return null;
 
   const vals=
     ids
       .map(
-        id =>
+        id=>
           map.get(id)
       )
       .filter(Boolean);
 
-  if(vals.length<6){
-    return null;
-  }
+  if(vals.length<6)return null;
 
   const rating=
     vals.reduce(
-      (a,x) =>
+      (a,x)=>
         a+x.rating,
       0
-    ) /
+    )/
     vals.length;
 
   const attack=
     vals.reduce(
-      (a,x) =>
-        a +
-        x.goals*1.0 +
-        x.assists*.7 +
-        x.shots*.10 +
+      (a,x)=>
+        a+
+        x.goals*1.0+
+        x.assists*.7+
+        x.shots*.10+
         x.passes*.05,
       0
-    ) /
+    )/
     vals.length;
 
   const defence=
     vals.reduce(
-      (a,x) =>
-        a +
-        x.tackles*.06 +
+      (a,x)=>
+        a+
+        x.tackles*.06+
         x.interceptions*.10,
       0
-    ) /
+    )/
     vals.length;
 
   return {
@@ -891,7 +738,7 @@ function pairContinuity(
   historicalIds
 ){
   if(
-    currentIds.length<8 ||
+    currentIds.length<8||
     !historicalIds.length
   ){
     return null;
@@ -915,12 +762,13 @@ function pairContinuity(
       const a=currentIds[i];
       const b=currentIds[j];
 
-      pairHits +=
-        historicalIds.filter(
-          x =>
-            x.includes(a) &&
-            x.includes(b)
-        ).length /
+      pairHits+=
+        historicalIds
+          .filter(
+            x=>
+              x.includes(a)&&
+              x.includes(b)
+          ).length/
         historicalIds.length;
     }
   }
@@ -930,16 +778,13 @@ function pairContinuity(
     : null;
 }
 
-function confidenceCalibrate(
-  p,
-  q
-){
+function confidenceCalibrate(p,q){
   const reliability=
-    .50 +
+    .50+
     .45*(q/100);
 
   return clamp(
-    .5 +
+    .5+
     (p-.5)*reliability,
     .04,
     .96
@@ -949,28 +794,28 @@ function confidenceCalibrate(
 function dataQuality(o){
   let q=42;
 
-  q += Math.min(
+  q+=Math.min(
     15,
     (o.homeN+o.awayN)*.5
   );
 
-  q += Math.min(
+  q+=Math.min(
     9,
     (
-      o.homeSplitN +
+      o.homeSplitN+
       o.awaySplitN
     )*.65
   );
 
-  if(o.season) q+=7;
-  if(o.table) q+=4;
-  if(o.chance) q+=7;
-  if(o.injuries) q+=3;
-  if(o.lineupConfirmed) q+=8;
-  if(o.playerStrength) q+=5;
-  if(o.partnership) q+=3;
+  if(o.season)q+=7;
+  if(o.table)q+=4;
+  if(o.chance)q+=7;
+  if(o.injuries)q+=3;
+  if(o.lineupConfirmed)q+=8;
+  if(o.playerStrength)q+=5;
+  if(o.partnership)q+=3;
 
-  q += o.leagueScore*3;
+  q+=o.leagueScore*3;
 
   return Math.round(
     clamp(
@@ -993,12 +838,10 @@ async function squadPages(
       key,
       300000
     ).catch(
-      () => null
+      ()=>null
     );
 
-  if(!first){
-    return [];
-  }
+  if(!first)return [];
 
   const out=[first];
 
@@ -1015,7 +858,7 @@ async function squadPages(
         key,
         300000
       ).catch(
-        () => null
+        ()=>null
       )
     );
   }
@@ -1023,7 +866,7 @@ async function squadPages(
   return out.filter(Boolean);
 }
 
-module.exports =
+module.exports=
 async function handler(
   req,
   res
@@ -1044,7 +887,7 @@ async function handler(
     });
   }
 
-  const b=req.body || {};
+  const b=req.body||{};
 
   const homeId=
     num(b.homeTeamId);
@@ -1060,7 +903,7 @@ async function handler(
 
   const before=
     new Date(
-      b.fixtureDate ||
+      b.fixtureDate||
       Date.now()
     );
 
@@ -1071,8 +914,8 @@ async function handler(
     );
 
   if(
-    !homeId ||
-    !awayId ||
+    !homeId||
+    !awayId||
     !fixtureId
   ){
     return res.status(400).json({
@@ -1082,10 +925,22 @@ async function handler(
   }
 
   try{
+    const targetDay=
+      before
+        .toISOString()
+        .slice(0,10);
+
+    const todayDay=
+      new Date()
+        .toISOString()
+        .slice(0,10);
+
     const [
-      homeData,
-      awayData
-    ] =
+      homeD,
+      awayD,
+      homeUpcomingD,
+      awayUpcomingD
+    ]=
       await Promise.all([
         api(
           `/fixtures?team=${homeId}&last=20`,
@@ -1097,12 +952,28 @@ async function handler(
           `/fixtures?team=${awayId}&last=20`,
           key,
           120000
+        ),
+
+        api(
+          `/fixtures?team=${homeId}&from=${todayDay}&to=${targetDay}`,
+          key,
+          120000
+        ).catch(
+          ()=>null
+        ),
+
+        api(
+          `/fixtures?team=${awayId}&from=${todayDay}&to=${targetDay}`,
+          key,
+          120000
+        ).catch(
+          ()=>null
         )
       ]);
 
     const h20=
       recent(
-        rows(homeData),
+        rows(homeD),
         homeId,
         before,
         20
@@ -1110,7 +981,7 @@ async function handler(
 
     const a20=
       recent(
-        rows(awayData),
+        rows(awayD),
         awayId,
         before,
         20
@@ -1118,7 +989,7 @@ async function handler(
 
     const hHome=
       recent(
-        rows(homeData),
+        rows(homeD),
         homeId,
         before,
         10,
@@ -1127,7 +998,7 @@ async function handler(
 
     const aAway=
       recent(
-        rows(awayData),
+        rows(awayD),
         awayId,
         before,
         10,
@@ -1135,7 +1006,7 @@ async function handler(
       );
 
     if(
-      h20.length<5 ||
+      h20.length<5||
       a20.length<5
     ){
       return res.status(422).json({
@@ -1143,6 +1014,70 @@ async function handler(
           "Not enough recent completed matches"
       });
     }
+
+    const hBefore=
+      interveningFixtures(
+        homeUpcomingD,
+        fixtureId,
+        before
+      );
+
+    const aBefore=
+      interveningFixtures(
+        awayUpcomingD,
+        fixtureId,
+        before
+      );
+
+    const homeRest=
+      lastMatchRest(
+        h20,
+        before
+      );
+
+    const awayRest=
+      lastMatchRest(
+        a20,
+        before
+      );
+
+    const homeCongestion=
+      congestion(
+        h20,
+        before,
+        14
+      );
+
+    const awayCongestion=
+      congestion(
+        a20,
+        before,
+        14
+      );
+
+    const hasIntervening=
+      !!(
+        hBefore.length||
+        aBefore.length
+      );
+
+    const interveningUntil=
+      [
+        ...hBefore,
+        ...aBefore
+      ].length
+        ? Math.max(
+            ...[
+              ...hBefore,
+              ...aBefore
+            ].map(
+              f=>
+                new Date(
+                  f.fixture.date
+                ).getTime()
+            )
+          )
+        : null;
 
     const date=
       before
@@ -1153,10 +1088,10 @@ async function handler(
       hs,
       as,
       stand,
-      injuriesData,
-      lineupData,
-      h2hData
-    ] =
+      inj,
+      lineupD,
+      h2hD
+    ]=
       await Promise.all([
         leagueId
           ? api(
@@ -1164,7 +1099,7 @@ async function handler(
               key,
               300000
             ).catch(
-              () => null
+              ()=>null
             )
           : null,
 
@@ -1174,7 +1109,7 @@ async function handler(
               key,
               300000
             ).catch(
-              () => null
+              ()=>null
             )
           : null,
 
@@ -1184,7 +1119,7 @@ async function handler(
               key,
               300000
             ).catch(
-              () => null
+              ()=>null
             )
           : null,
 
@@ -1193,7 +1128,7 @@ async function handler(
           key,
           120000
         ).catch(
-          () => null
+          ()=>null
         ),
 
         api(
@@ -1201,7 +1136,7 @@ async function handler(
           key,
           120000
         ).catch(
-          () => null
+          ()=>null
         ),
 
         api(
@@ -1209,7 +1144,7 @@ async function handler(
           key,
           300000
         ).catch(
-          () => null
+          ()=>null
         )
       ]);
 
@@ -1217,7 +1152,7 @@ async function handler(
       h20
         .slice(0,3)
         .map(
-          x =>
+          x=>
             x.fixture.id
         );
 
@@ -1225,7 +1160,7 @@ async function handler(
       a20
         .slice(0,3)
         .map(
-          x =>
+          x=>
             x.fixture.id
         );
 
@@ -1241,7 +1176,7 @@ async function handler(
       await mapLimit(
         statIds,
         3,
-        id =>
+        id=>
           api(
             `/fixtures/statistics?fixture=${id}`,
             key,
@@ -1261,20 +1196,20 @@ async function handler(
         awayId
       );
 
-    const lineup=
+    const linfo=
       lineupInfo(
-        lineupData
+        lineupD
       );
 
-    const homeLineup=
+    const hLine=
       lineupFor(
-        lineup,
+        linfo,
         homeId
       );
 
-    const awayLineup=
+    const aLine=
       lineupFor(
-        lineup,
+        linfo,
         awayId
       );
 
@@ -1284,7 +1219,7 @@ async function handler(
     let aContinuity=null;
 
     if(
-      lineup.confirmed &&
+      linfo.confirmed&&
       leagueId
     ){
       const [
@@ -1292,7 +1227,7 @@ async function handler(
         ap,
         hHist,
         aHist
-      ] =
+      ]=
         await Promise.all([
           squadPages(
             homeId,
@@ -1311,7 +1246,7 @@ async function handler(
           mapLimit(
             hRecentIds,
             3,
-            id =>
+            id=>
               api(
                 `/fixtures/lineups?fixture=${id}`,
                 key,
@@ -1322,7 +1257,7 @@ async function handler(
           mapLimit(
             aRecentIds,
             3,
-            id =>
+            id=>
               api(
                 `/fixtures/lineups?fixture=${id}`,
                 key,
@@ -1337,33 +1272,30 @@ async function handler(
           ...ap
         ]);
 
-      const homeIds=
-        xiIds(homeLineup);
+      const hIds=
+        xiIds(hLine);
 
-      const awayIds=
-        xiIds(awayLineup);
+      const aIds=
+        xiIds(aLine);
 
       hXi=
         xiStrength(
-          homeIds,
+          hIds,
           pmap
         );
 
       aXi=
         xiStrength(
-          awayIds,
+          aIds,
           pmap
         );
 
       const histIds=
-        (
-          arr,
-          team
-        ) =>
+        (arr,team)=>
           arr
             .filter(Boolean)
             .map(
-              d =>
+              d=>
                 xiIds(
                   lineupFor(
                     lineupInfo(d),
@@ -1372,13 +1304,13 @@ async function handler(
                 )
             )
             .filter(
-              x =>
+              x=>
                 x.length>=8
             );
 
       hContinuity=
         pairContinuity(
-          homeIds,
+          hIds,
           histIds(
             hHist,
             homeId
@@ -1387,7 +1319,7 @@ async function handler(
 
       aContinuity=
         pairContinuity(
-          awayIds,
+          aIds,
           histIds(
             aHist,
             awayId
@@ -1395,42 +1327,39 @@ async function handler(
         );
     }
 
-    const baselineVals=
-      [
-        seasonStat(
-          hs,
-          [
-            "goals",
-            "for",
-            "average",
-            "total"
-          ],
-          null
-        ),
+    const baselineVals=[
+      seasonStat(
+        hs,
+        [
+          "goals",
+          "for",
+          "average",
+          "total"
+        ],
+        null
+      ),
 
-        seasonStat(
-          as,
-          [
-            "goals",
-            "for",
-            "average",
-            "total"
-          ],
-          null
-        )
-      ]
-        .filter(
-          Number.isFinite
-        );
+      seasonStat(
+        as,
+        [
+          "goals",
+          "for",
+          "average",
+          "total"
+        ],
+        null
+      )
+    ].filter(
+      Number.isFinite
+    );
 
     const baseline=
       clamp(
         baselineVals.length
           ? baselineVals.reduce(
-              (a,x) =>
-                a+x,
+              (a,x)=>a+x,
               0
-            ) /
+            )/
             baselineVals.length
           : 1.35,
         .95,
@@ -1442,12 +1371,12 @@ async function handler(
         hHome,
         homeId,
         0
-      ) ??
+      )??
       weightedAvg(
         h20,
         homeId,
         0
-      ) ??
+      )??
       baseline;
 
     const hGA=
@@ -1455,12 +1384,12 @@ async function handler(
         hHome,
         homeId,
         1
-      ) ??
+      )??
       weightedAvg(
         h20,
         homeId,
         1
-      ) ??
+      )??
       baseline;
 
     const aGF=
@@ -1468,12 +1397,12 @@ async function handler(
         aAway,
         awayId,
         0
-      ) ??
+      )??
       weightedAvg(
         a20,
         awayId,
         0
-      ) ??
+      )??
       baseline;
 
     const aGA=
@@ -1481,12 +1410,12 @@ async function handler(
         aAway,
         awayId,
         1
-      ) ??
+      )??
       weightedAvg(
         a20,
         awayId,
         1
-      ) ??
+      )??
       baseline;
 
     const hPlayed=
@@ -1560,21 +1489,21 @@ async function handler(
       );
 
     let lh=
-      .50 *
+      .50*
       shrink(
         hGF,
         hHome.length,
         baseline,
         7
-      ) +
-      .22 *
+      )+
+      .22*
       shrink(
         hsGF,
         hPlayed,
         baseline,
         10
-      ) +
-      .28 *
+      )+
+      .28*
       shrink(
         asGA,
         aPlayed,
@@ -1583,21 +1512,21 @@ async function handler(
       );
 
     let la=
-      .50 *
+      .50*
       shrink(
         aGF,
         aAway.length,
         baseline,
         7
-      ) +
-      .22 *
+      )+
+      .22*
       shrink(
         asGF,
         aPlayed,
         baseline,
         10
-      ) +
-      .28 *
+      )+
+      .28*
       shrink(
         hsGA,
         hPlayed,
@@ -1609,137 +1538,172 @@ async function handler(
       ppg(
         h20,
         homeId
-      ) -
+      )-
       ppg(
         a20,
         awayId
       );
 
-    lh *=
+    lh*=
       clamp(
         1+dppg*.052,
         .88,
         1.13
       );
 
-    la *=
+    la*=
       clamp(
         1-dppg*.047,
         .89,
         1.12
       );
 
-    const homeStanding=
+    if(
+      homeRest!==null&&
+      awayRest!==null
+    ){
+      const restDelta=
+        clamp(
+          (homeRest-awayRest)/5,
+          -1,
+          1
+        );
+
+      lh*=
+        1+
+        restDelta*.025;
+
+      la*=
+        1-
+        restDelta*.020;
+    }
+
+    const congestionDelta=
+      clamp(
+        homeCongestion-
+        awayCongestion,
+        -3,
+        3
+      );
+
+    lh*=
+      1-
+      congestionDelta*.008;
+
+    la*=
+      1+
+      congestionDelta*.007;
+
+    const hSt=
       standing(
         stand,
         homeId
       );
 
-    const awayStanding=
+    const aSt=
       standing(
         stand,
         awayId
       );
 
     if(
-      homeStanding &&
-      awayStanding &&
-      homeStanding.total>1
+      hSt&&
+      aSt&&
+      hSt.total>1
     ){
       const delta=
         (
-          awayStanding.pos -
-          homeStanding.pos
-        ) /
+          aSt.pos-
+          hSt.pos
+        )/
         (
-          homeStanding.total -
+          hSt.total-
           1
         );
 
       const sample=
         Math.min(
-          hPlayed+aPlayed,
+          hPlayed+
+          aPlayed,
           20
-        ) /
+        )/
         20;
 
-      lh *=
-        1 +
+      lh*=
+        1+
         delta*.09*sample;
 
-      la *=
-        1 -
+      la*=
+        1-
         delta*.07*sample;
     }
 
     if(
-      hChance &&
+      hChance&&
       aChance
     ){
       const chanceDelta=
         clamp(
           (
-            hChance.pressure -
+            hChance.pressure-
             aChance.pressure
-          ) /
+          )/
           8,
           -.12,
           .12
         );
 
-      lh *=
-        1 +
+      lh*=
+        1+
         chanceDelta*.32;
 
-      la *=
-        1 -
+      la*=
+        1-
         chanceDelta*.28;
     }
 
     const injuries=
-      rows(
-        injuriesData
-      );
+      rows(inj);
 
     const hInj=
       injuries.filter(
-        x =>
+        x=>
           x?.team?.id===homeId
       ).length;
 
     const aInj=
       injuries.filter(
-        x =>
+        x=>
           x?.team?.id===awayId
       ).length;
 
-    lh *=
+    lh*=
       clamp(
-        1 -
+        1-
         (hInj-aInj)*.008,
         .94,
         1.05
       );
 
-    la *=
+    la*=
       clamp(
-        1 -
+        1-
         (aInj-hInj)*.008,
         .94,
         1.05
       );
 
     if(
-      lineup.confirmed &&
-      hXi &&
+      linfo.confirmed&&
+      hXi&&
       aXi
     ){
       const ratingDelta=
         clamp(
           (
-            hXi.rating -
+            hXi.rating-
             aXi.rating
-          ) /
+          )/
           3,
           -.12,
           .12
@@ -1748,53 +1712,51 @@ async function handler(
       const attackDelta=
         clamp(
           (
-            hXi.attack -
+            hXi.attack-
             aXi.attack
-          ) /
+          )/
           8,
           -.10,
           .10
         );
 
-      lh *=
-        1 +
-        ratingDelta*.20 +
+      lh*=
+        1+
+        ratingDelta*.20+
         attackDelta*.18;
 
-      la *=
-        1 -
-        ratingDelta*.17 -
+      la*=
+        1-
+        ratingDelta*.17-
         attackDelta*.14;
 
       if(
-        hContinuity!==null &&
+        hContinuity!==null&&
         aContinuity!==null
       ){
-        const continuityDelta=
+        const cDelta=
           clamp(
-            hContinuity -
+            hContinuity-
             aContinuity,
             -.25,
             .25
           );
 
-        lh *=
-          1 +
-          continuityDelta*.08;
+        lh*=
+          1+
+          cDelta*.08;
 
-        la *=
-          1 -
-          continuityDelta*.06;
+        la*=
+          1-
+          cDelta*.06;
       }
     }
 
-    lh *= 1.05;
-    la *= .98;
+    lh*=1.05;
+    la*=.98;
 
     const h2h=
-      rows(
-        h2hData
-      )
+      rows(h2hD)
         .filter(done)
         .slice(0,5);
 
@@ -1803,31 +1765,27 @@ async function handler(
       let ag=0;
       let n=0;
 
-      for(
-        const f of h2h
-      ){
+      for(const f of h2h){
         const x=
           gfga(
             f,
             homeId
           );
 
-        if(!x){
-          continue;
-        }
+        if(!x)continue;
 
-        hg += x[0];
-        ag += x[1];
+        hg+=x[0];
+        ag+=x[1];
         n++;
       }
 
       if(n){
-        lh =
-          lh*.97 +
+        lh=
+          lh*.97+
           (hg/n)*.03;
 
-        la =
-          la*.97 +
+        la=
+          la*.97+
           (ag/n)*.03;
       }
     }
@@ -1850,16 +1808,16 @@ async function handler(
     let chanceLA=la;
 
     if(
-      hChance &&
+      hChance&&
       aChance
     ){
       chanceLH=
         clamp(
-          .65*lh +
+          .65*lh+
           .35*(
-            baseline *
+            baseline*
             (
-              .75 +
+              .75+
               hChance.pressure/5
             )
           ),
@@ -1869,11 +1827,11 @@ async function handler(
 
       chanceLA=
         clamp(
-          .65*la +
+          .65*la+
           .35*(
-            baseline *
+            baseline*
             (
-              .75 +
+              .75+
               aChance.pressure/5
             )
           ),
@@ -1883,11 +1841,11 @@ async function handler(
     }
 
     const finalLH=
-      .72*lh +
+      .72*lh+
       .28*chanceLH;
 
     const finalLA=
-      .72*la +
+      .72*la+
       .28*chanceLA;
 
     const matrix=
@@ -1903,61 +1861,65 @@ async function handler(
       );
 
     const home05=
-      1 -
+      1-
       Math.exp(-finalLH);
 
     const away05=
-      1 -
+      1-
       Math.exp(-finalLA);
 
     const btts=
       home05*away05;
 
     const league=
-      LEAGUES[leagueId] || {
+      LEAGUES[leagueId]||
+      {
         score:.8,
         label:
-          b.competition ||
+          b.competition||
           "Competition"
       };
 
-    const quality=
+    let q=
       dataQuality({
         homeN:h20.length,
         awayN:a20.length,
         homeSplitN:hHome.length,
         awaySplitN:aAway.length,
         season:!!(hs&&as),
-        table:!!(
-          homeStanding &&
-          awayStanding
-        ),
-        chance:!!(
-          hChance &&
-          aChance
-        ),
-        injuries:!!injuriesData,
+        table:!!(hSt&&aSt),
+        chance:!!(hChance&&aChance),
+        injuries:!!inj,
         lineupConfirmed:
-          lineup.confirmed,
-        playerStrength:!!(
-          hXi &&
-          aXi
-        ),
+          linfo.confirmed,
+        playerStrength:
+          !!(hXi&&aXi),
         partnership:
-          hContinuity!==null &&
+          hContinuity!==null&&
           aContinuity!==null,
         leagueScore:
           league.score
       });
 
-    const makePrediction=
+    if(
+      hasIntervening&&
+      !linfo.confirmed
+    ){
+      q=
+        Math.max(
+          55,
+          q-8
+        );
+    }
+
+    const mk=
       (
         type,
         title,
         rule,
         raw,
         hit
-      ) => ({
+      )=>({
         id:
           `${fixtureId}|${rule}`,
 
@@ -1969,8 +1931,8 @@ async function handler(
           Math.round(
             confidenceCalibrate(
               raw,
-              quality
-            ) *
+              q
+            )*
             100
           ),
 
@@ -1980,7 +1942,7 @@ async function handler(
           ),
 
         explanation:
-          `V12 ensemble uses recent form, home/away splits, season attack/defence, opponent strength, Dixon-Coles score modelling, recent chance pressure, availability${lineup.confirmed ? ", confirmed starting XIs, player strength and XI continuity" : ""}. Expected goals ${finalLH.toFixed(2)}-${finalLA.toFixed(2)}.`,
+          `V13 ensemble: recency-weighted form, home/away splits, season attack/defence, opponent strength, Dixon–Coles score modelling, recent chance-pressure, rest/congestion, schedule context and availability${linfo.confirmed?", confirmed starting XIs, player strength and XI continuity":""}. Expected goals ${finalLH.toFixed(2)}–${finalLA.toFixed(2)}.`,
 
         stats:{
           expectedHome:
@@ -1990,18 +1952,16 @@ async function handler(
             +finalLA.toFixed(2),
 
           homePosition:
-            homeStanding?.pos ??
+            hSt?.pos??
             null,
 
           awayPosition:
-            awayStanding?.pos ??
+            aSt?.pos??
             null,
 
-          dataConfidence:
-            quality,
+          dataConfidence:q,
 
-          last5HitRate:
-            hit,
+          last5HitRate:hit,
 
           homeForm:
             form(
@@ -2031,14 +1991,14 @@ async function handler(
             aAway.length,
 
           lineupConfirmed:
-            lineup.confirmed,
+            linfo.confirmed,
 
           homeXI:
-            hXi?.rating ??
+            hXi?.rating??
             null,
 
           awayXI:
-            aXi?.rating ??
+            aXi?.rating??
             null,
 
           homeContinuity:
@@ -2056,31 +2016,71 @@ async function handler(
                 ),
 
           homeChance:
-            hChance?.pressure ??
+            hChance?.pressure??
             null,
 
           awayChance:
-            aChance?.pressure ??
+            aChance?.pressure??
             null,
 
           homeSOT:
-            hChance?.sot ??
+            hChance?.sot??
             null,
 
           awaySOT:
-            aChance?.sot ??
+            aChance?.sot??
             null,
 
-          homeInjuries:
-            hInj,
+          homeInjuries:hInj,
 
-          awayInjuries:
-            aInj
+          awayInjuries:aInj,
+
+          homeRestDays:
+            homeRest,
+
+          awayRestDays:
+            awayRest,
+
+          homeCongestion14:
+            homeCongestion,
+
+          awayCongestion14:
+            awayCongestion,
+
+          homePlaysBefore:
+            hBefore.length>0,
+
+          awayPlaysBefore:
+            aBefore.length>0,
+
+          interveningHome:
+            hBefore[0]
+              ? `${hBefore[0].teams.home.name} v ${hBefore[0].teams.away.name}`
+              : null,
+
+          interveningAway:
+            aBefore[0]
+              ? `${aBefore[0].teams.home.name} v ${aBefore[0].teams.away.name}`
+              : null,
+
+          freshness:
+            linfo.confirmed
+              ? 100
+              : hasIntervening
+              ? 62
+              : Math.round(
+                  clamp(
+                    78+
+                    (q-70)*.45,
+                    72,
+                    94
+                  )
+                )
         }
       });
 
     const predictions=[
-      makePrediction(
+      mk(
         "teamgoal",
         `${b.homeTeam} over 0.5 goals`,
         "home0.5",
@@ -2092,7 +2092,7 @@ async function handler(
         )
       ),
 
-      makePrediction(
+      mk(
         "teamgoal",
         `${b.awayTeam} over 0.5 goals`,
         "away0.5",
@@ -2104,7 +2104,7 @@ async function handler(
         )
       ),
 
-      makePrediction(
+      mk(
         "goals",
         "Over 1.5 match goals",
         "over1.5",
@@ -2115,18 +2115,18 @@ async function handler(
               h20,
               "over15",
               homeId
-            ) +
+            )+
             hitRate(
               a20,
               "over15",
               awayId
             )
-          ) /
+          )/
           2
         )
       ),
 
-      makePrediction(
+      mk(
         "goals",
         "Over 2.5 match goals",
         "over2.5",
@@ -2137,18 +2137,18 @@ async function handler(
               h20,
               "over25",
               homeId
-            ) +
+            )+
             hitRate(
               a20,
               "over25",
               awayId
             )
-          ) /
+          )/
           2
         )
       ),
 
-      makePrediction(
+      mk(
         "goals",
         "Under 3.5 match goals",
         "under3.5",
@@ -2159,18 +2159,18 @@ async function handler(
               h20,
               "under35",
               homeId
-            ) +
+            )+
             hitRate(
               a20,
               "under35",
               awayId
             )
-          ) /
+          )/
           2
         )
       ),
 
-      makePrediction(
+      mk(
         "goals",
         "Under 4.5 match goals",
         "under4.5",
@@ -2181,18 +2181,18 @@ async function handler(
               h20,
               "under45",
               homeId
-            ) +
+            )+
             hitRate(
               a20,
               "under45",
               awayId
             )
-          ) /
+          )/
           2
         )
       ),
 
-      makePrediction(
+      mk(
         "btts",
         "Both teams to score",
         "btts",
@@ -2203,22 +2203,22 @@ async function handler(
               h20,
               "btts",
               homeId
-            ) +
+            )+
             hitRate(
               a20,
               "btts",
               awayId
             )
-          ) /
+          )/
           2
         )
       ),
 
-      makePrediction(
+      mk(
         "double",
         `${b.homeTeam} or draw`,
         "homeOrDraw",
-        matrix.home +
+        matrix.home+
         matrix.draw,
         hitRate(
           h20,
@@ -2227,11 +2227,11 @@ async function handler(
         )
       ),
 
-      makePrediction(
+      mk(
         "double",
         `${b.awayTeam} or draw`,
         "awayOrDraw",
-        matrix.away +
+        matrix.away+
         matrix.draw,
         hitRate(
           a20,
@@ -2240,7 +2240,7 @@ async function handler(
         )
       ),
 
-      makePrediction(
+      mk(
         "result",
         `${b.homeTeam} win`,
         "homeWin",
@@ -2252,7 +2252,7 @@ async function handler(
         )
       ),
 
-      makePrediction(
+      mk(
         "result",
         "Draw",
         "draw",
@@ -2263,18 +2263,18 @@ async function handler(
               h20,
               "draw",
               homeId
-            ) +
+            )+
             hitRate(
               a20,
               "draw",
               awayId
             )
-          ) /
+          )/
           2
         )
       ),
 
-      makePrediction(
+      mk(
         "result",
         `${b.awayTeam} win`,
         "awayWin",
@@ -2285,11 +2285,10 @@ async function handler(
           awayId
         )
       )
-    ]
-      .sort(
-        (a,b) =>
-          b.p-a.p
-      );
+    ].sort(
+      (a,b)=>
+        b.p-a.p
+    );
 
     return res
       .status(200)
@@ -2303,33 +2302,60 @@ async function handler(
         fixtureId,
 
         lineupConfirmed:
-          lineup.confirmed,
+          linfo.confirmed,
 
         lineupChecked:
           true,
 
+        hasIntervening,
+
+        interveningUntil,
+
+        scheduleContext:{
+          homeRestDays:
+            homeRest,
+
+          awayRestDays:
+            awayRest,
+
+          homeCongestion14:
+            homeCongestion,
+
+          awayCongestion14:
+            awayCongestion,
+
+          homePlaysBefore:
+            hBefore.length>0,
+
+          awayPlaysBefore:
+            aBefore.length>0
+        },
+
         evidence:{
           chanceStats:
             !!(
-              hChance &&
+              hChance&&
               aChance
             ),
 
           playerStrength:
             !!(
-              hXi &&
+              hXi&&
               aXi
             ),
 
           partnerships:
-            hContinuity!==null &&
-            aContinuity!==null
+            hContinuity!==null&&
+            aContinuity!==null,
+
+          scheduleContext:
+            true
         },
 
         predictions
       });
 
-  }catch(error){
+  }catch(e){
     return res
       .status(502)
       .json({
@@ -2337,8 +2363,8 @@ async function handler(
           "Prediction model failed",
 
         detail:
-          error?.message ||
-          String(error)
+          e?.message||
+          String(e)
       });
   }
 };
