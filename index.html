@@ -125,6 +125,9 @@ body{background:#f7f7f4}
 .resultCard{padding:11px 12px;margin-bottom:7px}
 @media(max-width:430px){nav{overflow-x:auto;justify-content:flex-start;gap:2px;padding-bottom:2px}nav button{flex:0 0 auto;padding:10px 10px;font-size:8px}.detailHero h1{font-size:21px}.detailGrid{gap:5px}.detailPanel{padding:9px 6px}.detailPanel b{font-size:19px}.outcomeGrid{grid-template-columns:1fr}.fixtureFormCols{grid-template-columns:1fr}.predtop{grid-template-columns:1fr 70px}}
 
+
+.exportActions{grid-template-columns:1fr 1fr}
+@media(max-width:430px){.exportActions{grid-template-columns:1fr}}
 </style>
 
 <style>
@@ -207,7 +210,7 @@ body{background:#f7f7f4}
 
 <section class="section" id="picks"><div class="sectiontitle"><h2>Saved analysis</h2><span>Save → name → track</span></div><div class="summary"><div><b id="currentCount">0</b><span>SAVED</span></div><div><b id="lockedCount">0</b><span>TRACKED</span></div><div><b id="liveCount">0</b><span>LIVE</span></div></div><div id="picksList"></div></section>
 <section class="section" id="history"><div class="sectiontitle"><h2>Tracked results</h2><span>Original model confidence is preserved</span></div><div class="summary"><div><b id="histTotal">0</b><span>OUTCOMES</span></div><div><b id="histCorrect">0</b><span>CORRECT</span></div><div><b id="histRate">0%</b><span>HIT RATE</span></div></div><div id="historyList"></div></section>
-<section class="section" id="accuracy"><div class="filterbar"><button class="pill active" data-scope="model">All forecasts</button><button class="pill" data-scope="saved">My tracked sets</button></div><div class="datebar"><button class="pill active" data-window="all">All time</button><button class="pill" data-window="30">30 days</button><button class="pill" data-window="7">7 days</button></div><div class="sectiontitle"><h2>Forecast performance</h2><span>Performance by outcome type and sample size</span></div><div class="panel"><div id="categoryList"></div></div><div class="panel"><div id="backendStatus" class="small">Checking secure live feed…</div><div class="actions"><button class="btn blue" id="refresh">Refresh data</button></div><div class="note" style="margin-top:9px">Percentages are model estimates, not certainties. This is a football analysis and model-tracking tool.</div></div></section>
+<section class="section" id="accuracy"><div class="filterbar"><button class="pill active" data-scope="model">All forecasts</button><button class="pill" data-scope="saved">My tracked sets</button></div><div class="datebar"><button class="pill active" data-window="all">All time</button><button class="pill" data-window="30">30 days</button><button class="pill" data-window="7">7 days</button></div><div class="sectiontitle"><h2>Forecast performance</h2><span>Performance by outcome type and sample size</span></div><div class="panel"><div id="categoryList"></div></div><div class="panel"><div id="backendStatus" class="small">Checking secure live feed…</div><div class="actions exportActions"><button class="btn blue" id="refresh">Refresh data</button><button class="btn outline" id="exportModelData">Export model data</button></div><div class="note" style="margin-top:9px">Export creates one JSON file containing the model audit, cached forecasts, saved/tracked sets and app settings. It does not include your API key.</div><div class="note" style="margin-top:7px">Percentages are model estimates, not certainties. This is a football analysis and model-tracking tool.</div></div></section>
 </div>
 
 <div class="bottomslip"><div class="info"><b><span id="slipCount">0</span> saved outcomes</b><small>Save a named set before kick-off to track results</small></div><button class="btn gold" id="openSlip" style="flex:0 0 auto">View saved</button></div>
@@ -957,7 +960,58 @@ function renderResultForecasts(){
 function pageShow(name){
  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
  document.getElementById(name)?.classList.add("active");
- document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===name));
+ 
+function exportModelData(){
+ const keys=[
+   "mi-model-audit-v11",
+   "fp-api-predictions",
+   "fp8-history",
+   "fp8-locked",
+   "fp8-current",
+   "fp-api-selected-leagues",
+   "fp-api-favorites",
+   "matchindex-auto-updates-paused"
+ ];
+ const storage={};
+ keys.forEach(k=>{
+   const raw=localStorage.getItem(k);
+   if(raw===null){storage[k]=null;return}
+   try{storage[k]=JSON.parse(raw)}catch{storage[k]=raw}
+ });
+ const payload={
+   exportType:"match-index-model-data",
+   exportedAt:new Date().toISOString(),
+   appModel:EXPECTED_MODEL_VERSION,
+   location:location.origin,
+   summary:{
+     auditRecords:Array.isArray(storage["mi-model-audit-v11"])?storage["mi-model-audit-v11"].length:0,
+     cachedFixtures:storage["fp-api-predictions"]&&typeof storage["fp-api-predictions"]==="object"?Object.keys(storage["fp-api-predictions"]).length:0,
+     historyRecords:Array.isArray(storage["fp8-history"])?storage["fp8-history"].length:0,
+     trackedSets:Array.isArray(storage["fp8-locked"])?storage["fp8-locked"].length:0
+   },
+   storage
+ };
+ const body=JSON.stringify(payload,null,2);
+ const stamp=new Date().toISOString().slice(0,10);
+ const name=`match-index-model-data-${stamp}.json`;
+ const file=new File([body],name,{type:"application/json"});
+ if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+   navigator.share({title:"Match Index model data",files:[file]}).catch(err=>{
+     if(err?.name!=="AbortError")downloadModelExport(body,name);
+   });
+ }else{
+   downloadModelExport(body,name);
+ }
+}
+function downloadModelExport(body,name){
+ const blob=new Blob([body],{type:"application/json"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+
+document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===name));
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function allFixturePredictions(fid){
@@ -1123,7 +1177,8 @@ $("saveLeagues").onclick=async()=>{save();predictionCache={};localStorage.setIte
 $("restoreLeagues").onclick=()=>{selectedLeagueIds=[...DEFAULT_SELECTED];save();renderLeagueSelector()};
 $("teamSearch").oninput=e=>{teamQuery=e.target.value.trim();renderPredictions();startQueue()};$("clearSearch").onclick=()=>{$("teamSearch").value="";teamQuery="";renderPredictions()};
 $("matchSearch").oninput=e=>{matchQuery=e.target.value.trim();renderMatches()};$("clearMatchSearch").onclick=()=>{$("matchSearch").value="";matchQuery="";renderMatches()};
-$("refresh").onclick=loadFixtures;$("openSlip").onclick=()=>$("drawer").classList.add("open");$("closeSlip").onclick=()=>$("drawer").classList.remove("open");$("drawer").onclick=e=>{if(e.target.id==="drawer")$("drawer").classList.remove("open")};$("lockSlip").onclick=lockCurrent;
+$("refresh").onclick=loadFixtures;
+$("exportModelData").onclick=exportModelData;$("openSlip").onclick=()=>$("drawer").classList.add("open");$("closeSlip").onclick=()=>$("drawer").classList.remove("open");$("drawer").onclick=e=>{if(e.target.id==="drawer")$("drawer").classList.remove("open")};$("lockSlip").onclick=lockCurrent;
 
 
 
