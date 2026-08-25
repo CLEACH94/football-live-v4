@@ -125,16 +125,6 @@ body{background:#f7f7f4}
 .resultCard{padding:11px 12px;margin-bottom:7px}
 @media(max-width:430px){nav{overflow-x:auto;justify-content:flex-start;gap:2px;padding-bottom:2px}nav button{flex:0 0 auto;padding:10px 10px;font-size:8px}.detailHero h1{font-size:21px}.detailGrid{gap:5px}.detailPanel{padding:9px 6px}.detailPanel b{font-size:19px}.outcomeGrid{grid-template-columns:1fr}.fixtureFormCols{grid-template-columns:1fr}.predtop{grid-template-columns:1fr 70px}}
 
-
-.exportActions{grid-template-columns:1fr 1fr}
-@media(max-width:430px){.exportActions{grid-template-columns:1fr}}
-
-.exportModal{position:fixed;inset:0;background:rgba(13,28,54,.32);backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;z-index:9999;padding:12px}
-.exportModal.open{display:flex}.exportSheet{width:min(680px,100%);background:#fffdf7;border:1px solid #eadf9a;border-radius:24px;padding:18px;box-shadow:0 24px 70px rgba(19,35,62,.24)}
-.exportHead{display:flex;justify-content:space-between;align-items:flex-start}.exportHead span{font-size:7px;letter-spacing:1.4px;font-weight:950;color:#9a8210}.exportHead h3{margin:4px 0 0;color:var(--navy);font-size:21px}.exportHead button{border:0;background:#f2f3f5;width:34px;height:34px;border-radius:50%;font-size:24px;color:var(--navy)}
-.exportSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0}.exportSummary div{background:#fff8c9;border:1px solid #ead86e;border-radius:12px;padding:11px;text-align:center}.exportSummary b{display:block;color:var(--navy);font-size:20px}.exportSummary span{display:block;color:#7a6a22;font-size:6.5px;font-weight:950;margin-top:2px}
-.exportButtons{display:grid;gap:7px}.exportButtons .btn{width:100%}
-
 </style>
 
 <style>
@@ -154,6 +144,23 @@ body{background:#f7f7f4}
 .matchtile .tags{gap:5px}
 .matchtile .tag{padding:5px 7px}
 </style>
+
+<style>
+/* V15 Signature UI */
+:root{--cream:#fbfaf6;--ink2:#17223a;--gold:#c7a824;--gold-soft:#f3e8a6}
+body{background:radial-gradient(circle at 50% -10%,#fffdf4 0,#f7f6f1 36%,#f3f4f7 100%)}
+header{background:rgba(253,252,248,.96)}
+.hero{background:linear-gradient(145deg,#0a2147 0%,#0f3264 58%,#102b55 100%);border:1px solid rgba(255,255,255,.06)}
+.detailHero{background:linear-gradient(145deg,#f3d93d,#e9c91e)!important;color:#0a2147!important}
+.detailHero span,.detailHero h1,.detailHero small{color:#0a2147!important}
+.detailSection{background:rgba(255,255,255,.9);border:1px solid #e8e5dc;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 10px 30px rgba(13,32,69,.055)}
+.lineupShell{display:grid;gap:14px}.lineupTeamHead{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:10px}.lineupTeamHead b{font-size:18px;color:var(--navy)}.lineupTeamHead span{font-size:10px;color:var(--muted);font-weight:800}.pitch{position:relative;aspect-ratio:68/96;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#173f32,#204d3d);border:1px solid rgba(255,255,255,.15);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.pitch:before{content:"";position:absolute;inset:4%;border:1px solid rgba(255,255,255,.42);background:linear-gradient(to bottom,transparent 49.8%,rgba(255,255,255,.38) 50%,transparent 50.2%)}
+.pitch:after{content:"";position:absolute;left:50%;top:50%;width:22%;aspect-ratio:1;border:1px solid rgba(255,255,255,.4);border-radius:50%;transform:translate(-50%,-50%)}
+.pitch svg{position:absolute;inset:0;width:100%;height:100%;z-index:1}.pitchLink{stroke:rgba(239,220,102,.58);stroke-width:1.3}.pitchLink.mid{stroke-dasharray:4 4;opacity:.65}.playerNode{position:absolute;z-index:2;transform:translate(-50%,-50%);min-width:72px;text-align:center}.playerDot{width:34px;height:34px;margin:auto;border-radius:50%;display:grid;place-items:center;background:#fbfaf5;color:#0b2551;font-size:11px;font-weight:950;border:2px solid rgba(241,210,45,.9);box-shadow:0 5px 12px rgba(0,0,0,.22)}.playerName{margin-top:4px;color:white;font-size:9px;font-weight:850;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.75)}.playerMeta{font-size:7px;color:#f6e99a;font-weight:850}.matchup.up{color:#d8f3df}.matchup.down{color:#ffd4d4}.lineupMetrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:9px 0}.lineupMetrics div{padding:10px 7px;border:1px solid #e8e5dc;background:#faf9f5;border-radius:12px;text-align:center}.lineupMetrics b{display:block;color:var(--navy);font-size:16px}.lineupMetrics span{display:block;color:var(--muted);font-size:7px;font-weight:850;margin-top:2px}.bench{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.bench span{font-size:8px;padding:5px 7px;background:#f3f3ef;border:1px solid #e5e3db;border-radius:999px}.pressureIndex{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dataLayers{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.dataLayers div{background:#f8f7f2;border:1px solid #e7e4da;border-radius:12px;padding:9px;text-align:center}.dataLayers b{display:block;font-size:15px;color:var(--navy)}.dataLayers span{font-size:7px;color:var(--muted);font-weight:850}.leagueXiControls{display:flex;justify-content:space-between;gap:10px;align-items:end}.leagueXiControls label{font-size:9px;color:var(--muted);font-weight:850;flex:1}.leagueXiControls select{display:block;width:100%;margin-top:5px;border:1px solid #dedfdc;background:#fff;padding:11px;border-radius:10px;color:var(--navy);font-weight:850;font-size:14px}.segmented{display:flex;background:#efeee9;border-radius:11px;padding:3px}.segmented button{border:0;background:transparent;padding:9px 10px;font-size:9px;font-weight:850;color:#647086;border-radius:8px}.segmented button.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.08)}.leagueXiPitch{max-width:470px;margin:0 auto}.leagueXiInfo{text-align:center;margin:10px 0 14px}.leagueXiInfo b{font-size:18px;color:var(--navy)}.leagueXiInfo span{display:block;font-size:9px;color:var(--muted);margin-top:3px}.engineBreakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}.engineBreakdown div{display:flex;justify-content:space-between;gap:8px;padding:7px 8px;background:#f7f7f3;border-radius:9px;font-size:8px}.engineBreakdown b{color:var(--navy)}
+@media(max-width:520px){.lineupShell{grid-template-columns:1fr}.lineupMetrics,.dataLayers{grid-template-columns:repeat(2,1fr)}.leagueXiControls{display:block}.segmented{margin-top:9px}.playerNode{min-width:58px}.playerName{font-size:8px}}
+@media(min-width:720px){.lineupShell.two{grid-template-columns:1fr 1fr}.pitch{aspect-ratio:68/92}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -169,6 +176,7 @@ body{background:#f7f7f4}
     <button data-page="resultForecasts">Match Result</button>
     <button data-page="bttsForecasts">BTTS</button>
     <button data-page="accuracy">Performance</button>
+    <button data-page="leagueXI">League XI</button>
     <button data-page="leagues">Competitions</button>
   </nav>
 </header>
@@ -204,6 +212,13 @@ body{background:#f7f7f4}
   <div id="bttsForecastList"><div class="empty">Building UK BTTS forecasts…</div></div>
 </section>
 
+
+<section class="section" id="leagueXI">
+  <div class="hero leagueXiHero"><h1>League XI</h1><p>The strongest balanced XI from current performance data — selected by role, form and evidence quality.</p><div class="herofoot"><div class="metricbig"><b id="leagueXiStrength">—</b><span>XI STRENGTH</span></div><div class="metricbig"><b id="leagueXiFormation">—</b><span>FORMATION</span></div></div></div>
+  <div class="panel leagueXiControls"><label>League<select id="leagueXiLeague"><option value="39">Premier League</option><option value="40">Championship</option><option value="41">League One</option><option value="42">League Two</option></select></label><div class="segmented"><button class="active" data-ximode="current">Current</button><button data-ximode="season">Season</button><button data-ximode="form">Form</button></div></div>
+  <div id="leagueXiView"><div class="empty">Open the tab to build the current XI.</div></div>
+</section>
+
 <section class="section" id="fixtureDetail">
   <div id="fixtureDetailView"></div>
 </section>
@@ -217,35 +232,14 @@ body{background:#f7f7f4}
 
 <section class="section" id="picks"><div class="sectiontitle"><h2>Saved analysis</h2><span>Save → name → track</span></div><div class="summary"><div><b id="currentCount">0</b><span>SAVED</span></div><div><b id="lockedCount">0</b><span>TRACKED</span></div><div><b id="liveCount">0</b><span>LIVE</span></div></div><div id="picksList"></div></section>
 <section class="section" id="history"><div class="sectiontitle"><h2>Tracked results</h2><span>Original model confidence is preserved</span></div><div class="summary"><div><b id="histTotal">0</b><span>OUTCOMES</span></div><div><b id="histCorrect">0</b><span>CORRECT</span></div><div><b id="histRate">0%</b><span>HIT RATE</span></div></div><div id="historyList"></div></section>
-<section class="section" id="accuracy"><div class="filterbar"><button class="pill active" data-scope="model">All forecasts</button><button class="pill" data-scope="saved">My tracked sets</button></div><div class="datebar"><button class="pill active" data-window="all">All time</button><button class="pill" data-window="30">30 days</button><button class="pill" data-window="7">7 days</button></div><div class="sectiontitle"><h2>Forecast performance</h2><span>Performance by outcome type and sample size</span></div><div class="panel"><div id="categoryList"></div></div><div class="panel"><div id="backendStatus" class="small">Checking secure live feed…</div><div class="actions exportActions"><button class="btn blue" id="refresh">Refresh data</button><button class="btn outline" id="exportModelData" type="button" onclick="window.MATCH_INDEX_EXPORT_NOW && window.MATCH_INDEX_EXPORT_NOW()">Export model data</button></div><div class="note" style="margin-top:9px">Export creates one JSON file containing the model audit, cached forecasts, saved/tracked sets and app settings. It does not include your API key.</div><div class="note" style="margin-top:7px">Percentages are model estimates, not certainties. This is a football analysis and model-tracking tool.</div></div></section>
-<div id="exportFallback" style="display:none" class="panel">
-  <div class="sectiontitle"><h2>Model data export</h2><span id="exportFallbackStatus">Preparing…</span></div>
-  <textarea id="exportFallbackText" readonly style="width:100%;height:180px;border:1px solid #dfe3e8;border-radius:12px;padding:10px;font:11px/1.4 monospace;background:#fafafa;color:#172b4d"></textarea>
-  <div class="actions exportActions" style="margin-top:8px">
-    <button class="btn blue" type="button" onclick="window.MATCH_INDEX_COPY_EXPORT && window.MATCH_INDEX_COPY_EXPORT()">Copy all</button>
-    <button class="btn outline" type="button" onclick="window.MATCH_INDEX_SAVE_EXPORT && window.MATCH_INDEX_SAVE_EXPORT()">Save JSON</button>
-  </div>
-  <div class="small" style="margin-top:7px">If Share/Save is awkward on iPhone, tap Copy all and paste it into a message here.</div>
-</div>
-<div class="exportModal" id="exportModal" aria-hidden="true">
-  <div class="exportSheet">
-    <div class="exportHead"><div><span>MODEL DATA EXPORT</span><h3>Ready to send</h3></div><button id="closeExport" type="button">×</button></div>
-    <div class="exportSummary" id="exportSummary"></div>
-    <div class="exportButtons">
-      <button class="btn blue" id="shareExport" type="button">Share JSON file</button>
-      <button class="btn outline" id="downloadExport" type="button">Save JSON file</button>
-      <button class="btn outline" id="copyExport" type="button">Copy JSON</button>
-    </div>
-    <div class="small" id="exportStatus">Choose Share first on iPhone. You can then save the file or send it straight here.</div>
-  </div>
-</div>
+<section class="section" id="accuracy"><div class="filterbar"><button class="pill active" data-scope="model">All forecasts</button><button class="pill" data-scope="saved">My tracked sets</button></div><div class="datebar"><button class="pill active" data-window="all">All time</button><button class="pill" data-window="30">30 days</button><button class="pill" data-window="7">7 days</button></div><div class="sectiontitle"><h2>Forecast performance</h2><span>Performance by outcome type and sample size</span></div><div class="panel"><div id="categoryList"></div></div><div class="panel"><div id="backendStatus" class="small">Checking secure live feed…</div><div class="actions"><button class="btn blue" id="refresh">Refresh data</button><button class="btn outline" id="exportAudit">Export model data</button></div><div class="note" style="margin-top:9px">Percentages are model estimates, not certainties. This is a football analysis and model-tracking tool.</div></div></section>
 </div>
 
 <div class="bottomslip"><div class="info"><b><span id="slipCount">0</span> saved outcomes</b><small>Save a named set before kick-off to track results</small></div><button class="btn gold" id="openSlip" style="flex:0 0 auto">View saved</button></div>
 <div class="drawer" id="drawer"><div class="sheet"><div class="sectiontitle"><h2>Saved set</h2><span id="sheetCount">0 picks</span></div><div id="sheetItems"></div><div class="actions"><button class="btn gold" id="lockSlip">Name & track</button><button class="btn outline" id="closeSlip">Close</button></div></div></div>
 
 <script>
-const EXPECTED_MODEL_VERSION="v14-match-intelligence-ensemble";
+const EXPECTED_MODEL_VERSION="v15-match-intelligence-coherent";
 const LEAGUE_DEFS=[
  {id:"premier",group:"English leagues",label:"Premier League",apiId:39},
  {id:"championship",group:"English leagues",label:"Championship",apiId:40},
@@ -502,20 +496,21 @@ function auditPrediction(p,f,model){
    kickoff:dateOf(f),p:p.p,rawP:p.rawP??p.p,confidence:p.stats?.dataConfidence??null,
    agreement:p.stats?.engineAgreement??null,lineupConfirmed:!!p.stats?.lineupConfirmed,
    preLineupP:p.stats?.preLineupP??null,lineupDelta:p.stats?.lineupDelta??null,
-   stage:p.stats?.analysisStage||null,
-   model:model||"v11",correct:null,result:null,settledAt:null
+   stage:p.stats?.analysisStage||null,engines:p.stats?.engineProbabilities||null,ablation:p.stats?.ablation||null,
+   model:model||"v11",origin:"live",correct:null,result:null,settledAt:null
  });
  // Compact local store: keep the newest 12,000 model outcomes.
  if(modelAudit.length>12000)modelAudit=modelAudit.slice(-12000);
 }
 function calibrateFromAudit(p){
- const completed=modelAudit.filter(x=>x.correct!==null && x.model===p.model && x.type===p.type && Math.abs((x.rawP??x.p)-(p.rawP??p.p))<=6);
+ const completed=modelAudit.filter(x=>x.correct!==null && x.model===p.model && x.rule===p.rule && Math.abs((x.rawP??x.p)-(p.rawP??p.p))<=6);
  if(completed.length<80)return {...p,calibrationSample:completed.length};
  const empirical=completed.filter(x=>x.correct).length/completed.length*100;
  const weight=Math.min(.25,completed.length/(completed.length+320));
  const adjusted=Math.round(clamp((p.p*(1-weight))+(empirical*weight),5,96));
  return {...p,p:adjusted,calibrationSample:completed.length,empiricalRate:Math.round(empirical)};
 }
+function coherePredictions(ps){const by=Object.fromEntries(ps.map(p=>[p.rule,p]));const rr=["homeWin","draw","awayWin"];const sum=rr.reduce((a,r)=>a+(by[r]?.p||0),0)||100;rr.forEach(r=>{if(by[r])by[r].p=Math.round(by[r].p/sum*100)});const diff=100-rr.reduce((a,r)=>a+(by[r]?.p||0),0);if(diff&&by.homeWin)by.homeWin.p+=diff;if(by.homeOrDraw&&by.homeWin&&by.draw)by.homeOrDraw.p=by.homeWin.p+by.draw.p;if(by.awayOrDraw&&by.awayWin&&by.draw)by.awayOrDraw.p=by.awayWin.p+by.draw.p;if(by["over1.5"]&&by["over2.5"]&&by["over2.5"].p>by["over1.5"].p)by["over2.5"].p=by["over1.5"].p;if(by["under3.5"]&&by["under4.5"]&&by["under3.5"].p>by["under4.5"].p)by["under3.5"].p=by["under4.5"].p;return ps}
 function settleModelAudit(){
  let changed=false;
  modelAudit.forEach(a=>{
@@ -779,7 +774,7 @@ async function analyse(f,mode=null){
    const d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||("Model returned "+r.status));
    const model=d.model||EXPECTED_MODEL_VERSION,stage=d.analysisStage||mode;
    const previous=predictionCache[idOf(f)]||null;
-   const enriched=(d.predictions||[]).map(p=>calibrateFromAudit({...p,model,fixtureId:idOf(f),fixture:`${homeOf(f)} v ${awayOf(f)}`,competition:compOf(f),kickoff:dateOf(f)}));
+   const enriched=coherePredictions((d.predictions||[]).map(p=>calibrateFromAudit({...p,model,fixtureId:idOf(f),fixture:`${homeOf(f)} v ${awayOf(f)}`,competition:compOf(f),kickoff:dateOf(f)})));
    let preLineupProbabilities=previous?.preLineupProbabilities||null;
    if(d.lineupConfirmed){
      if(!preLineupProbabilities && previous && !previous.lineupConfirmed && previous.stage!=="scout"){
@@ -802,7 +797,9 @@ async function analyse(f,mode=null){
      else if(mins>75)nextRefreshAt=kick-75*60*1000;
      else if(mins>0)nextRefreshAt=now+10*60*1000;
    }
-   predictionCache[idOf(f)]={ts:now,model,stage,lineupConfirmed:!!d.lineupConfirmed,lineupChecked:!!d.lineupChecked,hasIntervening:!!d.hasIntervening,interveningUntil:d.interveningUntil||null,nextRefreshAt,evidence:d.evidence||{},preLineupProbabilities,predictions:enriched};
+   const probabilityHistory=[...(previous?.probabilityHistory||[]),{ts:now,stage,probabilities:Object.fromEntries(enriched.map(x=>[x.rule,x.p]))}].slice(-10);
+   predictionCache[idOf(f)]={ts:now,model,stage,lineupConfirmed:!!d.lineupConfirmed,lineupChecked:!!d.lineupChecked,hasIntervening:!!d.hasIntervening,interveningUntil:d.interveningUntil||null,nextRefreshAt,evidence:d.evidence||{},dataLayers:d.dataLayers||null,lineups:d.lineups||null,preLineupProbabilities,probabilityHistory,predictions:enriched};
+   pushSnapshotToServer(f,predictionCache[idOf(f)]);
    save();$("queueState").textContent=stage==="final"?"Final XI analysis complete":stage==="deep"?"Deep snapshot frozen":"Scout pass complete";$("queueBar").style.width="100%";renderAllPreservingUI();
  }catch(e){$("queueState").textContent="Model unavailable: "+e.message;$("queueBar").style.width="0"}
  analysing=false;setTimeout(()=>{$("queueBar").style.width="0"},900)
@@ -988,106 +985,7 @@ function renderResultForecasts(){
 function pageShow(name){
  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
  document.getElementById(name)?.classList.add("active");
- 
-let preparedExport=null;
-function buildModelExport(){
- const keys=[
-   "mi-model-audit-v11","fp-api-predictions","fp8-history","fp8-locked",
-   "fp8-current","fp-api-selected-leagues","fp-api-favorites",
-   "matchindex-auto-updates-paused"
- ];
- const storage={};
- keys.forEach(k=>{
-   const raw=localStorage.getItem(k);
-   if(raw===null){storage[k]=null;return}
-   try{storage[k]=JSON.parse(raw)}catch{storage[k]=raw}
- });
- const payload={
-   exportType:"match-index-model-data",
-   exportedAt:new Date().toISOString(),
-   appModel:EXPECTED_MODEL_VERSION,
-   origin:location.origin,
-   summary:{
-     auditRecords:Array.isArray(storage["mi-model-audit-v11"])?storage["mi-model-audit-v11"].length:0,
-     cachedFixtures:storage["fp-api-predictions"]&&typeof storage["fp-api-predictions"]==="object"?Object.keys(storage["fp-api-predictions"]).length:0,
-     historyRecords:Array.isArray(storage["fp8-history"])?storage["fp8-history"].length:0,
-     trackedSets:Array.isArray(storage["fp8-locked"])?storage["fp8-locked"].length:0
-   },
-   storage
- };
- const text=JSON.stringify(payload,null,2);
- const name=`match-index-model-data-${new Date().toISOString().slice(0,10)}.json`;
- return {payload,text,name};
-}
-function openExportModal(){
- try{
-   preparedExport=buildModelExport();
-   const s=preparedExport.payload.summary;
-   $("exportSummary").innerHTML=`<div><b>${s.auditRecords}</b><span>AUDIT RECORDS</span></div><div><b>${s.cachedFixtures}</b><span>CACHED FIXTURES</span></div><div><b>${s.historyRecords}</b><span>HISTORY</span></div>`;
-   $("exportStatus").textContent="Choose Share first on iPhone. You can then save the JSON file or send it straight here.";
-   $("exportModal").classList.add("open");
-   $("exportModal").setAttribute("aria-hidden","false");
- }catch(e){
-   alert("Export could not be prepared: "+e.message);
- }
-}
-function closeExportModal(){
- $("exportModal").classList.remove("open");
- $("exportModal").setAttribute("aria-hidden","true");
-}
-async function sharePreparedExport(){
- if(!preparedExport)preparedExport=buildModelExport();
- try{
-   const file=new File([preparedExport.text],preparedExport.name,{type:"application/json"});
-   if(navigator.share){
-     const data={title:"Match Index model data",text:"Match Index model-data export",files:[file]};
-     if(!navigator.canShare || navigator.canShare({files:[file]})){
-       await navigator.share(data);
-       $("exportStatus").textContent="Share sheet opened successfully.";
-       return;
-     }
-   }
-   savePreparedExport();
- }catch(e){
-   if(e?.name!=="AbortError"){
-     $("exportStatus").textContent="Share was unavailable, so use Save JSON file below.";
-   }
- }
-}
-function savePreparedExport(){
- if(!preparedExport)preparedExport=buildModelExport();
- try{
-   const blob=new Blob([preparedExport.text],{type:"application/json;charset=utf-8"});
-   const url=URL.createObjectURL(blob);
-   const a=document.createElement("a");
-   a.href=url;
-   a.download=preparedExport.name;
-   a.style.display="none";
-   document.body.appendChild(a);
-   a.click();
-   a.remove();
-   setTimeout(()=>URL.revokeObjectURL(url),3000);
-   $("exportStatus").textContent="JSON file created. Check Safari Downloads / Files if it did not open automatically.";
- }catch(e){
-   $("exportStatus").textContent="Save failed: "+e.message;
- }
-}
-async function copyPreparedExport(){
- if(!preparedExport)preparedExport=buildModelExport();
- try{
-   await navigator.clipboard.writeText(preparedExport.text);
-   $("exportStatus").textContent="Copied. You can paste the JSON into a file or message.";
- }catch(e){
-   const ta=document.createElement("textarea");
-   ta.value=preparedExport.text;
-   ta.style.position="fixed";ta.style.opacity="0";
-   document.body.appendChild(ta);ta.focus();ta.select();
-   const ok=document.execCommand("copy");ta.remove();
-   $("exportStatus").textContent=ok?"Copied.":"Copy failed — use Share JSON file instead.";
- }
-}
-
-document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===name));
+ document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===name));
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function allFixturePredictions(fid){
@@ -1102,44 +1000,31 @@ function miniBar(label,val){
  const n=Number(val),pct=Number.isFinite(n)?Math.max(0,Math.min(100,n)):0;
  return `<div class="barRow"><div><span>${esc(label)}</span><b>${Number.isFinite(n)?n:"—"}</b></div><div class="barTrack"><i style="width:${pct}%"></i></div></div>`;
 }
+function pressureIndex(v){const n=Number(v);return Number.isFinite(n)?Math.round(clamp((n/5)*100,0,100)):null}
+function pitchXY(grid,rowCols={}){const [r0,c0]=String(grid||'').split(':').map(Number);const r=Number.isFinite(r0)?r0:3,c=Number.isFinite(c0)?c0:2,cols=rowCols[r]||1,yMap={1:88,2:68,3:47,4:25,5:12};return{x:cols===1?50:(14+(c-1)*(72/Math.max(1,cols-1))),y:yMap[r]||47}}
+function lineupPitch(teamData){
+ if(!teamData?.xi?.length)return `<div class="empty">Confirmed line-up data is not available yet.</div>`;
+ const rowCols={};teamData.xi.forEach(p=>{const [r,c]=String(p.grid||'').split(':').map(Number);if(Number.isFinite(r)&&Number.isFinite(c))rowCols[r]=Math.max(rowCols[r]||0,c)});const pts=Object.fromEntries(teamData.xi.map(p=>[p.id,pitchXY(p.grid,rowCols)]));
+ const links=(teamData.partnerships||[]).filter(l=>pts[l.a]&&pts[l.b]&&l.rating>=58).map(l=>{const a=pts[l.a],b=pts[l.b];return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="pitchLink ${l.rating<72?'mid':''}"/>`}).join('');
+ const nodes=teamData.xi.map(p=>{const xy=pts[p.id],m=Number(p.matchup)||0;return `<div class="playerNode" style="left:${xy.x}%;top:${xy.y}%"><div class="playerDot">${p.rating??'—'}</div><div class="playerName">${esc(p.name)}</div><div class="playerMeta">${esc(p.pos||'')} · ${p.confidence??'—'}% conf ${m?`· <span class="matchup ${m>0?'up':'down'}">${m>0?'▲ +':'▼ '}${m}</span>`:''}</div></div>`}).join('');
+ const bench=(teamData.bench||[]).map(p=>`<span>${esc(p.name)} · ${esc(p.pos||'')}</span>`).join('');
+ const nameBy=Object.fromEntries(teamData.xi.map(p=>[p.id,p.name]));const pairList=(teamData.partnerships||[]).slice(0,6).map(l=>`<span>${esc(nameBy[l.a]||'Player')} ↔ ${esc(nameBy[l.b]||'Player')} · ${l.rating}</span>`).join('');return `<div class="lineupTeamHead"><div><b>${esc(teamData.team)}</b><span>${esc(teamData.formation||'Formation n/a')}</span></div><span>${teamData.matchupSample>=3?`H2H context ${teamData.matchupImpact>0?'+':''}${teamData.matchupImpact}`:'H2H limited sample'}</span></div><div class="pitch"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${links}</svg>${nodes}</div><div class="lineupMetrics"><div><b>${teamData.continuity??'—'}</b><span>XI CONTINUITY</span></div><div><b>${teamData.formationContinuity??'—'}</b><span>FORMATION FIT</span></div><div><b>${teamData.partnerships?.length||0}</b><span>LINKS TRACKED</span></div><div><b>${teamData.matchupImpact>0?'+':''}${teamData.matchupImpact??0}</b><span>H2H CONTEXT</span></div></div>${pairList?`<div class="small">Strongest partnerships</div><div class="bench">${pairList}</div>`:''}${bench?`<div class="small">Bench</div><div class="bench">${bench}</div>`:''}`
+}
+function engineDetail(p){const e=p?.stats?.engineProbabilities||null;if(!e)return'';return `<div class="engineBreakdown">${Object.entries(e).map(([k,v])=>`<div><span>${esc(k)}</span><b>${v}%</b></div>`).join('')}</div>`}
 function openFixtureDetail(fid){
- const f=fixtureById(fid),c=predictionCache[fid];
- if(!f)return;
- const ps=allFixturePredictions(fid),by=Object.fromEntries(ps.map(p=>[p.rule,p])),top=[...ps].sort((a,b)=>b.p-a.p);
- const s=top[0]?.stats||{},next=nextRefreshFor(f,c);
- const resultBest=[by.homeWin,by.draw,by.awayWin].filter(Boolean).sort((a,b)=>b.p-a.p)[0];
- const btts=by.btts;
- $("fixtureDetailView").innerHTML=`<div class="fixtureDetailShell">
-   <button class="detailBack" id="fixtureBack">← Rankings</button>
-   <div class="detailHero">
-     <div><span>${esc(compOf(f))} · ${esc(prettyDate(dateOf(f)))}</span><h1>${esc(homeOf(f))}<small>v</small>${esc(awayOf(f))}</h1></div>
-     <div class="detailStatus">${c?.lineupConfirmed?'<b>✓ FINAL XI</b>':'<b>○ AWAITING XI</b>'}${next&&!c?.lineupConfirmed?`<span>Next check ${esc(formatRefresh(next))}</span>`:""}</div>
-   </div>
-   <div class="detailGrid">
-     <section class="detailPanel featured"><span>TOP FORECAST</span><b>${top[0]?.p??"—"}${top[0]?"%":""}</b><strong>${esc(top[0]?.title||"Building")}</strong></section>
-     <section class="detailPanel"><span>MATCH RESULT</span><b>${resultBest?.p??"—"}${resultBest?"%":""}</b><strong>${esc(resultBest?.title||"Building")}</strong></section>
-     <section class="detailPanel"><span>BTTS</span><b>${btts?Math.max(btts.p,100-btts.p):"—"}${btts?"%":""}</b><strong>${btts?(btts.p>=50?"Yes":"No"):"Building"}</strong></section>
-   </div>
-   <section class="detailSection">
-     <div class="detailTitle"><h2>Probability map</h2><span>All modelled outcomes</span></div>
-     <div class="outcomeGrid">${top.map(outcomeCard).join("")||'<div class="empty">Deep analysis is still building.</div>'}</div>
-   </section>
-   <section class="detailSection">
-     <div class="detailTitle"><h2>Match profile</h2><span>Expected goals and pressure</span></div>
-     <div class="profileNumbers"><div><b>${s.expectedHome??"—"}</b><span>${esc(homeOf(f))} expected</span></div><div><b>${s.expectedAway??"—"}</b><span>${esc(awayOf(f))} expected</span></div></div>
-     ${miniBar(homeOf(f)+" pressure",s.homeChance)}
-     ${miniBar(awayOf(f)+" pressure",s.awayChance)}
-     ${miniBar("Data quality",s.dataConfidence)}
-     ${miniBar("Engine agreement",s.engineAgreement)}
-   </section>
-   <section class="detailSection">
-     <div class="detailTitle"><h2>Form & context</h2><span>Recent results, rest and load</span></div>
-     <div class="fixtureFormCols"><div><b>${esc(homeOf(f))}</b><div class="form">${formHTML(s.homeForm)}</div><small>Rest ${s.homeRestDays??"—"}d · ${s.homeCongestion14??"—"} matches / 14d</small></div><div><b>${esc(awayOf(f))}</b><div class="form">${formHTML(s.awayForm)}</div><small>Rest ${s.awayRestDays??"—"}d · ${s.awayCongestion14??"—"} matches / 14d</small></div></div>
-   </section>
-   ${Number.isFinite(top[0]?.stats?.lineupDelta)?`<section class="detailSection xiFeature"><div class="detailTitle"><h2>Confirmed XI impact</h2><span>Change after starting line-ups</span></div><div class="xiBig">${top[0].stats.preLineupP}% <span>→</span> ${top[0].p}% <b class="${top[0].stats.lineupDelta>0?"up":top[0].stats.lineupDelta<0?"down":"flat"}">${top[0].stats.lineupDelta>0?"+":""}${top[0].stats.lineupDelta}%</b></div></section>`:""}
- </div>`;
- pageShow("fixtureDetail");
- $("fixtureBack").onclick=()=>pageShow("rankings");
+ const f=fixtureById(fid),c=predictionCache[fid];if(!f)return;
+ const ps=allFixturePredictions(fid),by=Object.fromEntries(ps.map(p=>[p.rule,p])),top=[...ps].sort((a,b)=>b.p-a.p),s=top[0]?.stats||{},next=nextRefreshFor(f,c),resultBest=[by.homeWin,by.draw,by.awayWin].filter(Boolean).sort((a,b)=>b.p-a.p)[0],btts=by.btts;
+ const layers=c?.dataLayers||null,hp=pressureIndex(s.homeChance),ap=pressureIndex(s.awayChance);
+ $("fixtureDetailView").innerHTML=`<div class="fixtureDetailShell"><button class="detailBack" id="fixtureBack">← Rankings</button><div class="detailHero"><div><span>${esc(compOf(f))} · ${esc(prettyDate(dateOf(f)))}</span><h1>${esc(homeOf(f))}<small>v</small>${esc(awayOf(f))}</h1></div><div class="detailStatus">${c?.lineupConfirmed?'<b>✓ CONFIRMED XI</b>':'<b>○ AWAITING XI</b>'}${next&&!c?.lineupConfirmed?`<span>Next check ${esc(formatRefresh(next))}</span>`:""}</div></div>
+ <div class="detailGrid"><section class="detailPanel featured"><span>TOP FORECAST</span><b>${top[0]?.p??"—"}${top[0]?"%":""}</b><strong>${esc(top[0]?.title||"Building")}</strong></section><section class="detailPanel"><span>MATCH RESULT</span><b>${resultBest?.p??"—"}${resultBest?"%":""}</b><strong>${esc(resultBest?.title||"Building")}</strong></section><section class="detailPanel"><span>BTTS</span><b>${btts?Math.max(btts.p,100-btts.p):"—"}${btts?"%":""}</b><strong>${btts?(btts.p>=50?"Yes":"No"):"Building"}</strong></section></div>
+ ${c?.lineupConfirmed&&c?.lineups?`<section class="detailSection"><div class="detailTitle"><h2>Confirmed line-ups</h2><span>Player ratings · partnerships · matchup context</span></div><div class="lineupShell two"><div>${lineupPitch(c.lineups.home)}</div><div>${lineupPitch(c.lineups.away)}</div></div></section>`:`<section class="detailSection"><div class="detailTitle"><h2>Line-ups</h2><span>Automatic final-stage upgrade</span></div><div class="empty">Starting line-ups are not confirmed yet. Match Index will upgrade this fixture automatically when they arrive.</div></section>`}
+ <section class="detailSection"><div class="detailTitle"><h2>Probability map</h2><span>Coherent modelled outcomes</span></div><div class="outcomeGrid">${top.map(outcomeCard).join("")||'<div class="empty">Deep analysis is still building.</div>'}</div>${engineDetail(top[0])}</section>
+ <section class="detailSection"><div class="detailTitle"><h2>Match profile</h2><span>Expected goals and pressure index</span></div><div class="profileNumbers"><div><b>${s.expectedHome??"—"}</b><span>${esc(homeOf(f))} expected</span></div><div><b>${s.expectedAway??"—"}</b><span>${esc(awayOf(f))} expected</span></div></div>${miniBar(homeOf(f)+" pressure index",hp)}${miniBar(awayOf(f)+" pressure index",ap)}${miniBar("Engine agreement",s.engineAgreement)}</section>
+ ${layers?`<section class="detailSection"><div class="detailTitle"><h2>Evidence quality</h2><span>What the model actually has</span></div><div class="dataLayers"><div><b>${layers.teamData??'—'}</b><span>TEAM DATA</span></div><div><b>${layers.squadData??'—'}</b><span>SQUAD DATA</span></div><div><b>${layers.contextData??'—'}</b><span>CONTEXT</span></div><div><b>${layers.overall??'—'}</b><span>OVERALL</span></div></div></section>`:''}
+ ${(c?.probabilityHistory||[]).length>1?`<section class="detailSection"><div class="detailTitle"><h2>Probability history</h2><span>Scout → deep → confirmed XI</span></div><div class="engineBreakdown">${c.probabilityHistory.map(h=>`<div><span>${esc(String(h.stage||'').toUpperCase())} · ${new Date(h.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><b>${h.probabilities?.[top[0]?.rule]??'—'}%</b></div>`).join('')}</div></section>`:''}
+ <section class="detailSection"><div class="detailTitle"><h2>Form & context</h2><span>Recent results, rest and load</span></div><div class="fixtureFormCols"><div><b>${esc(homeOf(f))}</b><div class="form">${formHTML(s.homeForm)}</div><small>Rest ${s.homeRestDays??"—"}d · ${s.homeCongestion14??"—"} matches / 14d</small></div><div><b>${esc(awayOf(f))}</b><div class="form">${formHTML(s.awayForm)}</div><small>Rest ${s.awayRestDays??"—"}d · ${s.awayCongestion14??"—"} matches / 14d</small></div></div></section>
+ ${Number.isFinite(top[0]?.stats?.lineupDelta)?`<section class="detailSection xiFeature"><div class="detailTitle"><h2>Confirmed XI impact</h2><span>Deep → final movement</span></div><div class="xiBig">${top[0].stats.preLineupP}% <span>→</span> ${top[0].p}% <b class="${top[0].stats.lineupDelta>0?"up":top[0].stats.lineupDelta<0?"down":"flat"}">${top[0].stats.lineupDelta>0?"+":""}${top[0].stats.lineupDelta}%</b></div></section>`:""}</div>`;
+ pageShow("fixtureDetail");$("fixtureBack").onclick=()=>pageShow("predictions");
 }
 function bttsDateMatch(f){
  const k=dayKey(dateOf(f));
@@ -1176,9 +1061,10 @@ function renderAccuracy(){
  if(accuracyScope==="model"){
    const modelRows=rows.filter(x=>x.model===EXPECTED_MODEL_VERSION);
    const brier=modelRows.length?modelRows.reduce((a,x)=>a+(((x.p??50)/100-(x.correct?1:0))**2),0)/modelRows.length:null;
-   html+=`<div class="performanceStrip"><div><b>${modelRows.length}</b><span>V14 COMPLETED</span></div><div><b>${brier===null?"—":brier.toFixed(3)}</b><span>BRIER SCORE ↓</span></div><div><b>${modelRows.filter(x=>x.lineupConfirmed).length}</b><span>CONFIRMED-XI TESTS</span></div></div>`;
+   html+=`<div class="performanceStrip"><div><b>${modelRows.length}</b><span>V15 COMPLETED</span></div><div><b>${brier===null?"—":brier.toFixed(3)}</b><span>BINARY BRIER ↓</span></div><div><b>${modelRows.filter(x=>x.lineupConfirmed).length}</b><span>CONFIRMED-XI TESTS</span></div></div>`;
+   const resultRows=modelRows.filter(x=>x.type==="result"),resultGroups=new Map();for(const x of resultRows){const k=`${x.fixtureId}|${x.stage||'deep'}`;if(!resultGroups.has(k))resultGroups.set(k,[]);resultGroups.get(k).push(x)}const completeResult=[...resultGroups.values()].filter(g=>g.length===3);let topCorrect=0,multiBrier=0;for(const g of completeResult){const top=[...g].sort((a,b)=>b.p-a.p)[0];if(top.correct)topCorrect++;multiBrier+=g.reduce((a,x)=>a+(((x.p||0)/100-(x.correct?1:0))**2),0)/3}if(completeResult.length)html+=`<div class="sectiontitle" style="margin-top:16px"><h2>Match result model</h2><span>Three-way scoring, not three unrelated hit rates</span></div><div class="performanceStrip"><div><b>${topCorrect}/${completeResult.length}</b><span>TOP CHOICE</span></div><div><b>${Math.round(topCorrect/completeResult.length*100)}%</b><span>TOP ACCURACY</span></div><div><b>${(multiBrier/completeResult.length).toFixed(3)}</b><span>MULTICLASS BRIER ↓</span></div></div>`;
    const buckets=[[50,59],[60,69],[70,79],[80,89],[90,100]];
-   html+=`<div class="sectiontitle" style="margin-top:16px"><h2>V14 calibration</h2><span>Does an 80% forecast happen about 80% of the time?</span></div>`;
+   html+=`<div class="sectiontitle" style="margin-top:16px"><h2>V15 calibration</h2><span>Does an 80% forecast happen about 80% of the time?</span></div>`;
    html+=buckets.map(([lo,hi])=>{const r=modelRows.filter(x=>(x.p??0)>=lo&&(x.p??0)<=hi),c=r.filter(x=>x.correct).length,rate=r.length?Math.round(c/r.length*100):0;return `<div class="rankrow"><div class="ranknum">${lo}</div><div><b>${lo}–${hi}% forecasts</b><div class="small">${r.length} completed outcomes</div></div><div class="rate"><b>${r.length?rate+"%":"—"}</b><span>ACTUAL</span></div></div>`}).join("");
  }
  $("categoryList").innerHTML=html||`<div class="empty">Not enough completed results yet.</div>`;
@@ -1199,6 +1085,14 @@ function restoreOpenStats(){
    document.getElementById("stats-"+CSS.escape(id))?.classList.add("open");
  });
 }
+let leagueXiMode="current",leagueXiLoaded=false;
+async function renderLeagueXI(force=false){
+ const view=$("leagueXiView");if(!view)return;if(!force&&leagueXiLoaded)return;leagueXiLoaded=true;view.innerHTML='<div class="empty">Building the league XI…</div>';
+ try{const league=Number($("leagueXiLeague")?.value||39),r=await fetch(`/api/league-xi?league=${league}&mode=${leagueXiMode}`,{cache:"no-store"}),d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'League XI failed');$("leagueXiStrength").textContent=Math.round(d.strength);$("leagueXiFormation").textContent=d.formation;const team={team:d.leagueName,formation:d.formation,xi:(d.xi||[]).map(p=>({...p,rating:Math.round(p.score),confidence:Math.round(clamp(45+Math.log10((p.minutes||0)+10)*18,45,96)),matchup:0})),bench:[],partnerships:[],continuity:null,formationContinuity:null,matchupImpact:0,matchupSample:0};view.innerHTML=`<div class="leagueXiInfo"><b>${esc(d.leagueName)} · ${esc(leagueXiMode.toUpperCase())}</b><span>${d.samplePlayers||0} eligible players analysed · generated ${new Date(d.generatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="leagueXiPitch">${lineupPitch(team)}</div>`}catch(e){view.innerHTML=`<div class="error">${esc(e.message)}</div>`}
+}
+async function pushSnapshotToServer(f,c){try{await fetch('/api/snapshots?action=save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fixture:{fixtureId:idOf(f),homeTeam:homeOf(f),awayTeam:awayOf(f),homeTeamId:f.homeTeamId,awayTeamId:f.awayTeamId,competition:compOf(f),fixtureDate:dateOf(f),leagueId:f.leagueId,season:f.season},snapshot:c})})}catch(e){}}
+async function registerFixturesOnServer(){try{const rows=fixtures.filter(displayableFixture).slice(0,250).map(f=>({fixtureId:idOf(f),homeTeam:homeOf(f),awayTeam:awayOf(f),homeTeamId:f.homeTeamId,awayTeamId:f.awayTeamId,competition:compOf(f),fixtureDate:dateOf(f),leagueId:f.leagueId,season:f.season}));await fetch('/api/snapshots?action=register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fixtures:rows})})}catch(e){}}
+async function hydrateServerSnapshots(){try{const r=await fetch('/api/snapshots?action=list',{cache:'no-store'});if(!r.ok)return;const d=await r.json();for(const row of d.snapshots||[]){if(row?.snapshot?.model===EXPECTED_MODEL_VERSION){const local=predictionCache[row.fixture_id];if(!local||Number(row.snapshot.ts||0)>Number(local.ts||0))predictionCache[row.fixture_id]=row.snapshot}}const seen=new Set(modelAudit.map(x=>x.key));for(const a of d.audit||[]){if(seen.has(a.key))continue;modelAudit.push({key:a.key,fixtureId:String(a.fixture_id),rule:a.rule,type:a.type,title:a.title,fixture:'',competition:'',kickoff:a.kickoff,p:Number(a.p),rawP:Number(a.raw_p??a.p),confidence:null,agreement:null,lineupConfirmed:!!a.lineup_confirmed,preLineupP:null,lineupDelta:null,stage:a.stage,engines:a.engines||null,ablation:a.ablation||null,model:a.model,origin:'server',correct:a.correct,result:a.result,settledAt:a.settled_at});seen.add(a.key)}if(modelAudit.length>12000)modelAudit=modelAudit.slice(-12000);save()}catch(e){}}
 function renderAllPreservingUI(){
  captureOpenStats();
  renderAll();
@@ -1220,16 +1114,18 @@ async function loadFixtures(){
  try{
    $("feed").classList.remove("on");$("feed").querySelector("span").textContent="SYNCING";initialLeagueLoadComplete=false;fallbackLoaded=false;fallbackLoading=false;
    fixtures=await loadSelectedFixtures();
+   await hydrateServerSnapshots();
+   registerFixturesOnServer();
    settle();
    settleModelAudit();
    const beforeCacheCount=Object.keys(predictionCache).length;
    pruneWorkingData();
    if(beforeCacheCount && Object.keys(predictionCache).length===0){
-     $("queueState").textContent="V14 intelligence engine · rebuilding deep forecasts…";
+     $("queueState").textContent="V15 intelligence engine · rebuilding deep forecasts…";
    }
    $("feed").classList.add("on");$("feed").querySelector("span").textContent="LIVE FEED";
    $("matchStamp").textContent=fixtures.length+" fixtures · synced "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-   $("backendStatus").className="ok";$("backendStatus").textContent="API-Football connected. V14 scout/deep/final analysis is active.";
+   $("backendStatus").className="ok";$("backendStatus").textContent="API-Football connected. V15 scout/deep/final analysis is active.";
    renderAll();startQueue();startLiveRefresh();
  }catch(e){
    $("feed").classList.remove("on");$("feed").querySelector("span").textContent="ERROR";$("backendStatus").className="error";$("backendStatus").textContent=e.message;$("queueState").textContent="Error: "+e.message;
@@ -1238,7 +1134,7 @@ async function loadFixtures(){
 }
 
 $("predictionList")?.addEventListener("click",handlePredictionClick);
-document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));$(b.dataset.page).classList.add("active")});
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));$(b.dataset.page).classList.add("active");if(b.dataset.page==="leagueXI")renderLeagueXI()});
 document.querySelectorAll("[data-date]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-date]").forEach(x=>x.classList.remove("active"));b.classList.add("active");dateView=b.dataset.date;renderPredictions()});
 document.querySelectorAll("[data-mdate]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-mdate]").forEach(x=>x.classList.remove("active"));b.classList.add("active");matchDateView=b.dataset.mdate;renderMatches()});
 document.querySelectorAll("[data-rdate]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-rdate]").forEach(x=>x.classList.remove("active"));b.classList.add("active");resultDateView=b.dataset.rdate;renderResultForecasts()});
@@ -1253,19 +1149,12 @@ $("saveLeagues").onclick=async()=>{save();predictionCache={};localStorage.setIte
 $("restoreLeagues").onclick=()=>{selectedLeagueIds=[...DEFAULT_SELECTED];save();renderLeagueSelector()};
 $("teamSearch").oninput=e=>{teamQuery=e.target.value.trim();renderPredictions();startQueue()};$("clearSearch").onclick=()=>{$("teamSearch").value="";teamQuery="";renderPredictions()};
 $("matchSearch").oninput=e=>{matchQuery=e.target.value.trim();renderMatches()};$("clearMatchSearch").onclick=()=>{$("matchSearch").value="";matchQuery="";renderMatches()};
-$("refresh").onclick=loadFixtures;
-document.addEventListener("click",e=>{
- if(e.target.closest("#exportModelData")){e.preventDefault();openExportModal();return}
- if(e.target.closest("#closeExport")){e.preventDefault();closeExportModal();return}
- if(e.target.closest("#shareExport")){e.preventDefault();sharePreparedExport();return}
- if(e.target.closest("#downloadExport")){e.preventDefault();savePreparedExport();return}
- if(e.target.closest("#copyExport")){e.preventDefault();copyPreparedExport();return}
- if(e.target.id==="exportModal"){closeExportModal()}
-});
-$("openSlip").onclick=()=>$("drawer").classList.add("open");$("closeSlip").onclick=()=>$("drawer").classList.remove("open");$("drawer").onclick=e=>{if(e.target.id==="drawer")$("drawer").classList.remove("open")};$("lockSlip").onclick=lockCurrent;
+$("refresh").onclick=loadFixtures;$("exportAudit")?.addEventListener("click",async()=>{const payload=JSON.stringify({exportType:"match-index-v15",exportedAt:new Date().toISOString(),model:EXPECTED_MODEL_VERSION,audit:modelAudit,predictionCache},null,2);try{const file=new File([payload],`match-index-v15-${todayKey()}.json`,{type:"application/json"});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:"Match Index V15 data"});return}const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}catch(e){prompt("Copy model data",payload)}});$("openSlip").onclick=()=>$("drawer").classList.add("open");$("closeSlip").onclick=()=>$("drawer").classList.remove("open");$("drawer").onclick=e=>{if(e.target.id==="drawer")$("drawer").classList.remove("open")};$("lockSlip").onclick=lockCurrent;
 
 
 
+$("leagueXiLeague")?.addEventListener("change",()=>{leagueXiLoaded=false;renderLeagueXI(true)});
+document.querySelectorAll("[data-ximode]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-ximode]").forEach(x=>x.classList.remove("active"));b.classList.add("active");leagueXiMode=b.dataset.ximode;leagueXiLoaded=false;renderLeagueXI(true)}));
 $("freezeUpdates")?.addEventListener("click",()=>{manualFreeze=!manualFreeze;save();renderEngineStatus();startQueue()});
 
 function startRollingWindowWatch(){
@@ -1298,97 +1187,6 @@ function startRollingWindowWatch(){
 
 (async()=>{await loadCatalogue();await loadFixtures();startRollingWindowWatch()})();
 </script>
-
-<script>
-(function(){
-  let exportText="", exportName="";
-  function readJSON(key){
-    const raw=localStorage.getItem(key);
-    if(raw===null)return null;
-    try{return JSON.parse(raw)}catch(e){return raw}
-  }
-  function build(){
-    const keys=[];
-    for(let i=0;i<localStorage.length;i++) keys.push(localStorage.key(i));
-    keys.sort();
-    const storage={};
-    keys.forEach(k=>storage[k]=readJSON(k));
-    const payload={
-      exportType:"match-index-local-storage",
-      exportedAt:new Date().toISOString(),
-      origin:location.origin,
-      keys,
-      storage
-    };
-    exportText=JSON.stringify(payload,null,2);
-    exportName="match-index-local-storage-"+new Date().toISOString().slice(0,10)+".json";
-    return payload;
-  }
-  function showFallback(message){
-    try{
-      const box=document.getElementById("exportFallback");
-      const ta=document.getElementById("exportFallbackText");
-      const st=document.getElementById("exportFallbackStatus");
-      if(box) box.style.display="block";
-      if(ta) ta.value=exportText;
-      if(st) st.textContent=message||"Ready";
-      if(box) box.scrollIntoView({behavior:"smooth",block:"center"});
-    }catch(e){}
-  }
-  window.MATCH_INDEX_EXPORT_NOW=async function(){
-    try{
-      const payload=build();
-      showFallback("Ready · "+payload.keys.length+" local-storage items");
-      const file=new File([exportText],exportName,{type:"application/json"});
-      if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
-        try{
-          await navigator.share({title:"Match Index model data",files:[file]});
-          const st=document.getElementById("exportFallbackStatus");
-          if(st)st.textContent="Share sheet opened";
-          return;
-        }catch(e){
-          if(e && e.name==="AbortError")return;
-        }
-      }
-    }catch(e){
-      alert("Export error: "+e.message);
-    }
-  };
-  window.MATCH_INDEX_COPY_EXPORT=async function(){
-    try{
-      if(!exportText)build();
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        await navigator.clipboard.writeText(exportText);
-      }else{
-        const ta=document.getElementById("exportFallbackText");
-        ta.focus();ta.select();document.execCommand("copy");
-      }
-      const st=document.getElementById("exportFallbackStatus");
-      if(st)st.textContent="Copied to clipboard ✓";
-    }catch(e){
-      const st=document.getElementById("exportFallbackStatus");
-      if(st)st.textContent="Copy failed — select the text manually";
-    }
-  };
-  window.MATCH_INDEX_SAVE_EXPORT=function(){
-    try{
-      if(!exportText)build();
-      const blob=new Blob([exportText],{type:"application/json;charset=utf-8"});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement("a");
-      a.href=url;a.download=exportName;
-      document.body.appendChild(a);a.click();a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),5000);
-      const st=document.getElementById("exportFallbackStatus");
-      if(st)st.textContent="Save requested ✓";
-    }catch(e){
-      const st=document.getElementById("exportFallbackStatus");
-      if(st)st.textContent="Save failed — use Copy all";
-    }
-  };
-})();
-</script>
-
 </body>
 </html>
 
