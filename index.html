@@ -217,7 +217,16 @@ body{background:#f7f7f4}
 
 <section class="section" id="picks"><div class="sectiontitle"><h2>Saved analysis</h2><span>Save → name → track</span></div><div class="summary"><div><b id="currentCount">0</b><span>SAVED</span></div><div><b id="lockedCount">0</b><span>TRACKED</span></div><div><b id="liveCount">0</b><span>LIVE</span></div></div><div id="picksList"></div></section>
 <section class="section" id="history"><div class="sectiontitle"><h2>Tracked results</h2><span>Original model confidence is preserved</span></div><div class="summary"><div><b id="histTotal">0</b><span>OUTCOMES</span></div><div><b id="histCorrect">0</b><span>CORRECT</span></div><div><b id="histRate">0%</b><span>HIT RATE</span></div></div><div id="historyList"></div></section>
-<section class="section" id="accuracy"><div class="filterbar"><button class="pill active" data-scope="model">All forecasts</button><button class="pill" data-scope="saved">My tracked sets</button></div><div class="datebar"><button class="pill active" data-window="all">All time</button><button class="pill" data-window="30">30 days</button><button class="pill" data-window="7">7 days</button></div><div class="sectiontitle"><h2>Forecast performance</h2><span>Performance by outcome type and sample size</span></div><div class="panel"><div id="categoryList"></div></div><div class="panel"><div id="backendStatus" class="small">Checking secure live feed…</div><div class="actions exportActions"><button class="btn blue" id="refresh">Refresh data</button><button class="btn outline" id="exportModelData" type="button">Export model data</button></div><div class="note" style="margin-top:9px">Export creates one JSON file containing the model audit, cached forecasts, saved/tracked sets and app settings. It does not include your API key.</div><div class="note" style="margin-top:7px">Percentages are model estimates, not certainties. This is a football analysis and model-tracking tool.</div></div></section>
+<section class="section" id="accuracy"><div class="filterbar"><button class="pill active" data-scope="model">All forecasts</button><button class="pill" data-scope="saved">My tracked sets</button></div><div class="datebar"><button class="pill active" data-window="all">All time</button><button class="pill" data-window="30">30 days</button><button class="pill" data-window="7">7 days</button></div><div class="sectiontitle"><h2>Forecast performance</h2><span>Performance by outcome type and sample size</span></div><div class="panel"><div id="categoryList"></div></div><div class="panel"><div id="backendStatus" class="small">Checking secure live feed…</div><div class="actions exportActions"><button class="btn blue" id="refresh">Refresh data</button><button class="btn outline" id="exportModelData" type="button" onclick="window.MATCH_INDEX_EXPORT_NOW && window.MATCH_INDEX_EXPORT_NOW()">Export model data</button></div><div class="note" style="margin-top:9px">Export creates one JSON file containing the model audit, cached forecasts, saved/tracked sets and app settings. It does not include your API key.</div><div class="note" style="margin-top:7px">Percentages are model estimates, not certainties. This is a football analysis and model-tracking tool.</div></div></section>
+<div id="exportFallback" style="display:none" class="panel">
+  <div class="sectiontitle"><h2>Model data export</h2><span id="exportFallbackStatus">Preparing…</span></div>
+  <textarea id="exportFallbackText" readonly style="width:100%;height:180px;border:1px solid #dfe3e8;border-radius:12px;padding:10px;font:11px/1.4 monospace;background:#fafafa;color:#172b4d"></textarea>
+  <div class="actions exportActions" style="margin-top:8px">
+    <button class="btn blue" type="button" onclick="window.MATCH_INDEX_COPY_EXPORT && window.MATCH_INDEX_COPY_EXPORT()">Copy all</button>
+    <button class="btn outline" type="button" onclick="window.MATCH_INDEX_SAVE_EXPORT && window.MATCH_INDEX_SAVE_EXPORT()">Save JSON</button>
+  </div>
+  <div class="small" style="margin-top:7px">If Share/Save is awkward on iPhone, tap Copy all and paste it into a message here.</div>
+</div>
 <div class="exportModal" id="exportModal" aria-hidden="true">
   <div class="exportSheet">
     <div class="exportHead"><div><span>MODEL DATA EXPORT</span><h3>Ready to send</h3></div><button id="closeExport" type="button">×</button></div>
@@ -1289,6 +1298,97 @@ function startRollingWindowWatch(){
 
 (async()=>{await loadCatalogue();await loadFixtures();startRollingWindowWatch()})();
 </script>
+
+<script>
+(function(){
+  let exportText="", exportName="";
+  function readJSON(key){
+    const raw=localStorage.getItem(key);
+    if(raw===null)return null;
+    try{return JSON.parse(raw)}catch(e){return raw}
+  }
+  function build(){
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++) keys.push(localStorage.key(i));
+    keys.sort();
+    const storage={};
+    keys.forEach(k=>storage[k]=readJSON(k));
+    const payload={
+      exportType:"match-index-local-storage",
+      exportedAt:new Date().toISOString(),
+      origin:location.origin,
+      keys,
+      storage
+    };
+    exportText=JSON.stringify(payload,null,2);
+    exportName="match-index-local-storage-"+new Date().toISOString().slice(0,10)+".json";
+    return payload;
+  }
+  function showFallback(message){
+    try{
+      const box=document.getElementById("exportFallback");
+      const ta=document.getElementById("exportFallbackText");
+      const st=document.getElementById("exportFallbackStatus");
+      if(box) box.style.display="block";
+      if(ta) ta.value=exportText;
+      if(st) st.textContent=message||"Ready";
+      if(box) box.scrollIntoView({behavior:"smooth",block:"center"});
+    }catch(e){}
+  }
+  window.MATCH_INDEX_EXPORT_NOW=async function(){
+    try{
+      const payload=build();
+      showFallback("Ready · "+payload.keys.length+" local-storage items");
+      const file=new File([exportText],exportName,{type:"application/json"});
+      if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+        try{
+          await navigator.share({title:"Match Index model data",files:[file]});
+          const st=document.getElementById("exportFallbackStatus");
+          if(st)st.textContent="Share sheet opened";
+          return;
+        }catch(e){
+          if(e && e.name==="AbortError")return;
+        }
+      }
+    }catch(e){
+      alert("Export error: "+e.message);
+    }
+  };
+  window.MATCH_INDEX_COPY_EXPORT=async function(){
+    try{
+      if(!exportText)build();
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(exportText);
+      }else{
+        const ta=document.getElementById("exportFallbackText");
+        ta.focus();ta.select();document.execCommand("copy");
+      }
+      const st=document.getElementById("exportFallbackStatus");
+      if(st)st.textContent="Copied to clipboard ✓";
+    }catch(e){
+      const st=document.getElementById("exportFallbackStatus");
+      if(st)st.textContent="Copy failed — select the text manually";
+    }
+  };
+  window.MATCH_INDEX_SAVE_EXPORT=function(){
+    try{
+      if(!exportText)build();
+      const blob=new Blob([exportText],{type:"application/json;charset=utf-8"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url;a.download=exportName;
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),5000);
+      const st=document.getElementById("exportFallbackStatus");
+      if(st)st.textContent="Save requested ✓";
+    }catch(e){
+      const st=document.getElementById("exportFallbackStatus");
+      if(st)st.textContent="Save failed — use Copy all";
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
 
