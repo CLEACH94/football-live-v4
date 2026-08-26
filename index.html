@@ -163,7 +163,7 @@ header{background:rgba(253,252,248,.96)}
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" data-build="v15.0-safe">
 <header>
   <div class="brandbar">
     <div class="brand"><div class="mark"></div><div><strong>MATCH INDEX</strong><small>FIXTURES • INTELLIGENCE • FORECASTS • RESULTS</small></div></div>
@@ -1090,9 +1090,6 @@ async function renderLeagueXI(force=false){
  const view=$("leagueXiView");if(!view)return;if(!force&&leagueXiLoaded)return;leagueXiLoaded=true;view.innerHTML='<div class="empty">Building the league XI…</div>';
  try{const league=Number($("leagueXiLeague")?.value||39),r=await fetch(`/api/league-xi?league=${league}&mode=${leagueXiMode}`,{cache:"no-store"}),d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'League XI failed');$("leagueXiStrength").textContent=Math.round(d.strength);$("leagueXiFormation").textContent=d.formation;const team={team:d.leagueName,formation:d.formation,xi:(d.xi||[]).map(p=>({...p,rating:Math.round(p.score),confidence:Math.round(clamp(45+Math.log10((p.minutes||0)+10)*18,45,96)),matchup:0})),bench:[],partnerships:[],continuity:null,formationContinuity:null,matchupImpact:0,matchupSample:0};view.innerHTML=`<div class="leagueXiInfo"><b>${esc(d.leagueName)} · ${esc(leagueXiMode.toUpperCase())}</b><span>${d.samplePlayers||0} eligible players analysed · generated ${new Date(d.generatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="leagueXiPitch">${lineupPitch(team)}</div>`}catch(e){view.innerHTML=`<div class="error">${esc(e.message)}</div>`}
 }
-async function pushSnapshotToServer(f,c){try{await fetch('/api/snapshots?action=save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fixture:{fixtureId:idOf(f),homeTeam:homeOf(f),awayTeam:awayOf(f),homeTeamId:f.homeTeamId,awayTeamId:f.awayTeamId,competition:compOf(f),fixtureDate:dateOf(f),leagueId:f.leagueId,season:f.season},snapshot:c})})}catch(e){}}
-async function registerFixturesOnServer(){try{const rows=fixtures.filter(displayableFixture).slice(0,250).map(f=>({fixtureId:idOf(f),homeTeam:homeOf(f),awayTeam:awayOf(f),homeTeamId:f.homeTeamId,awayTeamId:f.awayTeamId,competition:compOf(f),fixtureDate:dateOf(f),leagueId:f.leagueId,season:f.season}));await fetch('/api/snapshots?action=register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fixtures:rows})})}catch(e){}}
-async function hydrateServerSnapshots(){try{const r=await fetch('/api/snapshots?action=list',{cache:'no-store'});if(!r.ok)return;const d=await r.json();for(const row of d.snapshots||[]){if(row?.snapshot?.model===EXPECTED_MODEL_VERSION){const local=predictionCache[row.fixture_id];if(!local||Number(row.snapshot.ts||0)>Number(local.ts||0))predictionCache[row.fixture_id]=row.snapshot}}const seen=new Set(modelAudit.map(x=>x.key));for(const a of d.audit||[]){if(seen.has(a.key))continue;modelAudit.push({key:a.key,fixtureId:String(a.fixture_id),rule:a.rule,type:a.type,title:a.title,fixture:'',competition:'',kickoff:a.kickoff,p:Number(a.p),rawP:Number(a.raw_p??a.p),confidence:null,agreement:null,lineupConfirmed:!!a.lineup_confirmed,preLineupP:null,lineupDelta:null,stage:a.stage,engines:a.engines||null,ablation:a.ablation||null,model:a.model,origin:'server',correct:a.correct,result:a.result,settledAt:a.settled_at});seen.add(a.key)}if(modelAudit.length>12000)modelAudit=modelAudit.slice(-12000);save()}catch(e){}}
 function renderAllPreservingUI(){
  captureOpenStats();
  renderAll();
@@ -1114,8 +1111,6 @@ async function loadFixtures(){
  try{
    $("feed").classList.remove("on");$("feed").querySelector("span").textContent="SYNCING";initialLeagueLoadComplete=false;fallbackLoaded=false;fallbackLoading=false;
    fixtures=await loadSelectedFixtures();
-   await hydrateServerSnapshots();
-   registerFixturesOnServer();
    settle();
    settleModelAudit();
    const beforeCacheCount=Object.keys(predictionCache).length;
