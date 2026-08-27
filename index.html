@@ -182,24 +182,52 @@ header{background:rgba(250,248,242,.96);border-bottom:1px solid rgba(8,34,77,.08
 .leagueXiHero{background:linear-gradient(145deg,#0a2149,#123866)}.leagueXiControls{background:#fffdfa}.leagueXiInfo b{font-size:20px;letter-spacing:-.2px}.leagueXiPitch{max-width:520px}.pitch{border-radius:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 18px 38px rgba(11,37,29,.10)}
 @media(max-width:520px){.section{padding-left:12px;padding-right:12px}.brandbar{padding-left:16px;padding-right:16px}.mainnav{padding-left:14px;padding-right:14px;gap:14px}.predcard,.fixturecard{min-height:238px}.detailHero h1{font-size:24px}.detailTitle{align-items:flex-start}.detailTitle>div{flex:1}.xiRefreshBtn{padding:9px 10px}.enginePanel .sectiontitle span{max-width:54%}}
 </style>
+
+<style>
+/* V15.2 Premium UX architecture */
+:root{--mi-ivory:#f8f6ef;--mi-surface:#fffefa;--mi-navy:#071f46;--mi-gold:#d0ae28;--mi-line:#e9e3d8;--mi-soft:#f2efe7}
+body{background:linear-gradient(180deg,#faf9f5 0%,#f5f4ef 100%)}
+.app{max-width:820px;padding-bottom:30px}
+header{background:rgba(250,249,245,.97)}
+.brandbar{padding:17px 20px 12px}.brand strong{font-size:21px}.brand small{font-size:8px;letter-spacing:1.2px}
+.navShell{position:relative;padding:0 18px 10px}.mainnav{display:grid;grid-template-columns:repeat(4,1fr);padding:0;gap:4px;overflow:visible}.mainnav button{min-width:0;text-align:center;padding:9px 4px;font-size:9px}.mainnav #moreNav span{font-size:8px;margin-left:2px}.mainnav #moreNav.active{color:var(--mi-navy)}
+.moreMenu{display:none;position:absolute;right:18px;top:43px;width:190px;padding:7px;background:rgba(255,254,250,.99);border:1px solid var(--mi-line);border-radius:16px;box-shadow:0 18px 42px rgba(13,29,53,.14);z-index:80}.moreMenu.open{display:grid}.moreMenu button{border:0;background:transparent;text-align:left;padding:11px 12px;border-radius:10px;color:#536078;font-size:10px;font-weight:800}.moreMenu button.active,.moreMenu button:active{background:#f5f1e8;color:var(--mi-navy)}
+.section{padding:18px 16px 28px}.searchwrap{box-shadow:none;border-color:var(--mi-line);margin-bottom:10px}.datebar,.filterbar{padding-bottom:7px}.pill{padding:8px 12px;background:#fffefa;border-color:var(--mi-line)}
+#predictions>.hero{padding:18px 18px;margin-bottom:10px;background:linear-gradient(145deg,#0b244c,#102e59);box-shadow:none;border-radius:19px}#predictions>.hero h1{font-size:20px}#predictions>.hero p{font-size:10px}.herofoot{margin-top:9px}.metricbig b{font-size:22px}
+.oxFive{border-radius:19px!important;box-shadow:none!important}.hiddenGem{border-radius:16px!important;box-shadow:none!important}
+.engineCompact{margin:10px 0 12px;border:1px solid var(--mi-line);border-radius:14px;background:rgba(255,254,250,.93);overflow:hidden}.engineCompactHead{width:100%;border:0;background:transparent;display:flex;align-items:center;gap:7px;padding:11px 13px;text-align:left;color:#697489;font-size:8px}.engineCompactHead strong{color:var(--mi-navy);font-size:10px}.engineCompactHead>span:nth-of-type(2){margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.engineCompactHead b{color:#35445e}.engineLiveDot{width:7px;height:7px;background:#22a66d;border-radius:50%;flex:0 0 auto}.engineCompactHead i{font-style:normal;color:#9ba3b0;transition:.18s}.engineCompactHead.open i{transform:rotate(180deg)}.engineCompactDetails{display:none;border-top:1px solid var(--mi-line);padding:10px 13px 12px}.engineCompactDetails.open{display:block}.engineQueue{font-size:9px;font-weight:800;color:var(--mi-navy)}.enginePause{margin-top:9px;border:1px solid var(--mi-line);background:#fffefa;color:#6b7483;padding:7px 9px;border-radius:9px;font-size:8px;font-weight:800}.engineCompact .progress{margin-top:8px}
+.predcard{min-height:0!important;padding:16px;margin-bottom:10px;border-radius:18px;box-shadow:none;border-color:var(--mi-line);contain:layout}.predtop{grid-template-columns:1fr 78px;gap:10px}.fixture{font-size:14px;min-height:0}.predtitle{font-size:15px;min-height:36px}.meta{min-height:18px;font-size:8.5px}.prob{width:76px;padding:10px 6px;border-radius:12px}.prob b{font-size:20px}.tags{min-height:24px;margin-top:6px}.tag{border:0;background:#f2f0ea;padding:4px 6px;border-radius:999px}.tag.gold{background:#fff3ad;border:0}.altGrid{min-height:0;margin-top:9px}.compactActions{min-height:36px}.compactActions .btn{padding:8px 9px;background:transparent;border:1px solid var(--mi-line);box-shadow:none}.compactActions .btn.blue{background:var(--mi-navy);color:#fff}.compactActions .btn.gold{background:#f5d94f;color:var(--mi-navy)}
+.detailBack{margin:0 0 10px!important}.detailHero{padding:21px 20px!important;border-radius:20px!important;box-shadow:none!important}.detailHero h1{font-size:26px!important}.detailGrid{grid-template-columns:1.4fr 1fr 1fr!important}.detailPanel{padding:13px 10px!important;min-height:96px!important}.detailPanel b{font-size:23px}.detailPanel strong{font-size:9px;line-height:1.25}.detailSection{box-shadow:none;padding:16px;border-radius:18px}.detailTitle h2{font-size:16px}.outcomeGrid{grid-template-columns:repeat(2,1fr)!important}.outcomeStat{padding:9px 10px}.outcomeStat b{font-size:17px!important}
+.lineupShell.two{gap:14px}.lineupTeamHead{margin:0 1px 8px;align-items:flex-end}.lineupTeamHead>div{display:flex;align-items:baseline;gap:7px;min-width:0}.lineupTeamHead b{font-size:17px;line-height:1.1}.lineupTeamHead>div>span{font-size:9px;color:#8a93a2;font-weight:800}.teamMatchup{font-size:8px!important;color:#768197!important}.pitch{aspect-ratio:72/88!important;border-radius:18px!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)!important}.pitchLink{stroke-width:.75;opacity:.55}.pitchLink.mid{opacity:.36}.playerNode{min-width:62px}.playerDot{width:31px;height:31px;font-size:10px;border-width:1.5px;box-shadow:0 3px 10px rgba(0,0,0,.15)}.playerDot.unrated{width:13px;height:13px;background:#f4d958;border:2px solid rgba(255,255,255,.88);box-shadow:0 2px 8px rgba(0,0,0,.18)}.playerName{font-size:8px;margin-top:3px;max-width:86px;overflow:hidden;text-overflow:ellipsis}.playerMeta{font-size:6.5px;line-height:1.2;margin-top:1px;color:#e7dfae}.lineupMetrics{grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:6px}.lineupMetrics div{padding:8px 6px;border-radius:10px}.lineupMetrics b{font-size:14px}.lineupSubhead{font-size:8px;font-weight:850;color:#7c8492;margin-top:10px}.bench{gap:5px;margin-top:6px}.bench span{background:#f5f2eb;border:0;border-radius:8px;padding:5px 7px}.benchList span b{color:var(--mi-navy)}
+.xiRefreshBtn{background:transparent;border:1px solid #d8c36e;color:var(--mi-navy);box-shadow:none}.xiRefreshBtn:active{background:#fff6c6}
+.leagueXiHero{display:none}.leagueXiControls{margin-top:0;box-shadow:none!important}.leagueXiInfo{text-align:left;display:flex;align-items:end;justify-content:space-between;gap:10px;margin:12px 2px}.leagueXiInfo b{font-size:18px}.leagueXiInfo span{text-align:right;font-size:7px}.leagueXiPitch{max-width:480px}.page-leagueXI .pitch{aspect-ratio:70/96!important}
+.bottomslip{display:none!important}.page-predictions .bottomslip{display:flex!important;position:sticky;left:auto;transform:none;bottom:0;width:100%;margin-top:12px;border:1px solid var(--mi-line);border-radius:14px;box-shadow:0 8px 24px rgba(20,35,62,.05);padding:9px 10px;background:rgba(255,254,250,.98)}.page-predictions .app{padding-bottom:28px}
+.empty{border-radius:13px;background:#fffefa;box-shadow:none}
+@media(max-width:520px){.brandbar{padding-left:15px;padding-right:15px}.brand strong{font-size:20px}.brand small{font-size:7.5px}.feed{font-size:8px}.navShell{padding-left:12px;padding-right:12px}.mainnav button{font-size:8.5px}.moreMenu{right:12px}.section{padding-left:11px;padding-right:11px}.detailGrid{grid-template-columns:1.25fr 1fr 1fr!important;gap:6px}.detailPanel{padding:11px 7px!important}.detailPanel b{font-size:21px}.detailHero h1{font-size:23px!important}.outcomeGrid{grid-template-columns:1fr!important}.lineupShell{grid-template-columns:1fr!important}.pitch{aspect-ratio:72/84!important}.playerNode{min-width:54px}.playerName{font-size:7.5px}.engineCompactHead>span:nth-of-type(2){max-width:58%}.page-predictions .bottomslip{margin-left:0;margin-right:0}}
+</style>
 </head>
 <body>
-<div class="app" data-build="v15.1-premium-xi">
+<div class="app" data-build="v15.2-premium-ux">
 <header>
   <div class="brandbar">
     <div class="brand"><div class="mark"></div><div><strong>MATCH INDEX</strong><small>FIXTURES • INTELLIGENCE • FORECASTS • RESULTS</small></div></div>
     <div class="feed" id="feed"><i></i><span>CONNECTING</span></div>
   </div>
-  <nav class="mainnav">
-    <button class="active" data-page="predictions">Rankings</button>
-    <button data-page="picks">Saved</button>
-    <button data-page="history">Results</button>
-    <button data-page="resultForecasts">Match Result</button>
-    <button data-page="bttsForecasts">BTTS</button>
-    <button data-page="accuracy">Performance</button>
-    <button data-page="leagueXI">League XI</button>
-    <button data-page="leagues">Competitions</button>
-  </nav>
+  <div class="navShell">
+    <nav class="mainnav">
+      <button class="active" data-page="predictions">Rankings</button>
+      <button data-page="history">Results</button>
+      <button data-page="leagueXI">League XI</button>
+      <button type="button" id="moreNav">More <span>⌄</span></button>
+    </nav>
+    <div class="moreMenu" id="moreMenu">
+      <button data-page="picks">Saved</button>
+      <button data-page="resultForecasts">Match Result</button>
+      <button data-page="bttsForecasts">BTTS</button>
+      <button data-page="accuracy">Performance</button>
+      <button data-page="leagues">Competitions</button>
+    </div>
+  </div>
 </header>
 
 <section class="section active" id="predictions">
@@ -209,7 +237,18 @@ header{background:rgba(250,248,242,.96);border-bottom:1px solid rgba(8,34,77,.08
   <div class="hero"><h1>Today’s match intelligence</h1><p>Fast scouting first. Deep analysis for the strongest fixtures. Confirmed line-ups trigger the final model automatically.</p><div class="herofoot"><div class="metricbig"><b id="readyCount">0</b><span>75%+ DEEP MATCHES</span></div><div class="metricbig"><b id="fixtureCount">0</b><span>FIXTURES IN VIEW</span></div></div></div>
   <div id="MatchFive"></div>
   <div id="hiddenGem"></div>
-  <div class="panel enginePanel"><div class="sectiontitle" style="margin:0 0 6px"><h2>Data engine</h2><span id="queueState">Starting…</span></div><div class="engineStatusGrid"><div><b id="frozenCount">0</b><span>FROZEN</span></div><div><b id="awaitingCount">0</b><span>AWAITING XI</span></div><div><b id="nextRefresh">—</b><span>NEXT AUTO CHECK</span></div></div><div class="small" id="engineDetail">Scouting fixtures and building deep-analysis snapshots.</div><div class="progress"><span id="queueBar"></span></div><div class="actions"><button class="btn outline" id="freezeUpdates">Pause automatic updates</button></div></div>
+  <div class="engineCompact" id="enginePanel">
+    <button class="engineCompactHead" type="button" id="engineToggle" aria-expanded="false">
+      <span class="engineLiveDot"></span><strong>Live intelligence</strong>
+      <span><b id="frozenCount">0</b> analysed · <b id="awaitingCount">0</b> awaiting XI · next <b id="nextRefresh">—</b></span><i>⌄</i>
+    </button>
+    <div class="engineCompactDetails" id="engineDetails">
+      <div class="engineQueue" id="queueState">Starting…</div>
+      <div class="small" id="engineDetail">Scouting fixtures and building deep-analysis snapshots.</div>
+      <div class="progress"><span id="queueBar"></span></div>
+      <button class="enginePause" id="freezeUpdates" type="button">Pause automatic updates</button>
+    </div>
+  </div>
   <div id="predictionList"><div class="empty">Loading real fixtures…</div></div>
 </section>
 
@@ -622,7 +661,7 @@ function formatRefresh(ts){
  return d.toLocaleDateString([],{weekday:"short"})+" "+d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
 }
 function matchCard(list,rank){
- const p=list[0],s=p.stats||{},inSlip=currentSlip.some(x=>x.id===p.id),alternatives=list.slice(1,5),c=entryForPrediction(p),nr=nextRefreshFor(fixtureById(p.fixtureId),c);
+ const p=list[0],s=p.stats||{},inSlip=currentSlip.some(x=>x.id===p.id),alternatives=list.slice(1,3),c=entryForPrediction(p),nr=nextRefreshFor(fixtureById(p.fixtureId),c);
  const reasons=(p.reasons||[]).slice(0,3),watch=(p.watch||[]).slice(0,2);
  return `<article class="card predcard matchtile">
    <div class="predtop">
@@ -1015,6 +1054,8 @@ function pageShow(name){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===name));
  document.body.className=document.body.className.replace(/\bpage-[^\s]+/g,"").trim();
  document.body.classList.add("page-"+name);
+ document.getElementById("moreMenu")?.classList.remove("open");
+ document.getElementById("moreNav")?.classList.remove("active");
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function allFixturePredictions(fid){
@@ -1033,11 +1074,30 @@ function pressureIndex(v){const n=Number(v);return Number.isFinite(n)?Math.round
 function pitchXY(grid,rowCols={}){const [r0,c0]=String(grid||'').split(':').map(Number);const r=Number.isFinite(r0)?r0:3,c=Number.isFinite(c0)?c0:2,cols=rowCols[r]||1,yMap={1:88,2:68,3:47,4:25,5:12};return{x:cols===1?50:(14+(c-1)*(72/Math.max(1,cols-1))),y:yMap[r]||47}}
 function lineupPitch(teamData){
  if(!teamData?.xi?.length)return `<div class="empty">Confirmed line-up data is not available yet.</div>`;
- const rowCols={};teamData.xi.forEach(p=>{const [r,c]=String(p.grid||'').split(':').map(Number);if(Number.isFinite(r)&&Number.isFinite(c))rowCols[r]=Math.max(rowCols[r]||0,c)});const pts=Object.fromEntries(teamData.xi.map(p=>[p.id,pitchXY(p.grid,rowCols)]));
- const links=(teamData.partnerships||[]).filter(l=>pts[l.a]&&pts[l.b]&&l.rating>=58).map(l=>{const a=pts[l.a],b=pts[l.b];return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="pitchLink ${l.rating<72?'mid':''}"/>`}).join('');
- const nodes=teamData.xi.map(p=>{const xy=pts[p.id],m=Number(p.matchup)||0;return `<div class="playerNode" style="left:${xy.x}%;top:${xy.y}%"><div class="playerDot">${p.rating??'—'}</div><div class="playerName">${esc(p.name)}</div><div class="playerMeta">${esc(p.pos||'')} · ${p.confidence??'—'}% conf ${m?`· <span class="matchup ${m>0?'up':'down'}">${m>0?'▲ +':'▼ '}${m}</span>`:''}</div></div>`}).join('');
- const bench=(teamData.bench||[]).map(p=>`<span>${esc(p.name)} · ${esc(p.pos||'')}</span>`).join('');
- const nameBy=Object.fromEntries(teamData.xi.map(p=>[p.id,p.name]));const pairList=(teamData.partnerships||[]).slice(0,6).map(l=>`<span>${esc(nameBy[l.a]||'Player')} ↔ ${esc(nameBy[l.b]||'Player')} · ${l.rating}</span>`).join('');return `<div class="lineupTeamHead"><div><b>${esc(teamData.team)}</b><span>${esc(teamData.formation||'Formation n/a')}</span></div><span>${teamData.matchupSample>=3?`H2H context ${teamData.matchupImpact>0?'+':''}${teamData.matchupImpact}`:'H2H limited sample'}</span></div><div class="pitch"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${links}</svg>${nodes}</div><div class="lineupMetrics"><div><b>${teamData.continuity??'—'}</b><span>XI CONTINUITY</span></div><div><b>${teamData.formationContinuity??'—'}</b><span>FORMATION FIT</span></div><div><b>${teamData.partnerships?.length||0}</b><span>LINKS TRACKED</span></div><div><b>${teamData.matchupImpact>0?'+':''}${teamData.matchupImpact??0}</b><span>H2H CONTEXT</span></div></div>${pairList?`<div class="small">Strongest partnerships</div><div class="bench">${pairList}</div>`:''}${bench?`<div class="small">Bench</div><div class="bench">${bench}</div>`:''}`
+ const rowCols={};teamData.xi.forEach(p=>{const [r,c]=String(p.grid||'').split(':').map(Number);if(Number.isFinite(r)&&Number.isFinite(c))rowCols[r]=Math.max(rowCols[r]||0,c)});
+ const pts=Object.fromEntries(teamData.xi.map(p=>[p.id,pitchXY(p.grid,rowCols)]));
+ const strongestLinks=(teamData.partnerships||[]).filter(l=>pts[l.a]&&pts[l.b]&&Number(l.rating)>=58).sort((a,b)=>Number(b.rating)-Number(a.rating)).slice(0,5);
+ const links=strongestLinks.map(l=>{const a=pts[l.a],b=pts[l.b];return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="pitchLink ${Number(l.rating)<72?'mid':''}"/>`}).join('');
+ const nodes=teamData.xi.map(p=>{
+   const xy=pts[p.id],m=Number(p.matchup)||0,rating=Number(p.rating),conf=Number(p.confidence);
+   const ratingHtml=Number.isFinite(rating)&&rating>0?`<div class="playerDot">${Math.round(rating)}</div>`:`<div class="playerDot unrated"></div>`;
+   const meta=[];
+   if(p.pos)meta.push(esc(p.pos));
+   if(p.team)meta.push(esc(p.team));
+   if(Number.isFinite(conf)&&conf>=30)meta.push(`${Math.round(conf)}% confidence`);
+   if(m)meta.push(`<span class="matchup ${m>0?'up':'down'}">${m>0?'▲ +':'▼ '}${m}</span>`);
+   return `<div class="playerNode" style="left:${xy.x}%;top:${xy.y}%">${ratingHtml}<div class="playerName">${esc(p.name)}</div>${meta.length?`<div class="playerMeta">${meta.join(' · ')}</div>`:''}</div>`
+ }).join('');
+ const bench=(teamData.bench||[]).map(p=>`<span><b>${esc(p.name)}</b>${p.pos?` · ${esc(p.pos)}`:''}</span>`).join('');
+ const nameBy=Object.fromEntries(teamData.xi.map(p=>[p.id,p.name]));
+ const pairList=strongestLinks.map(l=>`<span>${esc(nameBy[l.a]||'Player')} ↔ ${esc(nameBy[l.b]||'Player')} · ${Math.round(Number(l.rating))}</span>`).join('');
+ const metrics=[];
+ if(Number.isFinite(Number(teamData.continuity))&&Number(teamData.continuity)>0)metrics.push(`<div><b>${Math.round(Number(teamData.continuity))}</b><span>XI CONTINUITY</span></div>`);
+ if(Number.isFinite(Number(teamData.formationContinuity))&&Number(teamData.formationContinuity)>0)metrics.push(`<div><b>${Math.round(Number(teamData.formationContinuity))}</b><span>FORMATION FIT</span></div>`);
+ if(strongestLinks.length)metrics.push(`<div><b>${strongestLinks.length}</b><span>KEY LINKS</span></div>`);
+ if(Number(teamData.matchupSample)>=3&&Number.isFinite(Number(teamData.matchupImpact)))metrics.push(`<div><b>${Number(teamData.matchupImpact)>0?'+':''}${Math.round(Number(teamData.matchupImpact))}</b><span>MATCHUP</span></div>`);
+ const h2h=Number(teamData.matchupSample)>=3?`<span class="teamMatchup">Matchup ${Number(teamData.matchupImpact)>0?'+':''}${Math.round(Number(teamData.matchupImpact)||0)}</span>`:'';
+ return `<div class="lineupTeamHead"><div><b>${esc(teamData.team)}</b>${teamData.formation?`<span>${esc(teamData.formation)}</span>`:''}</div>${h2h}</div><div class="pitch"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${links}</svg>${nodes}</div>${metrics.length?`<div class="lineupMetrics">${metrics.join('')}</div>`:''}${pairList?`<div class="lineupSubhead">Key partnerships</div><div class="bench partnershipList">${pairList}</div>`:''}${bench?`<div class="lineupSubhead">Bench</div><div class="bench benchList">${bench}</div>`:''}`
 }
 function engineDetail(p){const e=p?.stats?.engineProbabilities||null;if(!e)return'';return `<div class="engineBreakdown">${Object.entries(e).map(([k,v])=>`<div><span>${esc(k)}</span><b>${v}%</b></div>`).join('')}</div>`}
 function openFixtureDetail(fid){
@@ -1144,7 +1204,7 @@ function restoreOpenStats(){
 let leagueXiMode="current",leagueXiLoaded=false;
 async function renderLeagueXI(force=false){
  const view=$("leagueXiView");if(!view)return;if(!force&&leagueXiLoaded)return;leagueXiLoaded=true;view.innerHTML='<div class="empty">Building the league XI…</div>';
- try{const league=Number($("leagueXiLeague")?.value||39),r=await fetch(`/api/league-xi?league=${league}&mode=${leagueXiMode}`,{cache:"no-store"}),d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'League XI failed');$("leagueXiStrength").textContent=Math.round(d.strength);$("leagueXiFormation").textContent="4-3-3";const team={team:d.leagueName,formation:d.formation,xi:(d.xi||[]).map(p=>({...p,rating:Math.round(p.score),confidence:Math.round(clamp(45+Math.log10((p.minutes||0)+10)*18,45,96)),matchup:0})),bench:[],partnerships:[],continuity:null,formationContinuity:null,matchupImpact:0,matchupSample:0};view.innerHTML=`<div class="leagueXiInfo"><b>${esc(d.leagueName)} · ${esc(leagueXiMode.toUpperCase())}</b><span>${d.samplePlayers||0} eligible players analysed · generated ${new Date(d.generatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="leagueXiPitch">${lineupPitch(team)}</div>`}catch(e){view.innerHTML=`<div class="error">${esc(e.message)}</div>`}
+ try{const league=Number($("leagueXiLeague")?.value||39),r=await fetch(`/api/league-xi?league=${league}&mode=${leagueXiMode}`,{cache:"no-store"}),d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'League XI failed');$("leagueXiStrength").textContent=Math.round(d.strength);$("leagueXiFormation").textContent="4-3-3";const team={team:d.leagueName,formation:"4-3-3",xi:(d.xi||[]).map(p=>({...p,rating:Math.round(p.score),confidence:(p.minutes||0)>=90?Math.round(clamp(45+Math.log10((p.minutes||0)+10)*18,45,96)):null,matchup:0})),bench:[],partnerships:[],continuity:null,formationContinuity:null,matchupImpact:0,matchupSample:0};view.innerHTML=`<div class="leagueXiInfo"><b>${esc(d.leagueName)} · ${esc(leagueXiMode.toUpperCase())}</b><span>${d.samplePlayers||0} eligible players analysed · generated ${new Date(d.generatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="leagueXiPitch">${lineupPitch(team)}</div>`}catch(e){view.innerHTML=`<div class="error">${esc(e.message)}</div>`}
 }
 function renderAllPreservingUI(){
  captureOpenStats();
@@ -1185,7 +1245,10 @@ async function loadFixtures(){
 }
 
 $("predictionList")?.addEventListener("click",handlePredictionClick);
-document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));$(b.dataset.page).classList.add("active");if(b.dataset.page==="leagueXI")renderLeagueXI()});
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{pageShow(b.dataset.page);if(b.dataset.page==="leagueXI")renderLeagueXI()});
+$("moreNav")?.addEventListener("click",e=>{e.stopPropagation();const m=$("moreMenu");const open=m.classList.toggle("open");$("moreNav").classList.toggle("active",open);$("moreNav").setAttribute("aria-expanded",open?"true":"false")});
+document.addEventListener("click",e=>{if(!e.target.closest(".navShell")){$("moreMenu")?.classList.remove("open");$("moreNav")?.classList.remove("active")}});
+$("engineToggle")?.addEventListener("click",()=>{const d=$("engineDetails"),btn=$("engineToggle"),open=d.classList.toggle("open");btn.setAttribute("aria-expanded",open?"true":"false");btn.classList.toggle("open",open)});
 document.querySelectorAll("[data-date]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-date]").forEach(x=>x.classList.remove("active"));b.classList.add("active");dateView=b.dataset.date;renderPredictions()});
 document.querySelectorAll("[data-mdate]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-mdate]").forEach(x=>x.classList.remove("active"));b.classList.add("active");matchDateView=b.dataset.mdate;renderMatches()});
 document.querySelectorAll("[data-rdate]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-rdate]").forEach(x=>x.classList.remove("active"));b.classList.add("active");resultDateView=b.dataset.rdate;renderResultForecasts()});

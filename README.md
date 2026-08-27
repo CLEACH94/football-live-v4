@@ -1,25 +1,19 @@
-# Match Index V15.1 — Premium XI build
+# Match Index V15.2 — Premium UX
 
-Safe browser-first build. No database, cron, Supabase or deployment infrastructure files.
+Safe UI/UX release based on the working V15.1 build.
 
-## Included
-- Premium UI/stability pass
-- Fixed-height ranking cards to reduce tap-jumping while data updates
-- Manual **Refresh XI + bench** button on fixture pages
-- Manual XI refresh takes priority over the background analysis queue, then normal analysis resumes
-- Clear provider status if a confirmed lineup is not returned
-- Confirmed XI tactical presentation, bench, formations and partnership intelligence
-- League XI locked to 4-3-3: 1 GK, 4 DEF, 3 MID, 3 ATT
-- Premier League, Championship, League One and League Two League XI
-- Existing V15 coherent probabilities, calibration and performance tracking retained
-- Removed stale server snapshot call from the safe build
+## Changes
+- Four-item mobile navigation: Rankings, Results, League XI, More.
+- Saved, Match Result, BTTS, Performance and Competitions moved into More.
+- Data Engine reduced to a compact expandable live-status row.
+- Ranking cards simplified and stabilised.
+- Fixture detail made more compact and editorial.
+- Confirmed-XI pitch now shows only the strongest five partnership links.
+- Missing player ratings/confidence are hidden instead of showing dashes or 0%.
+- Formation is separated cleanly from the team name.
+- Manual Refresh XI + bench remains available.
+- League XI remains a fantasy-style fixed 4-3-3 and never fills a role with a player from another role group.
+- Saved tray only appears on Rankings, so it no longer covers League XI or fixture pages.
+- No cron, database, Supabase or new Vercel infrastructure.
 
-## Upload
-Replace the existing working app files with:
-- index.html
-- api/football.js
-- api/predict.js
-- api/league-xi.js
-- README.md
-
-Do not add vercel.json, schema.sql, cron or database files.
+Upload the files over the current working app.
