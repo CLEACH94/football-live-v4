@@ -1,33 +1,25 @@
-# Match Index V15.0 — safe working build
+# Match Index V15.1 — Premium XI build
 
-This package deliberately keeps deployment simple.
+Safe browser-first build. No database, cron, Supabase or deployment infrastructure files.
 
-Upload/replace only these files in the existing GitHub repo:
+## Included
+- Premium UI/stability pass
+- Fixed-height ranking cards to reduce tap-jumping while data updates
+- Manual **Refresh XI + bench** button on fixture pages
+- Manual XI refresh takes priority over the background analysis queue, then normal analysis resumes
+- Clear provider status if a confirmed lineup is not returned
+- Confirmed XI tactical presentation, bench, formations and partnership intelligence
+- League XI locked to 4-3-3: 1 GK, 4 DEF, 3 MID, 3 ATT
+- Premier League, Championship, League One and League Two League XI
+- Existing V15 coherent probabilities, calibration and performance tracking retained
+- Removed stale server snapshot call from the safe build
 
-- `index.html`
-- `api/football.js`
-- `api/predict.js`
-- `api/league-xi.js`
+## Upload
+Replace the existing working app files with:
+- index.html
+- api/football.js
+- api/predict.js
+- api/league-xi.js
+- README.md
 
-There is **no `vercel.json`, cron, database, schema or Supabase dependency** in this build.
-It uses the existing Vercel project and the existing `API_FOOTBALL_KEY` environment variable.
-
-Included V15 features:
-- coherent Home/Draw/Away probabilities normalised to 100%
-- goal-line coherence and per-rule calibration
-- Scout → Deep → Final XI model stages
-- UK Match Result and BTTS tabs
-- premium fixture detail page
-- confirmed XI tactical pitch when line-ups are available
-- player ratings, confidence, formation/continuity, partnership links and matchup/H2H context
-- before/after confirmed-XI forecast movement
-- probability history
-- corrected pressure-index presentation
-- richer data-quality layers and engine-agreement detail
-- League XI tab for Premier League, Championship, League One and League Two
-- Current / Season / Form XI modes
-- UK-only Next 7 Days rankings
-- existing local saved/history/performance storage retained
-
-## Deploy
-Keep the existing Vercel project connected to the same GitHub repository. Replace the four files above and commit to `main`.
+Do not add vercel.json, schema.sql, cron or database files.

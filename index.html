@@ -161,9 +161,30 @@ header{background:rgba(253,252,248,.96)}
 @media(max-width:520px){.lineupShell{grid-template-columns:1fr}.lineupMetrics,.dataLayers{grid-template-columns:repeat(2,1fr)}.leagueXiControls{display:block}.segmented{margin-top:9px}.playerNode{min-width:58px}.playerName{font-size:8px}}
 @media(min-width:720px){.lineupShell.two{grid-template-columns:1fr 1fr}.pitch{aspect-ratio:68/92}}
 </style>
+
+<style>
+/* V15.1 premium + stable interaction pass */
+:root{--lux-cream:#f7f4ec;--lux-paper:#fffdfa;--lux-navy:#08224d;--lux-gold:#d4b42d;--lux-line:#e7e0d3}
+body{background:linear-gradient(180deg,#faf8f2 0%,#f5f3ee 52%,#f2f3f5 100%);color:#24324a}
+.app{padding-bottom:88px}
+header{background:rgba(250,248,242,.96);border-bottom:1px solid rgba(8,34,77,.08);box-shadow:none}
+.brandbar{padding:18px 22px 13px}.brand strong{font-size:22px;letter-spacing:.25px}.brand small{letter-spacing:1.35px;color:#778298}.mark{width:7px;height:46px;box-shadow:none}
+.mainnav{padding:0 18px 10px;gap:16px}.mainnav button{padding:8px 1px;border-radius:0;background:transparent!important;color:#7b8494;font-size:10px;position:relative}.mainnav button.active{box-shadow:none;color:var(--lux-navy)}.mainnav button.active:after{content:"";position:absolute;height:2px;left:0;right:0;bottom:1px;background:var(--lux-gold);border-radius:2px}
+.section{padding:19px 18px 28px}.searchwrap,.panel,.card,.leaguegroup,.summary div,.pickrow,.historyrow{background:rgba(255,253,250,.95);border:1px solid var(--lux-line);box-shadow:0 12px 30px rgba(20,35,62,.045)}
+.searchwrap{border-radius:16px;padding:8px}.searchline input{background:#fbfaf7;border:1px solid #ebe5db;border-radius:12px}.iconbtn{border:0;background:transparent}
+.hero{background:linear-gradient(145deg,#081f47 0%,#0b2a58 70%,#123868 100%);border:1px solid rgba(212,180,45,.28);border-radius:22px;box-shadow:0 18px 38px rgba(8,31,71,.12);padding:23px 21px}.hero h1{font-size:25px;letter-spacing:-.35px}.hero p{font-size:11px;color:#d7deea;max-width:620px}.hero:before{opacity:.55}.hero:after{width:74px;height:2px!important;background:var(--lux-gold)!important}.metricbig b{color:#f2d453}.metricbig span{color:#c6cfde}
+.predcard,.fixturecard{border-radius:20px;padding:17px 17px 15px;margin-bottom:12px;min-height:246px;contain:layout paint}.predtitle{min-height:40px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.fixture{min-height:32px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.meta{min-height:28px}.altGrid{min-height:90px}.tags{min-height:27px}.actions{min-height:40px}.prob{background:linear-gradient(150deg,#fff6c2,#efd34e);box-shadow:none;border:1px solid #dfc23d}.prob b{color:#09234f}.problabel{color:#7a8190}
+.enginePanel{padding:12px 14px;border-radius:16px;background:#0a234c;color:#fff;border:1px solid rgba(212,180,45,.28);box-shadow:0 10px 28px rgba(8,31,71,.09)}.enginePanel .sectiontitle h2{font-size:13px;color:#fff}.enginePanel .sectiontitle span{color:#bdc9da;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.enginePanel .engineStatusGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.08);border-radius:12px;overflow:hidden}.enginePanel .engineStatusGrid>div{padding:9px 6px;background:rgba(255,255,255,.03);text-align:center}.enginePanel .engineStatusGrid b{font-size:15px;color:#f3d954}.enginePanel .engineStatusGrid span{font-size:6.5px;color:#c6d0df}.enginePanel #engineDetail{display:none}.enginePanel .progress{margin-top:8px;background:rgba(255,255,255,.09)}.enginePanel .actions{margin-top:7px;min-height:0}.enginePanel .btn{padding:7px 9px;font-size:8px;background:transparent;color:#d6deea;border-color:rgba(255,255,255,.18)}
+.detailHero{background:linear-gradient(145deg,#0a2149,#0f315f)!important;color:#fff!important;border:1px solid rgba(212,180,45,.32)!important;box-shadow:0 18px 42px rgba(8,31,71,.15)!important}.detailHero>div>span,.detailHero h1,.detailHero h1 small,.detailStatus b,.detailStatus span{color:#fff!important}.detailHero>div>span,.detailStatus span{opacity:.74}.detailHero h1{font-size:28px;letter-spacing:-.55px}.detailHero h1 small{opacity:.55}
+.detailGrid{gap:10px;margin:12px 0}.detailPanel{border-color:var(--lux-line);background:var(--lux-paper);box-shadow:none;border-radius:16px}.detailPanel.featured{border-top:1px solid var(--lux-line);background:linear-gradient(180deg,#fff8cc,#fffdf8)}.detailPanel b{font-size:25px}.detailPanel span{letter-spacing:.8px}.detailSection{background:rgba(255,253,250,.97);border:1px solid var(--lux-line);box-shadow:0 14px 34px rgba(20,35,62,.045);border-radius:20px;padding:18px;margin-top:12px}.detailTitle{align-items:center}.detailTitle h2{font-size:17px}.detailTitle span{display:block;margin-top:2px;text-align:left}.outcomeStat{background:#fbfaf6;border-color:#ece6dc;border-radius:13px;padding:11px 12px}.profileNumbers>div{background:#fbfaf6;border-color:#e9e1d1}
+.xiRefreshBtn{border:1px solid #d8bb42;background:linear-gradient(180deg,#fff6bd,#f1d64d);color:#09234f;border-radius:999px;padding:9px 12px;font-weight:900;font-size:9px;white-space:nowrap;min-height:38px}.xiRefreshBtn:disabled{opacity:.58}.xiRefreshState{font-size:8px;color:#7c8493;margin:-3px 0 10px}.lineupEmpty{border:0;background:#f8f6f1;border-radius:14px}.lineupSection .detailTitle>div{min-width:0}
+.bottomslip{background:rgba(255,253,249,.97);border-top:1px solid var(--lux-line);box-shadow:0 -10px 28px rgba(20,35,62,.06)}.page-fixtureDetail .bottomslip,.page-leagueXI .bottomslip{display:none}.page-fixtureDetail .app,.page-leagueXI .app{padding-bottom:24px}
+.leagueXiHero{background:linear-gradient(145deg,#0a2149,#123866)}.leagueXiControls{background:#fffdfa}.leagueXiInfo b{font-size:20px;letter-spacing:-.2px}.leagueXiPitch{max-width:520px}.pitch{border-radius:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 18px 38px rgba(11,37,29,.10)}
+@media(max-width:520px){.section{padding-left:12px;padding-right:12px}.brandbar{padding-left:16px;padding-right:16px}.mainnav{padding-left:14px;padding-right:14px;gap:14px}.predcard,.fixturecard{min-height:238px}.detailHero h1{font-size:24px}.detailTitle{align-items:flex-start}.detailTitle>div{flex:1}.xiRefreshBtn{padding:9px 10px}.enginePanel .sectiontitle span{max-width:54%}}
+</style>
 </head>
 <body>
-<div class="app" data-build="v15.0-safe">
+<div class="app" data-build="v15.1-premium-xi">
 <header>
   <div class="brandbar">
     <div class="brand"><div class="mark"></div><div><strong>MATCH INDEX</strong><small>FIXTURES • INTELLIGENCE • FORECASTS • RESULTS</small></div></div>
@@ -763,14 +784,16 @@ function analysisNeed(f){
  if(mins>0&&mins<=75&&now>=(c.nextRefreshAt||0))return "deep";
  return null;
 }
+let analysisController=null,manualXiBusy=false,manualPriority=false;
 async function analyse(f,mode=null){
- if(!f||analysing||manualFreeze)return;
+ if(!f||analysing||manualFreeze||manualPriority)return;
  mode=mode||analysisNeed(f)||"deep";
  analysing=true;lastAnalysisAt=Date.now();
  $("queueState").textContent=(mode==="scout"?"Scouting ":"Deep analysing ")+homeOf(f)+" v "+awayOf(f);
  $("queueBar").style.width=mode==="scout"?"35%":"68%";
  try{
-   const r=await fetch("/api/predict",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fixtureId:idOf(f),homeTeam:homeOf(f),awayTeam:awayOf(f),homeTeamId:f.homeTeamId,awayTeamId:f.awayTeamId,competition:compOf(f),fixtureDate:dateOf(f),leagueId:f.leagueId,season:f.season,mode})});
+   analysisController=new AbortController();
+   const r=await fetch("/api/predict",{method:"POST",headers:{"Content-Type":"application/json"},signal:analysisController.signal,body:JSON.stringify({fixtureId:idOf(f),homeTeam:homeOf(f),awayTeam:awayOf(f),homeTeamId:f.homeTeamId,awayTeamId:f.awayTeamId,competition:compOf(f),fixtureDate:dateOf(f),leagueId:f.leagueId,season:f.season,mode})});
    const d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||("Model returned "+r.status));
    const model=d.model||EXPECTED_MODEL_VERSION,stage=d.analysisStage||mode;
    const previous=predictionCache[idOf(f)]||null;
@@ -799,10 +822,13 @@ async function analyse(f,mode=null){
    }
    const probabilityHistory=[...(previous?.probabilityHistory||[]),{ts:now,stage,probabilities:Object.fromEntries(enriched.map(x=>[x.rule,x.p]))}].slice(-10);
    predictionCache[idOf(f)]={ts:now,model,stage,lineupConfirmed:!!d.lineupConfirmed,lineupChecked:!!d.lineupChecked,hasIntervening:!!d.hasIntervening,interveningUntil:d.interveningUntil||null,nextRefreshAt,evidence:d.evidence||{},dataLayers:d.dataLayers||null,lineups:d.lineups||null,preLineupProbabilities,probabilityHistory,predictions:enriched};
-   pushSnapshotToServer(f,predictionCache[idOf(f)]);
    save();$("queueState").textContent=stage==="final"?"Final XI analysis complete":stage==="deep"?"Deep snapshot frozen":"Scout pass complete";$("queueBar").style.width="100%";renderAllPreservingUI();
- }catch(e){$("queueState").textContent="Model unavailable: "+e.message;$("queueBar").style.width="0"}
- analysing=false;setTimeout(()=>{$("queueBar").style.width="0"},900)
+ }catch(e){
+   if(e?.name==="AbortError"){$("queueState").textContent="Manual XI refresh taking priority…"}
+   else{$("queueState").textContent="Model unavailable: "+e.message}
+   $("queueBar").style.width="0"
+ }
+ analysisController=null;analysing=false;setTimeout(()=>{$("queueBar").style.width="0"},900)
 }
 function queueCandidates(){
  return fixtures.filter(f=>!isDone(f)&&new Date(dateOf(f))>new Date()).sort((a,b)=>{
@@ -834,6 +860,7 @@ function startQueue(){
  };
  const tick=async()=>{
    if(manualFreeze){$("queueState").textContent="Automatic updates paused";renderEngineStatus();return}
+   if(manualPriority)return;
    if(!initialLeagueLoadComplete||analysing||fallbackLoading||Date.now()-lastAnalysisAt<900)return;
    if(await workDay(todayKey(),true,"Today"))return;
    if(await workDay(tomorrowKey(),true,"Tomorrow"))return;
@@ -986,6 +1013,8 @@ function pageShow(name){
  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
  document.getElementById(name)?.classList.add("active");
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===name));
+ document.body.className=document.body.className.replace(/\bpage-[^\s]+/g,"").trim();
+ document.body.classList.add("page-"+name);
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function allFixturePredictions(fid){
@@ -1017,7 +1046,7 @@ function openFixtureDetail(fid){
  const layers=c?.dataLayers||null,hp=pressureIndex(s.homeChance),ap=pressureIndex(s.awayChance);
  $("fixtureDetailView").innerHTML=`<div class="fixtureDetailShell"><button class="detailBack" id="fixtureBack">← Rankings</button><div class="detailHero"><div><span>${esc(compOf(f))} · ${esc(prettyDate(dateOf(f)))}</span><h1>${esc(homeOf(f))}<small>v</small>${esc(awayOf(f))}</h1></div><div class="detailStatus">${c?.lineupConfirmed?'<b>✓ CONFIRMED XI</b>':'<b>○ AWAITING XI</b>'}${next&&!c?.lineupConfirmed?`<span>Next check ${esc(formatRefresh(next))}</span>`:""}</div></div>
  <div class="detailGrid"><section class="detailPanel featured"><span>TOP FORECAST</span><b>${top[0]?.p??"—"}${top[0]?"%":""}</b><strong>${esc(top[0]?.title||"Building")}</strong></section><section class="detailPanel"><span>MATCH RESULT</span><b>${resultBest?.p??"—"}${resultBest?"%":""}</b><strong>${esc(resultBest?.title||"Building")}</strong></section><section class="detailPanel"><span>BTTS</span><b>${btts?Math.max(btts.p,100-btts.p):"—"}${btts?"%":""}</b><strong>${btts?(btts.p>=50?"Yes":"No"):"Building"}</strong></section></div>
- ${c?.lineupConfirmed&&c?.lineups?`<section class="detailSection"><div class="detailTitle"><h2>Confirmed line-ups</h2><span>Player ratings · partnerships · matchup context</span></div><div class="lineupShell two"><div>${lineupPitch(c.lineups.home)}</div><div>${lineupPitch(c.lineups.away)}</div></div></section>`:`<section class="detailSection"><div class="detailTitle"><h2>Line-ups</h2><span>Automatic final-stage upgrade</span></div><div class="empty">Starting line-ups are not confirmed yet. Match Index will upgrade this fixture automatically when they arrive.</div></section>`}
+ ${c?.lineupConfirmed&&c?.lineups?`<section class="detailSection lineupSection"><div class="detailTitle"><div><h2>Confirmed line-ups</h2><span>Starting XI · bench · formation · partnerships</span></div><button class="xiRefreshBtn" id="refreshXiBtn" data-fid="${esc(fid)}">Refresh XI + bench</button></div><div class="xiRefreshState" id="xiRefreshState">Confirmed · last model update ${new Date(c.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div><div class="lineupShell two"><div>${lineupPitch(c.lineups.home)}</div><div>${lineupPitch(c.lineups.away)}</div></div></section>`:`<section class="detailSection lineupSection"><div class="detailTitle"><div><h2>Line-ups</h2><span>Priority team-sheet check</span></div><button class="xiRefreshBtn" id="refreshXiBtn" data-fid="${esc(fid)}">Refresh XI + bench</button></div><div class="xiRefreshState" id="xiRefreshState">${next?`Next automatic check ${esc(formatRefresh(next))}`:'Awaiting provider update'}</div><div class="empty lineupEmpty">Starting line-ups are not confirmed yet. Use the button above to check this fixture immediately.</div></section>`}
  <section class="detailSection"><div class="detailTitle"><h2>Probability map</h2><span>Coherent modelled outcomes</span></div><div class="outcomeGrid">${top.map(outcomeCard).join("")||'<div class="empty">Deep analysis is still building.</div>'}</div>${engineDetail(top[0])}</section>
  <section class="detailSection"><div class="detailTitle"><h2>Match profile</h2><span>Expected goals and pressure index</span></div><div class="profileNumbers"><div><b>${s.expectedHome??"—"}</b><span>${esc(homeOf(f))} expected</span></div><div><b>${s.expectedAway??"—"}</b><span>${esc(awayOf(f))} expected</span></div></div>${miniBar(homeOf(f)+" pressure index",hp)}${miniBar(awayOf(f)+" pressure index",ap)}${miniBar("Engine agreement",s.engineAgreement)}</section>
  ${layers?`<section class="detailSection"><div class="detailTitle"><h2>Evidence quality</h2><span>What the model actually has</span></div><div class="dataLayers"><div><b>${layers.teamData??'—'}</b><span>TEAM DATA</span></div><div><b>${layers.squadData??'—'}</b><span>SQUAD DATA</span></div><div><b>${layers.contextData??'—'}</b><span>CONTEXT</span></div><div><b>${layers.overall??'—'}</b><span>OVERALL</span></div></div></section>`:''}
@@ -1025,7 +1054,34 @@ function openFixtureDetail(fid){
  <section class="detailSection"><div class="detailTitle"><h2>Form & context</h2><span>Recent results, rest and load</span></div><div class="fixtureFormCols"><div><b>${esc(homeOf(f))}</b><div class="form">${formHTML(s.homeForm)}</div><small>Rest ${s.homeRestDays??"—"}d · ${s.homeCongestion14??"—"} matches / 14d</small></div><div><b>${esc(awayOf(f))}</b><div class="form">${formHTML(s.awayForm)}</div><small>Rest ${s.awayRestDays??"—"}d · ${s.awayCongestion14??"—"} matches / 14d</small></div></div></section>
  ${Number.isFinite(top[0]?.stats?.lineupDelta)?`<section class="detailSection xiFeature"><div class="detailTitle"><h2>Confirmed XI impact</h2><span>Deep → final movement</span></div><div class="xiBig">${top[0].stats.preLineupP}% <span>→</span> ${top[0].p}% <b class="${top[0].stats.lineupDelta>0?"up":top[0].stats.lineupDelta<0?"down":"flat"}">${top[0].stats.lineupDelta>0?"+":""}${top[0].stats.lineupDelta}%</b></div></section>`:""}</div>`;
  pageShow("fixtureDetail");$("fixtureBack").onclick=()=>pageShow("predictions");
+ $("refreshXiBtn")?.addEventListener("click",()=>manualRefreshXI(fid));
 }
+async function manualRefreshXI(fid){
+ const f=fixtureById(fid),btn=$("refreshXiBtn"),state=$("xiRefreshState");
+ if(!f||manualXiBusy)return;
+ manualXiBusy=true;manualPriority=true;
+ if(analysisController)try{analysisController.abort()}catch{}
+ if(btn){btn.disabled=true;btn.textContent="Checking XI + bench…"}
+ if(state)state.textContent="Priority check running now…";
+ try{
+   const r=await fetch("/api/predict",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fixtureId:idOf(f),homeTeam:homeOf(f),awayTeam:awayOf(f),homeTeamId:f.homeTeamId,awayTeamId:f.awayTeamId,competition:compOf(f),fixtureDate:dateOf(f),leagueId:f.leagueId,season:f.season,mode:"deep",forceLineup:true})});
+   const d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||("Line-up check returned "+r.status));
+   const previous=predictionCache[fid]||null,model=d.model||EXPECTED_MODEL_VERSION,stage=d.analysisStage||"deep";
+   const enriched=coherePredictions((d.predictions||[]).map(p=>calibrateFromAudit({...p,model,fixtureId:fid,fixture:`${homeOf(f)} v ${awayOf(f)}`,competition:compOf(f),kickoff:dateOf(f)})));
+   let preLineupProbabilities=previous?.preLineupProbabilities||null;
+   if(d.lineupConfirmed&&!preLineupProbabilities&&previous&&!previous.lineupConfirmed&&previous.stage!=="scout")preLineupProbabilities=Object.fromEntries((previous.predictions||[]).map(x=>[x.rule,x.p]));
+   if(d.lineupConfirmed&&preLineupProbabilities)enriched.forEach(p=>{const before=Number(preLineupProbabilities[p.rule]);if(Number.isFinite(before))p.stats={...(p.stats||{}),preLineupP:before,lineupDelta:p.p-before}});
+   const now=Date.now(),kick=new Date(dateOf(f)).getTime(),mins=(kick-now)/60000;
+   let nextRefreshAt=null;if(!d.lineupConfirmed){if(mins>75)nextRefreshAt=kick-75*60000;else if(mins>0)nextRefreshAt=now+5*60000;else nextRefreshAt=now+10*60000}
+   const probabilityHistory=[...(previous?.probabilityHistory||[]),{ts:now,stage,probabilities:Object.fromEntries(enriched.map(x=>[x.rule,x.p]))}].slice(-10);
+   predictionCache[fid]={ts:now,model,stage,lineupConfirmed:!!d.lineupConfirmed,lineupChecked:true,hasIntervening:!!d.hasIntervening,interveningUntil:d.interveningUntil||null,nextRefreshAt,evidence:d.evidence||{},dataLayers:d.dataLayers||null,lineups:d.lineups||null,preLineupProbabilities,probabilityHistory,predictions:enriched};
+   if(stage!=="scout")enriched.forEach(p=>auditPrediction(p,f,model));
+   save();renderAllPreservingUI();openFixtureDetail(fid);
+   const freshState=$("xiRefreshState");if(freshState&&!d.lineupConfirmed)freshState.textContent=`No confirmed line-up returned · checked ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+ }catch(e){if(state)state.textContent="Line-up check failed: "+e.message}
+ finally{manualXiBusy=false;manualPriority=false;const b=$("refreshXiBtn");if(b){b.disabled=false;b.textContent="Refresh XI + bench"}}
+}
+
 function bttsDateMatch(f){
  const k=dayKey(dateOf(f));
  if(bttsDateView==="today")return k===todayKey();
