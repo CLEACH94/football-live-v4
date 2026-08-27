@@ -1,19 +1,24 @@
-# Match Index V15.2 — Premium UX
+# Match Index V15.3 — Structural Premium
 
-Safe UI/UX release based on the working V15.1 build.
+This is a frontend-only structural redesign based on the working V15.2 build.
 
-## Changes
-- Four-item mobile navigation: Rankings, Results, League XI, More.
-- Saved, Match Result, BTTS, Performance and Competitions moved into More.
-- Data Engine reduced to a compact expandable live-status row.
-- Ranking cards simplified and stabilised.
-- Fixture detail made more compact and editorial.
-- Confirmed-XI pitch now shows only the strongest five partnership links.
-- Missing player ratings/confidence are hidden instead of showing dashes or 0%.
-- Formation is separated cleanly from the team name.
-- Manual Refresh XI + bench remains available.
-- League XI remains a fantasy-style fixed 4-3-3 and never fills a role with a player from another role group.
-- Saved tray only appears on Rankings, so it no longer covers League XI or fixture pages.
-- No cron, database, Supabase or new Vercel infrastructure.
+## What changes
+- Four-item primary navigation: Rankings, Results, League XI, More
+- Rankings restructured around filters, discovery and fixtures
+- Fixtures move ahead of engine/debug detail
+- Engine becomes a compact expandable status row at the bottom of Rankings
+- Cleaner fixture cards with less heavy navy/yellow treatment
+- Fixture detail is more compact and editorial
+- Confirmed-XI pitch is shorter and only the strongest partnership links are shown
+- Missing player metrics stay hidden
+- Saved controls do not overlay fixture detail or League XI
+- Layout reserves space while data refreshes to reduce tap-shifting/flicker
 
-Upload the files over the current working app.
+## What does NOT change
+- Existing API files
+- Vercel configuration
+- Environment variables
+- Database / cron / Supabase
+- Prediction engine logic
+
+Upload `index.html` over the current `index.html`. You can also upload this README if you want the build note in GitHub. Leave the existing `api` folder alone.
