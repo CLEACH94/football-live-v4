@@ -1,4 +1,5 @@
 const API = "https://v3.football.api-sports.io";
+const {apiFootball}=require('./_quota');
 const MODEL_VERSION = "v15-match-intelligence-coherent";
 
 const LEAGUES = {
@@ -25,12 +26,8 @@ const rows=d=>Array.isArray(d?.response)?d.response:[];
 
 async function api(path,key,ttl=0){
   if(ttl&&cache.has(path)&&Date.now()-cache.get(path).time<ttl)return cache.get(path).data;
-  const r=await fetch(API+path,{headers:{"x-apisports-key":key}});
-  const d=await r.json();
-  if(!r.ok)throw new Error(`API-Football HTTP ${r.status}`);
-  if(d?.errors&&(Array.isArray(d.errors)?d.errors.length:Object.keys(d.errors).length)){
-    throw new Error(Array.isArray(d.errors)?d.errors.join(", "):JSON.stringify(d.errors));
-  }
+  const critical=path.includes("/fixtures/lineups")||path.includes("live=");
+  const d=await apiFootball(path,key,{reason:`predict:${path.split("?")[0]}`,critical});
   if(ttl)cache.set(path,{time:Date.now(),data:d});
   return d;
 }

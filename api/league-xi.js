@@ -1,10 +1,11 @@
 const BASE='https://v3.football.api-sports.io';
+const {apiFootball}=require('./_quota');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const num=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
 const rows=d=>Array.isArray(d?.response)?d.response:[];
 const LEAGUES={39:'Premier League',40:'Championship',41:'League One',42:'League Two'};
 const cache=new Map();
-async function api(path,key){const r=await fetch(BASE+path,{headers:{'x-apisports-key':key}});if(!r.ok)throw new Error(`API ${r.status}`);return r.json()}
+async function api(path,key){return apiFootball(path,key,{reason:`league-xi:${path.split('?')[0]}`,critical:false})}
 async function mapLimit(items,n,fn){const out=[];let i=0;async function worker(){while(i<items.length){const x=items[i++];out.push(await fn(x).catch(()=>null))}}await Promise.all(Array.from({length:Math.min(n,items.length)},worker));return out.filter(Boolean)}
 function seasonFor(){const d=new Date();return d.getUTCMonth()>=6?d.getUTCFullYear():d.getUTCFullYear()-1}
 function role(pos){const p=String(pos||'').toLowerCase();if(p.includes('goal'))return'GK';if(p.includes('def'))return'DEF';if(p.includes('mid'))return'MID';return'ATT'}
