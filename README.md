@@ -1,24 +1,28 @@
-# Match Index V15.3 — Structural Premium
+# Match Index V15.3 — Live Match Mode v1
 
-This is a frontend-only structural redesign based on the working V15.2 build.
+Safe upgrade from V15.2. No database, cron, Supabase or Vercel infrastructure changes.
 
-## What changes
-- Four-item primary navigation: Rankings, Results, League XI, More
-- Rankings restructured around filters, discovery and fixtures
-- Fixtures move ahead of engine/debug detail
-- Engine becomes a compact expandable status row at the bottom of Rankings
-- Cleaner fixture cards with less heavy navy/yellow treatment
-- Fixture detail is more compact and editorial
-- Confirmed-XI pitch is shorter and only the strongest partnership links are shown
-- Missing player metrics stay hidden
-- Saved controls do not overlay fixture detail or League XI
-- Layout reserves space while data refreshes to reduce tap-shifting/flicker
+## Added
+- Live Match Mode on fixture detail pages once a match is live (and retained at full-time for review)
+- Live score and minute/status
+- Total shots
+- Shots on target
+- Possession
+- Corners
+- Cards
+- Match Index live pressure indicator
+- Locked pre-match forecast remains visible and is never overwritten by live data
+- Simple live forecast tracking state
+- Manual “Refresh live” action
+- Live detail refresh every 30 seconds while that fixture page is open
+- Existing manual “Refresh XI + bench” remains intact
 
-## What does NOT change
-- Existing API files
-- Vercel configuration
-- Environment variables
-- Database / cron / Supabase
-- Prediction engine logic
+## Files to upload
+Replace the current files with everything in this folder:
+- index.html
+- api/football.js
+- api/predict.js
+- api/league-xi.js
+- README.md
 
-Upload `index.html` over the current `index.html`. You can also upload this README if you want the build note in GitHub. Leave the existing `api` folder alone.
+This build deliberately does not add background/server persistence yet. That is the next step after Live Match Mode v1 is verified.
