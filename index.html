@@ -357,7 +357,7 @@ let accuracyScope="model";
 let locked=JSON.parse(localStorage.getItem("fp8-locked")||"[]");
 let history=JSON.parse(localStorage.getItem("fp8-history")||"[]");
 let predictionCache=JSON.parse(localStorage.getItem("fp-api-predictions")||"{}");
-let liveMatchData={},currentFixtureDetailId=null,liveDetailTimer=null,liveDetailBusy=false;
+let liveMatchData={},serverLiveSnapshots={},serverStateConfigured=false,currentFixtureDetailId=null,liveDetailTimer=null,liveDetailBusy=false;
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1114,7 +1114,16 @@ function liveStatusLabel(f){const st=statusOf(f);if(st==='HT')return 'Half-time'
 function liveForecastLabel(p,f){if(!p)return 'Pre-match forecast unavailable';const st=predictionStatus(p,f);const label=isDone(f)?st.label:(st.state==='live'?'Tracking well':'Still open');return `${p.title} ${p.p}% · ${label}`}
 function renderLivePanel(fid){const el=$('liveModePanel');if(!el||currentFixtureDetailId!==String(fid))return;const f=fixtureById(fid),d=liveMatchData[fid],c=predictionCache[fid],top=[...(c?.predictions||[])].sort((a,b)=>b.p-a.p)[0];if(!f)return;const [hs,as]=scorePair(f);if(!d){el.className='liveMatchPanel loading';el.innerHTML=`<div class="liveMatchTop"><div class="liveTitle"><i class="livePulse"></i>Live match intelligence</div><button class="liveRefresh" id="liveRefreshBtn">Refresh live</button></div><div class="liveScoreHero"><div class="liveTeam">${esc(homeOf(f))}</div><div class="liveScore"><b>${hs??0}–${as??0}</b><span>${esc(liveStatusLabel(f))}</span></div><div class="liveTeam">${esc(awayOf(f))}</div></div><div class="liveUnavailable">Loading live match statistics…</div>`;$('liveRefreshBtn')?.addEventListener('click',()=>refreshLiveDetail(fid,true));return}
  const h=d.home||{},a=d.away||{},share=livePressureShare(h,a),fresh=Math.max(0,Math.round((Date.now()-d.ts)/1000));el.className='liveMatchPanel';el.innerHTML=`<div class="liveMatchTop"><div class="liveTitle"><i class="livePulse"></i>Live match intelligence</div><button class="liveRefresh" id="liveRefreshBtn">Refresh live</button></div><div class="liveScoreHero"><div class="liveTeam">${esc(homeOf(f))}</div><div class="liveScore"><b>${hs??0}–${as??0}</b><span>${esc(liveStatusLabel(f))}</span></div><div class="liveTeam">${esc(awayOf(f))}</div></div><div class="liveForecastTrack"><span>Locked pre-match view</span><b>${esc(liveForecastLabel(top,f))}</b></div><div class="liveStatGrid"><div class="liveStat"><span>Shots</span><b>${h.shots??'—'} · ${a.shots??'—'}</b></div><div class="liveStat"><span>On target</span><b>${h.sot??'—'} · ${a.sot??'—'}</b></div><div class="liveStat"><span>Possession</span><b>${h.possession??'—'}% · ${a.possession??'—'}%</b></div><div class="liveStat"><span>Corners</span><b>${h.corners??'—'} · ${a.corners??'—'}</b></div><div class="liveStat"><span>Cards</span><b>${h.cards??0} · ${a.cards??0}</b></div><div class="liveStat"><span>Updated</span><b>${fresh<15?'Now':fresh+'s'}</b></div></div><div class="livePressure"><div class="livePressureHead"><span>${esc(homeOf(f))} ${share}%</span><span>Live pressure</span><span>${100-share}% ${esc(awayOf(f))}</span></div><div class="livePressureTrack"><i class="home" style="width:${share}%"></i><i class="away" style="width:${100-share}%"></i></div><div class="mutedNote">Pressure is a Match Index live indicator from shots, shots on target, corners and possession — not official xG.</div></div>`;$('liveRefreshBtn')?.addEventListener('click',()=>refreshLiveDetail(fid,true));}
-async function refreshLiveDetail(fid,force=false){if(liveDetailBusy&&!force)return;const f=fixtureById(fid);if(!f||(!isLive(f)&&!isDone(f)))return;liveDetailBusy=true;try{const [fx,stats,events]=await Promise.all([football('fixtures',{id:fid,timezone:'Europe/London'}),football('fixtures/statistics',{fixture:fid}),football('fixtures/events',{fixture:fid})]);const fresh=responseRows(fx)[0];if(fresh){const nf=normalizeFixture(fresh),idx=fixtures.findIndex(x=>idOf(x)===String(fid));if(idx>=0)fixtures[idx]={...fixtures[idx],...nf}}const hf=fixtureById(fid)||f,hs=liveTeamStats(stats,hf.homeTeamId),as=liveTeamStats(stats,hf.awayTeamId);liveMatchData[fid]={ts:Date.now(),home:{shots:cleanLiveNumber(statValue(hs,'Total Shots')),sot:cleanLiveNumber(statValue(hs,'Shots on Goal')),possession:cleanLiveNumber(statValue(hs,'Ball Possession')),corners:cleanLiveNumber(statValue(hs,'Corner Kicks')),cards:liveCardCount(events,hf.homeTeamId)},away:{shots:cleanLiveNumber(statValue(as,'Total Shots')),sot:cleanLiveNumber(statValue(as,'Shots on Goal')),possession:cleanLiveNumber(statValue(as,'Ball Possession')),corners:cleanLiveNumber(statValue(as,'Corner Kicks')),cards:liveCardCount(events,hf.awayTeamId)}};renderLivePanel(fid)}catch(e){const el=$('liveModePanel');if(el)el.innerHTML=`<div class="liveMatchTop"><div class="liveTitle"><i class="livePulse"></i>Live match intelligence</div></div><div class="liveUnavailable">Live statistics are temporarily unavailable. The locked pre-match forecast is unchanged.</div>`}finally{liveDetailBusy=false}}
+async function refreshLiveDetail(fid,force=false){
+  if(liveDetailBusy&&!force)return;const f=fixtureById(fid);if(!f||(!isLive(f)&&!isDone(f)))return;liveDetailBusy=true;
+  try{
+    const day=dayKey(dateOf(f)),r=await fetch(`/api/state?from=${encodeURIComponent(day)}&to=${encodeURIComponent(day)}`,{cache:"no-store"});
+    const d=await r.json();if(r.ok&&d.configured){const row=(d.live||[]).find(x=>String(x.fixture_id)===String(fid));if(row){serverLiveSnapshots[String(fid)]={...(row.payload||{}),updatedAt:row.updated_at};const raw=row.payload||{},fresh=raw.fixture;if(fresh?.fixture?.id){const nf=normalizeFixture(fresh),idx=fixtures.findIndex(x=>idOf(x)===String(fid));if(idx>=0)fixtures[idx]={...fixtures[idx],...nf}}const hf=fixtureById(fid)||f,stats=raw.stats||{},events=raw.events||{},hs=liveTeamStats(stats,hf.homeTeamId),as=liveTeamStats(stats,hf.awayTeamId);liveMatchData[fid]={ts:new Date(row.updated_at||Date.now()).getTime(),home:{shots:cleanLiveNumber(statValue(hs,'Total Shots')),sot:cleanLiveNumber(statValue(hs,'Shots on Goal')),possession:cleanLiveNumber(statValue(hs,'Ball Possession')),corners:cleanLiveNumber(statValue(hs,'Corner Kicks')),cards:liveCardCount(events,hf.homeTeamId)},away:{shots:cleanLiveNumber(statValue(as,'Total Shots')),sot:cleanLiveNumber(statValue(as,'Shots on Goal')),possession:cleanLiveNumber(statValue(as,'Ball Possession')),corners:cleanLiveNumber(statValue(as,'Corner Kicks')),cards:liveCardCount(events,hf.awayTeamId)}};renderLivePanel(fid);return}}
+    // Fallback before the server setup is completed: keep the existing direct live mode working.
+    const [fx,stats,events]=await Promise.all([football('fixtures',{id:fid,timezone:'Europe/London'}),football('fixtures/statistics',{fixture:fid}),football('fixtures/events',{fixture:fid})]);const fresh=responseRows(fx)[0];if(fresh){const nf=normalizeFixture(fresh),idx=fixtures.findIndex(x=>idOf(x)===String(fid));if(idx>=0)fixtures[idx]={...fixtures[idx],...nf}}const hf=fixtureById(fid)||f,hs=liveTeamStats(stats,hf.homeTeamId),as=liveTeamStats(stats,hf.awayTeamId);liveMatchData[fid]={ts:Date.now(),home:{shots:cleanLiveNumber(statValue(hs,'Total Shots')),sot:cleanLiveNumber(statValue(hs,'Shots on Goal')),possession:cleanLiveNumber(statValue(hs,'Ball Possession')),corners:cleanLiveNumber(statValue(hs,'Corner Kicks')),cards:liveCardCount(events,hf.homeTeamId)},away:{shots:cleanLiveNumber(statValue(as,'Total Shots')),sot:cleanLiveNumber(statValue(as,'Shots on Goal')),possession:cleanLiveNumber(statValue(as,'Ball Possession')),corners:cleanLiveNumber(statValue(as,'Corner Kicks')),cards:liveCardCount(events,hf.awayTeamId)}};renderLivePanel(fid)
+  }catch(e){const el=$("liveModePanel");if(el)el.innerHTML=`<div class="liveMatchTop"><div class="liveTitle"><i class="livePulse"></i>Live match intelligence</div></div><div class="liveUnavailable">Live statistics are temporarily unavailable. The locked pre-match forecast is unchanged.</div>`}finally{liveDetailBusy=false}
+}
+
 function startLiveDetail(fid){currentFixtureDetailId=String(fid);if(liveDetailTimer)clearInterval(liveDetailTimer);const f=fixtureById(fid);if(f&&(isLive(f)||isDone(f))){renderLivePanel(fid);refreshLiveDetail(fid,true);liveDetailTimer=setInterval(()=>{const nowF=fixtureById(fid);if(nowF&&(isLive(nowF)||isDone(nowF)))refreshLiveDetail(fid)},30000)}}
 function openFixtureDetail(fid){
  const f=fixtureById(fid),c=predictionCache[fid];if(!f)return;
@@ -1158,6 +1167,22 @@ async function manualRefreshXI(fid){
    const freshState=$("xiRefreshState");if(freshState&&!d.lineupConfirmed)freshState.textContent=`No confirmed line-up returned · checked ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
  }catch(e){if(state)state.textContent="Line-up check failed: "+e.message}
  finally{manualXiBusy=false;manualPriority=false;const b=$("refreshXiBtn");if(b){b.disabled=false;b.textContent="Refresh XI + bench"}}
+}
+
+
+async function hydrateServerState(){
+  try{
+    const from=dateKeyOffset(0),to=dateKeyOffset(7);
+    const r=await fetch(`/api/state?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,{cache:"no-store"});
+    if(!r.ok)return false;const d=await r.json();serverStateConfigured=!!d.configured;if(!d.configured)return false;
+    const fixtureMap=new Map(fixtures.map(f=>[String(idOf(f)),f]));
+    for(const row of d.fixtures||[]){const raw=row.payload;if(!raw?.fixture?.id)continue;const nf=normalizeFixture(raw),id=String(nf.id);if(fixtureMap.has(id))fixtureMap.set(id,{...fixtureMap.get(id),...nf});else fixtureMap.set(id,nf)}
+    fixtures=[...fixtureMap.values()];
+    for(const row of d.predictions||[]){const raw=row.payload||{},fid=String(row.fixture_id),ts=new Date(row.updated_at||row.generated_at||Date.now()).getTime();if(!raw?.predictions?.length)continue;const local=predictionCache[fid];if(local&&Number(local.ts||0)>=ts)continue;predictionCache[fid]={ts,model:raw.model||EXPECTED_MODEL_VERSION,stage:raw.analysisStage||row.stage||"deep",lineupConfirmed:!!raw.lineupConfirmed,lineupChecked:!!raw.lineupChecked||true,hasIntervening:!!raw.hasIntervening,interveningUntil:raw.interveningUntil||null,nextRefreshAt:null,evidence:raw.evidence||{},dataLayers:raw.dataLayers||null,lineups:raw.lineups||null,probabilityHistory:local?.probabilityHistory||[],predictions:coherePredictions(raw.predictions||[])};}
+    for(const row of d.live||[])serverLiveSnapshots[String(row.fixture_id)]={...(row.payload||{}),updatedAt:row.updated_at};
+    if(d.budget?.calls!==undefined){const el=$("queueState");if(el&&Number(d.budget.calls)>=6000)el.textContent=`Live server active · API budget ${d.budget.calls}/7,500 used`; }
+    save();return true;
+  }catch(e){console.warn("Server state unavailable",e);return false}
 }
 
 function bttsDateMatch(f){
@@ -1245,6 +1270,7 @@ async function loadFixtures(){
  try{
    $("feed").classList.remove("on");$("feed").querySelector("span").textContent="SYNCING";initialLeagueLoadComplete=false;fallbackLoaded=false;fallbackLoading=false;
    fixtures=await loadSelectedFixtures();
+   await hydrateServerState();
    settle();
    settleModelAudit();
    const beforeCacheCount=Object.keys(predictionCache).length;
@@ -1254,7 +1280,7 @@ async function loadFixtures(){
    }
    $("feed").classList.add("on");$("feed").querySelector("span").textContent="LIVE FEED";
    $("matchStamp").textContent=fixtures.length+" fixtures · synced "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-   $("backendStatus").className="ok";$("backendStatus").textContent="API-Football connected. V15 scout/deep/final analysis is active.";
+   $("backendStatus").className="ok";$("backendStatus").textContent="API-Football connected. V15.4 live server is ready; browser fallback remains active until database setup is complete.";
    renderAll();startQueue();startLiveRefresh();
  }catch(e){
    $("feed").classList.remove("on");$("feed").querySelector("span").textContent="ERROR";$("backendStatus").className="error";$("backendStatus").textContent=e.message;$("queueState").textContent="Error: "+e.message;
@@ -1317,7 +1343,7 @@ function startRollingWindowWatch(){
  });
 }
 
-(async()=>{await loadCatalogue();await loadFixtures();startRollingWindowWatch()})();
+(async()=>{await loadCatalogue();await loadFixtures();startRollingWindowWatch();setInterval(async()=>{if(await hydrateServerState())renderAllPreservingUI()},60000)})();
 </script>
 </body>
 </html>
