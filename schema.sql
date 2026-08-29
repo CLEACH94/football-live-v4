@@ -116,3 +116,13 @@ revoke all on function public.mi_consume_api_call(integer,text,integer,integer,b
 revoke all on function public.mi_try_engine_lock(integer) from public, anon, authenticated;
 grant execute on function public.mi_consume_api_call(integer,text,integer,integer,boolean) to service_role;
 grant execute on function public.mi_try_engine_lock(integer) to service_role;
+
+
+-- V15.4.1 server-role table privileges
+grant select, insert, update, delete on table public.mi_api_usage to service_role;
+grant select, insert, update, delete on table public.mi_fixtures to service_role;
+grant select, insert, update, delete on table public.mi_predictions to service_role;
+grant select, insert, update, delete on table public.mi_lineups to service_role;
+grant select, insert, update, delete on table public.mi_live to service_role;
+grant select, insert, update, delete on table public.mi_engine_runs to service_role;
+grant select, insert, update, delete on table public.mi_engine_lock to service_role;
