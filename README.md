@@ -69,3 +69,5 @@ Then in Vercel go to **Settings → Cron Jobs** and confirm `/api/cron` is activ
 The server uses one central snapshot per fixture. Ten or ten thousand people opening the same fixture do not each need to trigger the same upstream live-data call.
 
 The browser continues to work as a fallback during setup, so uploading this package first should not make the existing app dependent on Supabase immediately.
+
+
