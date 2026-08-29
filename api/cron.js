@@ -27,14 +27,35 @@ module.exports=async function handler(req,res){
     const fixtures=rows(fd).filter(f=>SUPPORTED.has(Number(f?.league?.id)));
     seen=fixtures.length;if(fixtures.length)await db.upsert('mi_fixtures',fixtures.map(fixtureRow),'fixture_id');
     const now=Date.now();
-    // 1) Lineups: priority from T-100 through the match until confirmed. Check at most 6 per run.
-    const lineupCandidates=fixtures.filter(f=>{const ko=new Date(f.fixture.date).getTime(),mins=(ko-now)/60000;return !DONE.has(f.fixture.status?.short)&&mins<=100&&mins>=-130}).sort((a,b)=>new Date(a.fixture.date)-new Date(b.fixture.date));
-    for(const f of lineupCandidates.slice(0,6)){
-      const old=await one('mi_lineups',f.fixture.id,'fixture_id,confirmed,checked_at');
-      if(old?.confirmed)continue;
-      if(old?.checked_at&&now-new Date(old.checked_at).getTime()<5*60000)continue;
-      try{const ld=await apiFootball(`/fixtures/lineups?fixture=${f.fixture.id}`,key,{reason:'cron:lineup',critical:true});const confirmed=confirmedLineup(ld);await db.upsert('mi_lineups',{fixture_id:f.fixture.id,confirmed,payload:ld,checked_at:new Date().toISOString()},'fixture_id');lineupsChecked++;}catch(e){if(e.code==='API_BUDGET')break}
-      await sleep(40);
+    // 1) Lineups: sweep the whole near-kickoff window efficiently.
+    // API-Football supports up to 20 fixture IDs in one enriched fixture call; those payloads can include lineups.
+    const lineupCandidates=fixtures.filter(f=>{const ko=new Date(f.fixture.date).getTime(),mins=(ko-now)/60000;return !DONE.has(f.fixture.status?.short)&&mins<=90&&mins>=-60}).sort((a,b)=>Math.abs(new Date(a.fixture.date)-now)-Math.abs(new Date(b.fixture.date)-now));
+    const pending=[];
+    for(const f of lineupCandidates){const old=await one('mi_lineups',f.fixture.id,'fixture_id,confirmed,checked_at');if(!old?.confirmed)pending.push({f,old});}
+    // Bulk pass: cover every pending fixture, 20 at a time, rather than allowing a six-match queue.
+    for(let i=0;i<pending.length;i+=20){
+      const group=pending.slice(i,i+20),ids=group.map(x=>x.f.fixture.id).join('-');
+      try{
+        const bulk=await apiFootball(`/fixtures?ids=${ids}&timezone=Europe%2FLondon`,key,{reason:'cron:lineup-bulk',critical:true});
+        const byId=new Map(rows(bulk).map(x=>[Number(x?.fixture?.id),x]));
+        for(const {f} of group){
+          const enriched=byId.get(Number(f.fixture.id)),ls=Array.isArray(enriched?.lineups)?enriched.lineups:[];
+          const ld={response:ls},confirmed=confirmedLineup(ld);
+          await db.upsert('mi_lineups',{fixture_id:f.fixture.id,confirmed,payload:ld,checked_at:new Date().toISOString()},'fixture_id');
+          lineupsChecked++;
+        }
+      }catch(e){if(e.code==='API_BUDGET')break}
+      await sleep(50);
+    }
+    // Direct pass: inside T-45, immediately hit the dedicated lineups endpoint for the most urgent misses.
+    const urgent=[];
+    for(const {f} of pending){
+      const mins=(new Date(f.fixture.date).getTime()-now)/60000;
+      if(mins<=45&&mins>=-30){const latest=await one('mi_lineups',f.fixture.id,'confirmed,checked_at');if(!latest?.confirmed)urgent.push(f)}
+    }
+    for(const f of urgent.slice(0,10)){
+      try{const ld=await apiFootball(`/fixtures/lineups?fixture=${f.fixture.id}`,key,{reason:'cron:lineup-direct',critical:true});const confirmed=confirmedLineup(ld);await db.upsert('mi_lineups',{fixture_id:f.fixture.id,confirmed,payload:ld,checked_at:new Date().toISOString()},'fixture_id');lineupsChecked++;}catch(e){if(e.code==='API_BUDGET')break}
+      await sleep(35);
     }
     // 2) Live match snapshots. Existing client now reads these instead of spending API calls itself.
     for(const f of fixtures.filter(x=>LIVE.has(x.fixture.status?.short)).slice(0,16)){
