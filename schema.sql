@@ -126,3 +126,24 @@ grant select, insert, update, delete on table public.mi_lineups to service_role;
 grant select, insert, update, delete on table public.mi_live to service_role;
 grant select, insert, update, delete on table public.mi_engine_runs to service_role;
 grant select, insert, update, delete on table public.mi_engine_lock to service_role;
+
+-- V15.5 RESCUE: persistent API cache + durable performance history
+create table if not exists public.mi_api_cache (
+  cache_key text primary key,
+  payload jsonb not null default '{}'::jsonb,
+  expires_at timestamptz not null,
+  updated_at timestamptz not null default now()
+);
+create index if not exists mi_api_cache_expires_idx on public.mi_api_cache(expires_at);
+
+create table if not exists public.mi_model_audit (
+  audit_key text primary key,
+  payload jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+create index if not exists mi_model_audit_updated_idx on public.mi_model_audit(updated_at);
+
+alter table public.mi_api_cache enable row level security;
+alter table public.mi_model_audit enable row level security;
+grant select, insert, update, delete on table public.mi_api_cache to service_role;
+grant select, insert, update, delete on table public.mi_model_audit to service_role;

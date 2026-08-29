@@ -1,71 +1,27 @@
-# MATCH INDEX V15.4 — LIVE SERVER
+# MATCH INDEX V15.5 RESCUE
 
-This package is designed to be uploaded over the current Match Index project.
+Purpose: restore speed/reliability after V15.4, protect historical performance, settle completed results server-side, and stop runaway API-Football usage.
 
-## What is included
+## IMPORTANT ORDER
+1. In Supabase SQL Editor, run the entire `schema.sql` once. It is safe to run on the existing V15.4 database (`create table if not exists`).
+2. Upload all files/folders from this package to the existing GitHub repo, replacing same-named files.
+3. Deploy that exact commit to Vercel Production.
+4. Check `/api/health` says `v15.5-rescue` and database true.
+5. Open Match Index. Existing browser performance history is uploaded to Supabase before the server copy is merged.
 
-- Current V15.3 frontend and model features
-- Server-side fixture snapshots
-- Automatic lineup + bench checking
-- Automatic final-XI prediction priority
-- Server-side live match snapshots
-- Central prediction snapshots
-- API-Football daily request budget protection
-- Server cron endpoint ready for a 2-minute scheduler
-- `vercel-pro-cron.json` contains the production Vercel Pro schedule, but is deliberately NOT active on first upload so a Hobby Vercel project cannot fail deployment
-- Supabase schema
-- `/api/health` setup checker
-- Browser fallback: the current app still works before Supabase is configured
+## Historical data on the old long Vercel URL
+If the 216-result history only exists on the old deployment URL, open that old URL first and use Performance → Export model data. On V15.5 use Performance → Restore data and select the JSON. V15.5 then stores it in Supabase permanently.
 
-## Files to upload
+## What changed
+- Persistent Supabase API response cache shared by cron, browser proxy and model.
+- Server-first loading: last good page is not blanked during refresh.
+- Browser auto-analysis queue stops when the server is configured.
+- Cron uses cached fixture windows and batched lineup checks instead of hammering API-Football.
+- Dedicated lineup fallback only becomes aggressive close to kick-off.
+- Manual `Refresh XI + bench` bypasses lineup cache.
+- Live statistics are on-demand and server-cached, rather than fetching every live match every cron run.
+- Completed server predictions are settled into `mi_model_audit` automatically.
+- Browser historical audit is mirrored into Supabase.
+- Rolling 7-day fixture window is warmed server-side.
 
-Upload **everything** in this folder to the repo root, replacing files with the same name.
-
-Do not put any secret keys in GitHub.
-
-## Environment variables required in Vercel
-
-Existing:
-- `API_FOOTBALL_KEY`
-
-New:
-- `SUPABASE_URL`
-- `SUPABASE_SECRET_KEY` (preferred) OR legacy `SUPABASE_SERVICE_ROLE_KEY`
-- `CRON_SECRET` — random string, at least 16 characters
-
-Optional:
-- `API_DAILY_SOFT_CAP=6500`
-- `API_DAILY_HARD_CAP=7400`
-
-The hard cap deliberately leaves roughly 100 requests below a 7,500/day API-Football plan limit. The soft cap preserves a larger reserve for live data and confirmed lineups.
-
-## Supabase
-
-Create a Supabase project and run `schema.sql` once in SQL Editor.
-
-Use a **server secret key** in Vercel. Never put it in `index.html`, GitHub, or client-side JavaScript.
-
-## Scheduler
-
-The first upload deliberately has **no active `vercel.json` cron**. This makes the package deployment-safe before we check your Vercel plan. `vercel-pro-cron.json` contains the ready-made 2-minute schedule. Once Supabase and the environment variables are confirmed, we will activate the scheduler as the final setup step. `CRON_SECRET` protects `/api/cron`.
-
-## After setup
-
-Open:
-
-`https://YOUR-DOMAIN/api/health`
-
-You want:
-- `ok: true`
-- `apiFootball: true`
-- `supabase: true`
-- `cronSecret: true`
-- `database: true`
-
-Then in Vercel go to **Settings → Cron Jobs** and confirm `/api/cron` is active.
-
-## Important behaviour
-
-The server uses one central snapshot per fixture. Ten or ten thousand people opening the same fixture do not each need to trigger the same upstream live-data call.
-
-The browser continues to work as a fallback during setup, so uploading this package first should not make the existing app dependent on Supabase immediately.
+Default budget guard remains 6,500 soft / 7,400 hard. Do not raise it to compensate for bad polling; V15.5 is designed to reduce polling instead.
