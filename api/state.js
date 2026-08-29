@@ -7,9 +7,9 @@ module.exports=async function handler(req,res){
   const from=dateOnly(req.query?.from,today()),to=dateOnly(req.query?.to,today(7));
   const fq=`kickoff=gte.${encodeURIComponent(from+'T00:00:00Z')}&kickoff=lt.${encodeURIComponent(to+'T23:59:59Z')}&select=*&order=kickoff.asc`;
   const fixtures=await db.select('mi_fixtures',fq);const ids=(fixtures||[]).map(x=>x.fixture_id);
-  if(!ids.length)return res.status(200).json({configured:true,fixtures:[],predictions:[],lineups:[],live:[],budget:null});
+  if(!ids.length){const [budget,audit]=await Promise.all([db.select('mi_api_usage',`usage_date=eq.${today()}&select=calls,updated_at&limit=1`).catch(()=>[]),db.select('mi_model_audit','select=payload,updated_at&order=updated_at.asc&limit=20000').catch(()=>[])]);return res.status(200).json({configured:true,fixtures:[],predictions:[],lineups:[],live:[],budget:budget?.[0]||{calls:0},audit:(audit||[]).map(x=>x.payload).filter(Boolean)});}
   const inq=`(${ids.join(',')})`;
-  const [predictions,lineups,live,budget]=await Promise.all([db.select('mi_predictions',`fixture_id=in.${inq}&select=*`),db.select('mi_lineups',`fixture_id=in.${inq}&select=*`),db.select('mi_live',`fixture_id=in.${inq}&select=*`),db.select('mi_api_usage',`usage_date=eq.${today()}&select=calls,updated_at&limit=1`)]);
-  res.setHeader('Cache-Control','s-maxage=20, stale-while-revalidate=60');return res.status(200).json({configured:true,fixtures,predictions,lineups,live,budget:budget?.[0]||{calls:0}});
+  const [predictions,lineups,live,budget,audit]=await Promise.all([db.select('mi_predictions',`fixture_id=in.${inq}&select=*`),db.select('mi_lineups',`fixture_id=in.${inq}&select=*`),db.select('mi_live',`fixture_id=in.${inq}&select=*`),db.select('mi_api_usage',`usage_date=eq.${today()}&select=calls,updated_at&limit=1`),db.select('mi_model_audit','select=payload,updated_at&order=updated_at.asc&limit=20000').catch(()=>[])]);
+  res.setHeader('Cache-Control','s-maxage=20, stale-while-revalidate=60');return res.status(200).json({configured:true,fixtures,predictions,lineups,live,budget:budget?.[0]||{calls:0},audit:(audit||[]).map(x=>x.payload).filter(Boolean)});
  }catch(e){return res.status(502).json({error:'Live state unavailable',detail:e.message||String(e)})}
 }

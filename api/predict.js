@@ -1,5 +1,5 @@
 const API = "https://v3.football.api-sports.io";
-const {apiFootball}=require('./_quota');
+const {cachedApiFootball}=require('./_cache');
 const MODEL_VERSION = "v15-match-intelligence-coherent";
 
 const LEAGUES = {
@@ -27,7 +27,7 @@ const rows=d=>Array.isArray(d?.response)?d.response:[];
 async function api(path,key,ttl=0){
   if(ttl&&cache.has(path)&&Date.now()-cache.get(path).time<ttl)return cache.get(path).data;
   const critical=path.includes("/fixtures/lineups")||path.includes("live=");
-  const d=await apiFootball(path,key,{reason:`predict:${path.split("?")[0]}`,critical});
+  const d=await cachedApiFootball(path,key,{ttlMs:ttl||0,reason:`predict:${path.split("?")[0]}`,critical});
   if(ttl)cache.set(path,{time:Date.now(),data:d});
   return d;
 }
@@ -136,6 +136,9 @@ module.exports=async function handler(req,res){
     let chanceLH=scheduleLH,chanceLA=scheduleLA;if(hChance.for&&aChance.against&&aChance.for&&hChance.against){const hCreate=(hChance.for.pressure+aChance.against.pressure)/2,aCreate=(aChance.for.pressure+hChance.against.pressure)/2;chanceLH=clamp(.62*scheduleLH+.38*(baseline*(.72+hCreate/5)),.15,3.8);chanceLA=clamp(.62*scheduleLA+.38*(baseline*(.72+aCreate/5)),.13,3.6)}
     const injuries=rows(inj),hInj=injuries.filter(x=>x?.team?.id===homeId).length,aInj=injuries.filter(x=>x?.team?.id===awayId).length;let availLH=chanceLH,availLA=chanceLA;if(mode==="deep"){availLH*=clamp(1-(hInj-aInj)*.007,.95,1.04);availLA*=clamp(1-(aInj-hInj)*.007,.95,1.04)}
     let linfo=lineupInfo(lineupD);
+    if(b.forceLineup){
+      try{const forced=await cachedApiFootball(`/fixtures/lineups?fixture=${fixtureId}`,key,{ttlMs:120000,reason:'predict:manual-lineup',critical:true,force:true});linfo=lineupInfo(forced)}catch{}
+    }
     // If the dedicated lineup endpoint lags, immediately check the enriched fixture payload as a second source.
     if(mode==="deep"&&!linfo.confirmed){try{const enriched=await api(`/fixtures?id=${fixtureId}`,key,15000);const embedded=rows(enriched)?.[0]?.lineups;if(Array.isArray(embedded)&&embedded.length)linfo=lineupInfo({response:embedded})}catch{}}
     const hLine=lineupFor(linfo,homeId),aLine=lineupFor(linfo,awayId);let hXi=null,aXi=null,hContinuity=null,aContinuity=null,hFormation=null,aFormation=null,pmap=new Map(),hPlayers=[],aPlayers=[],hHL=[],aHL=[],hLinks=[],aLinks=[];
