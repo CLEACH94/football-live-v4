@@ -1,5 +1,4 @@
 const API = "https://v3.football.api-sports.io";
-const {cachedApiFootball}=require('./_cache');
 const MODEL_VERSION = "v15-match-intelligence-coherent";
 
 const LEAGUES = {
@@ -26,8 +25,12 @@ const rows=d=>Array.isArray(d?.response)?d.response:[];
 
 async function api(path,key,ttl=0){
   if(ttl&&cache.has(path)&&Date.now()-cache.get(path).time<ttl)return cache.get(path).data;
-  const critical=path.includes("/fixtures/lineups")||path.includes("live=");
-  const d=await cachedApiFootball(path,key,{ttlMs:ttl||0,reason:`predict:${path.split("?")[0]}`,critical});
+  const r=await fetch(API+path,{headers:{"x-apisports-key":key}});
+  const d=await r.json();
+  if(!r.ok)throw new Error(`API-Football HTTP ${r.status}`);
+  if(d?.errors&&(Array.isArray(d.errors)?d.errors.length:Object.keys(d.errors).length)){
+    throw new Error(Array.isArray(d.errors)?d.errors.join(", "):JSON.stringify(d.errors));
+  }
   if(ttl)cache.set(path,{time:Date.now(),data:d});
   return d;
 }
@@ -118,7 +121,7 @@ module.exports=async function handler(req,res){
     let inj=null,lineupD=null,h2hD=null,externalD=null,statResponses=[];
     if(mode==="deep"){
       [inj,lineupD,h2hD,externalD]=await Promise.all([
-        api(`/injuries?fixture=${fixtureId}`,key,180000).catch(()=>null),api(`/fixtures/lineups?fixture=${fixtureId}`,key,30000).catch(()=>null),
+        api(`/injuries?fixture=${fixtureId}`,key,180000).catch(()=>null),api(`/fixtures/lineups?fixture=${fixtureId}`,key,120000).catch(()=>null),
         api(`/fixtures/headtohead?h2h=${homeId}-${awayId}&last=5`,key,600000).catch(()=>null),api(`/predictions?fixture=${fixtureId}`,key,300000).catch(()=>null)
       ]);
       const statIds=[...new Set([...h20.slice(0,6),...a20.slice(0,6)].map(x=>x.fixture.id))];
@@ -135,13 +138,7 @@ module.exports=async function handler(req,res){
     const hChance=mode==="deep"?chanceProfiles(statResponses,homeId):{for:null,against:null},aChance=mode==="deep"?chanceProfiles(statResponses,awayId):{for:null,against:null};
     let chanceLH=scheduleLH,chanceLA=scheduleLA;if(hChance.for&&aChance.against&&aChance.for&&hChance.against){const hCreate=(hChance.for.pressure+aChance.against.pressure)/2,aCreate=(aChance.for.pressure+hChance.against.pressure)/2;chanceLH=clamp(.62*scheduleLH+.38*(baseline*(.72+hCreate/5)),.15,3.8);chanceLA=clamp(.62*scheduleLA+.38*(baseline*(.72+aCreate/5)),.13,3.6)}
     const injuries=rows(inj),hInj=injuries.filter(x=>x?.team?.id===homeId).length,aInj=injuries.filter(x=>x?.team?.id===awayId).length;let availLH=chanceLH,availLA=chanceLA;if(mode==="deep"){availLH*=clamp(1-(hInj-aInj)*.007,.95,1.04);availLA*=clamp(1-(aInj-hInj)*.007,.95,1.04)}
-    let linfo=lineupInfo(lineupD);
-    if(b.forceLineup){
-      try{const forced=await cachedApiFootball(`/fixtures/lineups?fixture=${fixtureId}`,key,{ttlMs:120000,reason:'predict:manual-lineup',critical:true,force:true});linfo=lineupInfo(forced)}catch{}
-    }
-    // If the dedicated lineup endpoint lags, immediately check the enriched fixture payload as a second source.
-    if(mode==="deep"&&!linfo.confirmed){try{const enriched=await api(`/fixtures?id=${fixtureId}`,key,15000);const embedded=rows(enriched)?.[0]?.lineups;if(Array.isArray(embedded)&&embedded.length)linfo=lineupInfo({response:embedded})}catch{}}
-    const hLine=lineupFor(linfo,homeId),aLine=lineupFor(linfo,awayId);let hXi=null,aXi=null,hContinuity=null,aContinuity=null,hFormation=null,aFormation=null,pmap=new Map(),hPlayers=[],aPlayers=[],hHL=[],aHL=[],hLinks=[],aLinks=[];
+    const linfo=lineupInfo(lineupD),hLine=lineupFor(linfo,homeId),aLine=lineupFor(linfo,awayId);let hXi=null,aXi=null,hContinuity=null,aContinuity=null,hFormation=null,aFormation=null,pmap=new Map(),hPlayers=[],aPlayers=[],hHL=[],aHL=[],hLinks=[],aLinks=[];
     if(linfo.confirmed&&leagueId){const hRecentIds=h20.slice(0,5).map(x=>x.fixture.id),aRecentIds=a20.slice(0,5).map(x=>x.fixture.id),[hp,ap,hHist,aHist]=await Promise.all([squadPages(homeId,leagueId,season,key),squadPages(awayId,leagueId,season,key),mapLimit(hRecentIds,3,id=>api(`/fixtures/lineups?fixture=${id}`,key,600000)),mapLimit(aRecentIds,3,id=>api(`/fixtures/lineups?fixture=${id}`,key,600000))]);pmap=playerMap([...hp,...ap]);hPlayers=xiPlayers(hLine);aPlayers=xiPlayers(aLine);const histLines=(arr,team)=>arr.filter(Boolean).map(d=>lineupFor(lineupInfo(d),team)).filter(Boolean);hHL=histLines(hHist,homeId);aHL=histLines(aHist,awayId);hXi=xiStrength(hPlayers,pmap);aXi=xiStrength(aPlayers,pmap);hContinuity=pairContinuity(hPlayers.map(x=>x.id),hHL.map(x=>xiIds(x)));aContinuity=pairContinuity(aPlayers.map(x=>x.id),aHL.map(x=>xiIds(x)));hFormation=formationContinuity(hLine,hHL);aFormation=formationContinuity(aLine,aHL);hLinks=pairLinks(hPlayers,hHL.map(x=>xiIds(x)));aLinks=pairLinks(aPlayers,aHL.map(x=>xiIds(x)))}
     let squadLH=availLH,squadLA=availLA;if(linfo.confirmed&&hXi&&aXi){const rd=clamp((hXi.rating-aXi.rating)/3,-.12,.12),ad=clamp((hXi.attack-aXi.attack)/8,-.10,.10);squadLH*=1+rd*.20+ad*.18;squadLA*=1-rd*.17-ad*.14;if(hContinuity!==null&&aContinuity!==null){const c=clamp(hContinuity-aContinuity,-.25,.25);squadLH*=1+c*.08;squadLA*=1-c*.06}if(hFormation!==null&&aFormation!==null){const f=clamp(hFormation-aFormation,-.5,.5);squadLH*=1+f*.018;squadLA*=1-f*.014}}
     baseLH*=1.05;baseLA*=.98;strengthLH*=1.05;strengthLA*=.98;scheduleLH*=1.05;scheduleLA*=.98;chanceLH*=1.05;chanceLA*=.98;squadLH*=1.05;squadLA*=.98;
