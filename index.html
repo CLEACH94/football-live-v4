@@ -211,7 +211,7 @@ header{background:rgba(250,249,245,.97)}
 </style>
 </head>
 <body>
-<div class="app" data-build="v15.2-premium-ux">
+<div class="app" data-build="v15.3-emergency-storage-fix">
 <header>
   <div class="brandbar">
     <div class="brand"><div class="mark"></div><div><strong>MATCH INDEX</strong><small>FIXTURES • INTELLIGENCE • FORECASTS • RESULTS</small></div></div>
@@ -363,15 +363,29 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function safeStore(key,value){
+ try{
+   localStorage.setItem(key,value);
+   return true;
+ }catch(e){
+   if(e && (e.name==="QuotaExceededError" || String(e.message||"").toLowerCase().includes("quota"))){
+     console.warn("Match Index browser storage full; continuing in memory:",key);
+     return false;
+   }
+   throw e;
+ }
+}
 function save(){
- localStorage.setItem("fp-api-selected-leagues",JSON.stringify(selectedLeagueIds));
- localStorage.setItem("fp-api-favorites",JSON.stringify(favorites));
- localStorage.setItem("fp8-current",JSON.stringify(currentSlip));
- localStorage.setItem("fp8-locked",JSON.stringify(locked));
- localStorage.setItem("fp8-history",JSON.stringify(history));
- localStorage.setItem("fp-api-predictions",JSON.stringify(predictionCache));
- localStorage.setItem("mi-model-audit-v11",JSON.stringify(modelAudit));
- localStorage.setItem("matchindex-auto-updates-paused",manualFreeze?"1":"0");
+ // Never let Safari localStorage capacity stop the prediction engine.
+ // If storage is full, the current session continues in memory and forecasts still render.
+ safeStore("fp-api-selected-leagues",JSON.stringify(selectedLeagueIds));
+ safeStore("fp-api-favorites",JSON.stringify(favorites));
+ safeStore("fp8-current",JSON.stringify(currentSlip));
+ safeStore("fp8-locked",JSON.stringify(locked));
+ safeStore("fp8-history",JSON.stringify(history));
+ safeStore("fp-api-predictions",JSON.stringify(predictionCache));
+ safeStore("mi-model-audit-v11",JSON.stringify(modelAudit));
+ safeStore("matchindex-auto-updates-paused",manualFreeze?"1":"0");
 }
 function seasonFor(d=new Date()){return d.getMonth()>=6?d.getFullYear():d.getFullYear()-1}
 function ymd(d){return d.toISOString().slice(0,10)}

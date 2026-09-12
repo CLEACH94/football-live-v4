@@ -1,0 +1,5 @@
+Emergency Match Index fix.
+Root cause: Safari localStorage QuotaExceededError was being caught by the model queue and displayed as 'Model unavailable: The quota has been exceeded.'
+This build prevents browser storage capacity from aborting forecast generation.
+No historical storage keys are deleted by this patch.
+Cron/background server is not included.
