@@ -1,0 +1,4 @@
+Match Index V15.3 browser-driven rollback.
+Cron/background live-server files are intentionally excluded.
+Uses the pre-live V15.2 API functions with no Match Index daily quota guard.
+Keep API_FOOTBALL_KEY configured in Vercel.
