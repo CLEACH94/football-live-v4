@@ -1,4 +1,3 @@
-Match Index V15.3 browser-driven rollback.
-Cron/background live-server files are intentionally excluded.
-Uses the pre-live V15.2 API functions with no Match Index daily quota guard.
-Keep API_FOOTBALL_KEY configured in Vercel.
+Rollback source: the user's uploaded MI153-EMERGENCY-PREDICTIONS(1).zip.
+V16 retains the V15 prediction engine and adds persistence/product architecture around it.
+If deployment fails before Turso is configured, restore the original uploaded V15.3 files.

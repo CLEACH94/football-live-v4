@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/predict.js": { "maxDuration": 300 },
+    "api/league-predictor.js": { "maxDuration": 300 },
+    "api/oxford.js": { "maxDuration": 120 }
+  }
+}

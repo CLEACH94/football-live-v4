@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f2d11a">
-<title>Match Index</title>
+<title>Match Index V16</title>
 <style>
 :root{
   --navy:#071f4f;
@@ -190,7 +190,7 @@ body{background:linear-gradient(180deg,#faf9f5 0%,#f5f4ef 100%)}
 .app{max-width:820px;padding-bottom:30px}
 header{background:rgba(250,249,245,.97)}
 .brandbar{padding:17px 20px 12px}.brand strong{font-size:21px}.brand small{font-size:8px;letter-spacing:1.2px}
-.navShell{position:relative;padding:0 18px 10px}.mainnav{display:grid;grid-template-columns:repeat(4,1fr);padding:0;gap:4px;overflow:visible}.mainnav button{min-width:0;text-align:center;padding:9px 4px;font-size:9px}.mainnav #moreNav span{font-size:8px;margin-left:2px}.mainnav #moreNav.active{color:var(--mi-navy)}
+.navShell{position:relative;padding:0 18px 10px}.mainnav{display:grid;grid-template-columns:repeat(5,1fr);padding:0;gap:4px;overflow:visible}.mainnav button{min-width:0;text-align:center;padding:9px 4px;font-size:9px}.mainnav #moreNav span{font-size:8px;margin-left:2px}.mainnav #moreNav.active{color:var(--mi-navy)}
 .moreMenu{display:none;position:absolute;right:18px;top:43px;width:190px;padding:7px;background:rgba(255,254,250,.99);border:1px solid var(--mi-line);border-radius:16px;box-shadow:0 18px 42px rgba(13,29,53,.14);z-index:80}.moreMenu.open{display:grid}.moreMenu button{border:0;background:transparent;text-align:left;padding:11px 12px;border-radius:10px;color:#536078;font-size:10px;font-weight:800}.moreMenu button.active,.moreMenu button:active{background:#f5f1e8;color:var(--mi-navy)}
 .section{padding:18px 16px 28px}.searchwrap{box-shadow:none;border-color:var(--mi-line);margin-bottom:10px}.datebar,.filterbar{padding-bottom:7px}.pill{padding:8px 12px;background:#fffefa;border-color:var(--mi-line)}
 #predictions>.hero{padding:18px 18px;margin-bottom:10px;background:linear-gradient(145deg,#0b244c,#102e59);box-shadow:none;border-radius:19px}#predictions>.hero h1{font-size:20px}#predictions>.hero p{font-size:10px}.herofoot{margin-top:9px}.metricbig b{font-size:22px}
@@ -211,7 +211,7 @@ header{background:rgba(250,249,245,.97)}
 </style>
 </head>
 <body>
-<div class="app" data-build="v15.3-emergency-storage-fix">
+<div class="app" data-build="v16-world-class-foundation">
 <header>
   <div class="brandbar">
     <div class="brand"><div class="mark"></div><div><strong>MATCH INDEX</strong><small>FIXTURES • INTELLIGENCE • FORECASTS • RESULTS</small></div></div>
@@ -219,26 +219,20 @@ header{background:rgba(250,249,245,.97)}
   </div>
   <div class="navShell">
     <nav class="mainnav">
-      <button class="active" data-page="predictions">Rankings</button>
-      <button data-page="history">Results</button>
-      <button data-page="leagueXI">League XI</button>
-      <button type="button" id="moreNav">More <span>⌄</span></button>
+      <button class="active" data-page="predictions">Predictions</button>
+      <button data-page="oxford">Oxford</button>
+      <button data-page="leaguePredictor">League</button>
+      <button data-page="accuracy">Data</button>
+      <button data-page="system">System</button>
     </nav>
-    <div class="moreMenu" id="moreMenu">
-      <button data-page="picks">Saved</button>
-      <button data-page="resultForecasts">Match Result</button>
-      <button data-page="bttsForecasts">BTTS</button>
-      <button data-page="accuracy">Performance</button>
-      <button data-page="leagues">Competitions</button>
-    </div>
   </div>
 </header>
 
 <section class="section active" id="predictions">
   <div class="searchwrap"><div class="searchline"><input id="teamSearch" type="search" placeholder="Search team e.g. Oxford United"><button class="iconbtn" id="clearSearch">Clear</button></div></div>
   <div class="datebar"><button class="pill active" data-date="today">Today</button><button class="pill" data-date="tomorrow">Tomorrow</button><button class="pill" data-date="upcoming">Next 7 days</button></div>
-  <div class="filterbar"><button class="pill active" data-feedview="selected">My leagues</button><button class="pill" data-feedview="favorites">Favourites only</button></div>
-  <div class="hero"><h1>Today’s match intelligence</h1><p>Fast scouting first. Deep analysis for the strongest fixtures. Confirmed line-ups trigger the final model automatically.</p><div class="herofoot"><div class="metricbig"><b id="readyCount">0</b><span>75%+ DEEP MATCHES</span></div><div class="metricbig"><b id="fixtureCount">0</b><span>FIXTURES IN VIEW</span></div></div></div>
+  <div class="filterbar"><button class="pill active" data-feedview="selected">All</button><button class="pill" data-feedview="uk">UK Only</button><button class="pill" id="top25Xi">Check top 25 XI</button></div>
+  <div class="hero"><h1>Today’s match intelligence</h1><p>Stored-first forecasts. Initial → Deep Dive → Final XI. Confirmed line-ups only recalculate when you ask.</p><div class="herofoot"><div class="metricbig"><b id="readyCount">0</b><span>READY FORECASTS</span></div><div class="metricbig"><b id="fixtureCount">0</b><span>FIXTURES IN VIEW</span></div></div></div>
   <div id="MatchFive"></div>
   <div id="hiddenGem"></div>
   <div class="engineCompact" id="enginePanel">
@@ -277,10 +271,28 @@ header{background:rgba(250,249,245,.97)}
 </section>
 
 
+<section class="section" id="oxford">
+  <div class="hero"><h1>Oxford United Intelligence</h1><p>Same Match Index Champion model, richer club view. Best XI is a strength XI, not a predicted starting XI.</p><div class="herofoot"><div class="metricbig"><b id="oxfordRating">—</b><span>XI STRENGTH</span></div><div class="metricbig"><b id="oxfordForm">—</b><span>RECENT FORM</span></div></div></div>
+  <div id="oxfordView"><div class="empty">Open this tab to load Oxford intelligence.</div></div>
+</section>
+
+<section class="section" id="leaguePredictor">
+  <div class="hero"><h1>League Predictor</h1><p>Manual Monte Carlo season projection with scoreline simulation and coherent team-strength uncertainty.</p><div class="herofoot"><div class="metricbig"><b id="lpSims">—</b><span>SIMULATIONS</span></div><div class="metricbig"><b id="lpUpdated">—</b><span>LAST RUN</span></div></div></div>
+  <div class="panel leagueXiControls"><label>League<select id="lpLeague"><option value="39">Premier League</option><option value="40" selected>Championship</option><option value="41">League One</option><option value="42">League Two</option><option value="179">Scottish Premiership</option></select></label><div class="actions" style="flex:1"><button class="btn gold" id="runLeaguePredictor">Refresh League Prediction</button></div></div>
+  <div id="leaguePredictorView"><div class="empty">Manual refresh only.</div></div>
+</section>
+
 <section class="section" id="leagueXI">
   <div class="hero leagueXiHero"><h1>League XI</h1><p>Fantasy-style best XI selected from current league performance data.</p><div class="herofoot"><div class="metricbig"><b id="leagueXiStrength">—</b><span>XI STRENGTH</span></div><div class="metricbig"><b id="leagueXiFormation">—</b><span>FORMATION</span></div></div></div>
   <div class="panel leagueXiControls"><label>League<select id="leagueXiLeague"><option value="39">Premier League</option><option value="40">Championship</option><option value="41">League One</option><option value="42">League Two</option></select></label><div class="segmented"><button class="active" data-ximode="current">Current</button><button data-ximode="season">Season</button><button data-ximode="form">Form</button></div></div>
   <div id="leagueXiView"><div class="empty">Open the tab to build the current XI.</div></div>
+</section>
+
+<section class="section" id="system">
+  <div class="hero"><h1>System</h1><p>Processing and infrastructure live here so the football experience stays clean.</p><div class="herofoot"><div class="metricbig"><b id="sysDb">—</b><span>TURSO</span></div><div class="metricbig"><b id="sysPred">—</b><span>STORED FIXTURES</span></div></div></div>
+  <div class="panel"><div class="sectiontitle"><h2>Processing</h2><span id="sysStamp">Checking…</span></div><div id="systemStatus" class="small">Loading system state…</div></div>
+  <div class="panel"><div class="sectiontitle"><h2>Manual old-history import</h2><span>One-time tool</span></div><p class="small">Paste/export the legacy Match Index JSON only when you deliberately want to migrate it. Nothing imports automatically.</p><input id="legacyImportFile" type="file" accept="application/json,.json" style="width:100%;margin:8px 0"><button class="btn gold" id="importLegacy">Import old history</button><div id="importState" class="small" style="margin-top:8px"></div></div>
+  <div class="panel"><div class="sectiontitle"><h2>Reliability rules</h2><span>Hard boundaries</span></div><div class="small">Stored-first · 2,000 API-call reserve · checkpointed jobs · atomic publication · partial failure stays partial · stale valid data beats blank.</div></div>
 </section>
 
 <section class="section" id="fixtureDetail">
@@ -303,7 +315,7 @@ header{background:rgba(250,249,245,.97)}
 <div class="drawer" id="drawer"><div class="sheet"><div class="sectiontitle"><h2>Saved set</h2><span id="sheetCount">0 picks</span></div><div id="sheetItems"></div><div class="actions"><button class="btn gold" id="lockSlip">Name & track</button><button class="btn outline" id="closeSlip">Close</button></div></div></div>
 
 <script>
-const EXPECTED_MODEL_VERSION="v15-match-intelligence-coherent";
+const EXPECTED_MODEL_VERSION="v16-match-index-independent-1";
 const LEAGUE_DEFS=[
  {id:"premier",group:"English leagues",label:"Premier League",apiId:39},
  {id:"championship",group:"English leagues",label:"Championship",apiId:40},
@@ -352,11 +364,12 @@ let manualFreeze=localStorage.getItem("matchindex-auto-updates-paused")==="1";
 const openStats=new Set();
 let favorites=JSON.parse(localStorage.getItem("fp-api-favorites")||"null")||["Premier League","Championship","League One","League Two","FA Cup","League Cup","UEFA Champions League","UEFA Europa League","UEFA Conference League"];
 let currentSlip=JSON.parse(localStorage.getItem("fp8-current")||"[]");
-let modelAudit=JSON.parse(localStorage.getItem("mi-model-audit-v11")||"[]");
+let modelAudit=[];
 let accuracyScope="model";
 let locked=JSON.parse(localStorage.getItem("fp8-locked")||"[]");
-let history=JSON.parse(localStorage.getItem("fp8-history")||"[]");
-let predictionCache=JSON.parse(localStorage.getItem("fp-api-predictions")||"{}");
+let history=[];
+let predictionCache={};
+let cloudConfigured=false,cloudHydrated=false;
 let liveMatchData={},currentFixtureDetailId=null,liveDetailTimer=null,liveDetailBusy=false;
 
 const $=id=>document.getElementById(id);
@@ -382,11 +395,26 @@ function save(){
  safeStore("fp-api-favorites",JSON.stringify(favorites));
  safeStore("fp8-current",JSON.stringify(currentSlip));
  safeStore("fp8-locked",JSON.stringify(locked));
- safeStore("fp8-history",JSON.stringify(history));
- safeStore("fp-api-predictions",JSON.stringify(predictionCache));
- safeStore("mi-model-audit-v11",JSON.stringify(modelAudit));
  safeStore("matchindex-auto-updates-paused",manualFreeze?"1":"0");
 }
+async function hydrateCloudState(){
+ try{
+   const r=await fetch("/api/state",{cache:"no-store"}),d=await r.json();
+   if(!r.ok)throw new Error(d.detail||d.error||"State service failed");
+   cloudConfigured=!!d.configured;
+   if(d.predictions&&Object.keys(d.predictions).length)predictionCache=d.predictions;
+   if(Array.isArray(d.history))history=d.history;
+   if(Array.isArray(d.audit))modelAudit=d.audit;
+   cloudHydrated=true;
+ }catch(e){console.warn("Cloud state unavailable; using current in-memory session",e);cloudHydrated=true}
+}
+async function cloudWrite(body){
+ if(!cloudConfigured)return false;
+ try{const r=await fetch("/api/state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return r.ok}catch{return false}
+}
+function persistPredictionCloud(fid,payload){return cloudWrite({action:"upsertPrediction",fixtureId:String(fid),payload,predictionTs:new Date().toISOString(),dataCutoffTs:new Date().toISOString(),featureVersion:"v16-feature-1",calibrationVersion:"v16-cal-1"})}
+let cloudAuditTimer=null;function scheduleCloudAudit(){if(!cloudConfigured)return;clearTimeout(cloudAuditTimer);cloudAuditTimer=setTimeout(()=>cloudWrite({action:"syncAudit",rows:modelAudit.slice(-12000)}),1200)}
+let cloudHistoryTimer=null;function scheduleCloudHistory(){if(!cloudConfigured)return;clearTimeout(cloudHistoryTimer);cloudHistoryTimer=setTimeout(()=>cloudWrite({action:"syncHistory",rows:history.slice(0,5000)}),1200)}
 function seasonFor(d=new Date()){return d.getMonth()>=6?d.getFullYear():d.getFullYear()-1}
 function ymd(d){return d.toISOString().slice(0,10)}
 function todayKey(){return ymd(new Date())}
@@ -618,6 +646,7 @@ function predictionRows(){
  });
  rows=rows.filter(p=>inDateView({date:p.kickoff},dateView));
  if(teamQuery)rows=rows.filter(p=>(p.fixture+" "+p.competition).toLowerCase().includes(teamQuery.toLowerCase()));
+ if(feedView==="uk")rows=rows.filter(p=>{const f=fixtureById(p.fixtureId);return f&&isUKFixture(f)});
  if(feedView==="favorites"||marketFilter==="favorites")rows=rows.filter(p=>isFavorite(p.competition));
  else if(marketFilter!=="all")rows=rows.filter(p=>p.type===marketFilter);
  return rows.sort((a,b)=>b.p-a.p);
@@ -632,7 +661,12 @@ function groupsForDay(day,includeFallback=true){
    if(!map.has(p.fixtureId))map.set(p.fixtureId,[]);
    map.get(p.fixtureId).push(p);
  });
- return [...map.values()].map(x=>x.sort((a,b)=>b.p-a.p)).filter(x=>x[0]?.p>=75);
+ return [...map.values()].map(x=>{
+   const sorted=[...x].sort((a,b)=>b.p-a.p);if(!sorted.length)return sorted;const max=sorted[0].p;
+   const rank={result:1,btts:2,goals:3,goalscorer:4,cards:5,teamgoal:6,double:7,score:8,clean:9};
+   const close=sorted.filter(p=>max-p.p<=5).sort((a,b)=>(rank[a.type]??99)-(rank[b.type]??99)||b.p-a.p);
+   const best=close[0]||sorted[0];return [best,...sorted.filter(p=>p.id!==best.id)];
+ }).filter(x=>x.length);
 }
 function rankedDay(day,allowFallback=true){
  const uk=groupsForDay(day,false).sort((a,b)=>b[0].p-a[0].p);
@@ -754,18 +788,18 @@ function renderEngineStatus(){
  });
  $("frozenCount").textContent=frozen;
  $("awaitingCount").textContent=awaiting;
- $("nextRefresh").textContent=manualFreeze?"PAUSED":formatRefresh(nexts.length?Math.min(...nexts):null);
- $("engineDetail").textContent=manualFreeze?"Automatic API updates are paused. Your saved analysis stays available.":"Deep snapshots stay frozen until new information is useful; line-ups are checked automatically near kick-off.";
- $("freezeUpdates").textContent=manualFreeze?"Resume automatic updates":"Pause automatic updates";
+ $("nextRefresh").textContent="MANUAL";
+ $("engineDetail").textContent="Stored predictions load first. Deep processing runs off-device; line-up checks are manual.";
+ $("freezeUpdates").textContent="Browser automation disabled";
 }
 function renderPredictions(){
  const groups=rankedMatchGroups();
  $("readyCount").textContent=groups.length;
  $("fixtureCount").textContent=visibleFixtures().length;
- renderMatchFive(groups);
- renderHiddenGem(groups);
+ $("MatchFive").innerHTML="";
+ $("hiddenGem").innerHTML="";
  renderEngineStatus();
- $("predictionList").innerHTML=groups.length?groups.map((g,i)=>matchCard(g,i+1)).join(""):`<div class="empty">The deep engine is still working, or there are no 75%+ forecasts in this view yet.</div>`;
+ $("predictionList").innerHTML=groups.length?groups.map((g,i)=>matchCard(g,i+1)).join(""):`<div class="empty">No completed forecasts in this view yet. Stored forecasts will appear as the off-device worker completes them.</div>`;
  restoreOpenStats();
 }
 
@@ -880,7 +914,7 @@ async function analyse(f,mode=null){
    }
    const probabilityHistory=[...(previous?.probabilityHistory||[]),{ts:now,stage,probabilities:Object.fromEntries(enriched.map(x=>[x.rule,x.p]))}].slice(-10);
    predictionCache[idOf(f)]={ts:now,model,stage,lineupConfirmed:!!d.lineupConfirmed,lineupChecked:!!d.lineupChecked,hasIntervening:!!d.hasIntervening,interveningUntil:d.interveningUntil||null,nextRefreshAt,evidence:d.evidence||{},dataLayers:d.dataLayers||null,lineups:d.lineups||null,preLineupProbabilities,probabilityHistory,predictions:enriched};
-   save();$("queueState").textContent=stage==="final"?"Final XI analysis complete":stage==="deep"?"Deep snapshot frozen":"Scout pass complete";$("queueBar").style.width="100%";renderAllPreservingUI();
+   save();persistPredictionCloud(idOf(f),predictionCache[idOf(f)]);scheduleCloudAudit();$("queueState").textContent=stage==="final"?"Final XI analysis complete":stage==="deep"?"Deep snapshot frozen":"Initial snapshot complete";$("queueBar").style.width="100%";renderAllPreservingUI();
  }catch(e){
    if(e?.name==="AbortError"){$("queueState").textContent="Manual XI refresh taking priority…"}
    else{$("queueState").textContent="Model unavailable: "+e.message}
@@ -1021,7 +1055,7 @@ function lockCurrent(){
  locked.unshift({id:"s-"+Date.now(),name,lockedAt:new Date().toISOString(),picks:valid.map(p=>({...p,lockedP:p.p}))});
  currentSlip=[];save();renderAll();$("drawer").classList.remove("open");
 }
-function settle(){let changed=false;locked.forEach(s=>s.picks.forEach(p=>{const f=fixtureById(p.fixtureId);if(!f||!isDone(f)||history.some(h=>h.slipId===s.id&&h.pickId===p.id))return;const st=predictionStatus(p,f),[hs,as]=scorePair(f);history.unshift({id:"h-"+Date.now()+"-"+Math.random(),slipId:s.id,pickId:p.id,title:p.title,fixture:p.fixture,category:p.type,p:p.lockedP??p.p,correct:st.state==="correct",result:`${hs}-${as}`,settledAt:new Date().toISOString()});changed=true}));if(changed)save()}
+function settle(){let changed=false;locked.forEach(s=>s.picks.forEach(p=>{const f=fixtureById(p.fixtureId);if(!f||!isDone(f)||history.some(h=>h.slipId===s.id&&h.pickId===p.id))return;const st=predictionStatus(p,f),[hs,as]=scorePair(f);history.unshift({id:"h-"+Date.now()+"-"+Math.random(),slipId:s.id,pickId:p.id,title:p.title,fixture:p.fixture,category:p.type,p:p.lockedP??p.p,correct:st.state==="correct",result:`${hs}-${as}`,settledAt:new Date().toISOString()});changed=true}));if(changed){save();scheduleCloudHistory()}}
 function renderHistory(){const c=history.filter(h=>h.correct).length;$("histTotal").textContent=history.length;$("histCorrect").textContent=c;$("histRate").textContent=(history.length?Math.round(c/history.length*100):0)+"%";$("historyList").innerHTML=history.length?history.map(h=>`<div class="historyrow"><div class="historyhead"><div><b>${esc(h.title)}</b><div class="small">${esc(h.fixture)} · saved ${h.p}% · final ${esc(h.result)}</div></div><span class="outcome ${h.correct?"correct":"missed"}">${h.correct?"CORRECT":"MISSED"}</span></div></div>`).join(""):`<div class="empty">Completed locked predictions will appear here automatically.</div>`}
 function historyWindowRows(){if(accuracyWindow==="all")return history;const cut=Date.now()-Number(accuracyWindow)*86400000;return history.filter(h=>new Date(h.settledAt).getTime()>=cut)}
 function resultDateMatch(f){
@@ -1168,7 +1202,7 @@ async function manualRefreshXI(fid){
    const probabilityHistory=[...(previous?.probabilityHistory||[]),{ts:now,stage,probabilities:Object.fromEntries(enriched.map(x=>[x.rule,x.p]))}].slice(-10);
    predictionCache[fid]={ts:now,model,stage,lineupConfirmed:!!d.lineupConfirmed,lineupChecked:true,hasIntervening:!!d.hasIntervening,interveningUntil:d.interveningUntil||null,nextRefreshAt,evidence:d.evidence||{},dataLayers:d.dataLayers||null,lineups:d.lineups||null,preLineupProbabilities,probabilityHistory,predictions:enriched};
    if(stage!=="scout")enriched.forEach(p=>auditPrediction(p,f,model));
-   save();renderAllPreservingUI();openFixtureDetail(fid);
+   save();persistPredictionCloud(fid,predictionCache[fid]);scheduleCloudAudit();renderAllPreservingUI();openFixtureDetail(fid);
    const freshState=$("xiRefreshState");if(freshState&&!d.lineupConfirmed)freshState.textContent=`No confirmed line-up returned · checked ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
  }catch(e){if(state)state.textContent="Line-up check failed: "+e.message}
  finally{manualXiBusy=false;manualPriority=false;const b=$("refreshXiBtn");if(b){b.disabled=false;b.textContent="Refresh XI + bench"}}
@@ -1238,6 +1272,36 @@ async function renderLeagueXI(force=false){
  const view=$("leagueXiView");if(!view)return;if(!force&&leagueXiLoaded)return;leagueXiLoaded=true;view.innerHTML='<div class="empty">Building the league XI…</div>';
  try{const league=Number($("leagueXiLeague")?.value||39),r=await fetch(`/api/league-xi?league=${league}&mode=${leagueXiMode}`,{cache:"no-store"}),d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'League XI failed');$("leagueXiStrength").textContent=Math.round(d.strength);$("leagueXiFormation").textContent="4-3-3";const team={team:d.leagueName,formation:"4-3-3",xi:(d.xi||[]).map(p=>({...p,rating:Math.round(p.score),confidence:(p.minutes||0)>=90?Math.round(clamp(45+Math.log10((p.minutes||0)+10)*18,45,96)):null,matchup:0})),bench:[],partnerships:[],continuity:null,formationContinuity:null,matchupImpact:0,matchupSample:0};view.innerHTML=`<div class="leagueXiInfo"><b>${esc(d.leagueName)} · ${esc(leagueXiMode.toUpperCase())}</b><span>${d.samplePlayers||0} eligible players analysed · generated ${new Date(d.generatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="leagueXiPitch">${lineupPitch(team)}</div>`}catch(e){view.innerHTML=`<div class="error">${esc(e.message)}</div>`}
 }
+let oxfordLoaded=false;
+async function renderOxford(force=false){
+ const view=$("oxfordView");if(!view||(!force&&oxfordLoaded))return;oxfordLoaded=true;view.innerHTML='<div class="empty">Loading Oxford intelligence…</div>';
+ try{
+  const r=await fetch('/api/oxford',{cache:'no-store'}),d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'Oxford load failed');
+  const xi=d.bestXI||[],avg=xi.length?Math.round(xi.reduce((a,x)=>a+(x.rating||0),0)/xi.length):0;$("oxfordRating").textContent=avg||'—';$("oxfordForm").textContent=(d.form||[]).join(' ')||'—';
+  const next=d.nextFixtures?.[0];const nextHtml=next?`<div class="panel"><div class="sectiontitle"><h2>Next fixture</h2><span>${esc(prettyDate(next.fixture.date))}</span></div><div class="predtitle">${esc(next.teams.home.name)} v ${esc(next.teams.away.name)}</div><div class="meta">${esc(next.league.name)} · ${esc(next.fixture.venue?.name||'Venue TBC')}</div></div>`:'';
+  const team={team:'Oxford United',formation:'4-3-3',xi:xi.map((x,i)=>({...x,grid:x.role==='GK'?'1:1':x.role==='DEF'?`2:${(i%4)+1}`:x.role==='MID'?`3:${(i%3)+1}`:`4:${(i%3)+1}`})),bench:d.bench||[],partnerships:[],continuity:null,formationContinuity:null,matchupImpact:0,matchupSample:0};
+  view.innerHTML=`${nextHtml}<div class="panel"><div class="sectiontitle"><h2>Team intelligence</h2><span>Current stored/fetched profile</span></div><div class="summary"><div><b>${d.recentGF??'—'}</b><span>GOALS / MATCH</span></div><div><b>${d.recentGA??'—'}</b><span>CONCEDED / MATCH</span></div><div><b>${(d.form||[]).join('')}</b><span>RECENT FORM</span></div></div></div><div class="panel"><div class="sectiontitle"><h2>Best XI</h2><span>Absolute Match Index strength ratings</span></div><div class="leagueXiPitch">${lineupPitch(team)}</div></div>`;
+ }catch(e){view.innerHTML=`<div class="error">${esc(e.message)}</div>`;oxfordLoaded=false}
+}
+let lpBusy=false;
+async function runLeaguePredictor(){
+ if(lpBusy)return;lpBusy=true;const btn=$("runLeaguePredictor"),view=$("leaguePredictorView");if(btn){btn.disabled=true;btn.textContent='Simulating…'}view.innerHTML='<div class="empty">Running season simulations…</div>';
+ try{const league=Number($("lpLeague").value||40),r=await fetch(`/api/league-predictor?league=${league}&sims=100000`,{cache:'no-store'}),d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'League Predictor failed');$("lpSims").textContent=Number(d.simulations).toLocaleString();$("lpUpdated").textContent=new Date(d.generatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});view.innerHTML=`<div class="leaguegroup"><h3>Predicted final table</h3>${(d.teams||[]).map(t=>`<div class="leaguerow"><div><b>${t.predictedPosition}. ${esc(t.name)}</b><small>Exact ${t.exactChance}% · 75% ${t.range75[0]}–${t.range75[1]} · 90% ${t.range90[0]}–${t.range90[1]} · currently ${t.currentPosition}</small></div><strong>${t.exactChance}%</strong></div>`).join('')}</div><div class="small">${esc(d.method)}. Manual refresh only.</div>`}catch(e){view.innerHTML=`<div class="error">${esc(e.message)}</div>`}finally{lpBusy=false;if(btn){btn.disabled=false;btn.textContent='Refresh League Prediction'}}
+}
+async function renderSystem(){
+ const el=$("systemStatus");if(!el)return;el.textContent='Checking…';
+ try{const r=await fetch('/api/system',{cache:'no-store'}),d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'System status failed');$("sysDb").textContent=d.database?.ok?'ONLINE':d.database?.configured?'ERROR':'SETUP';$("sysPred").textContent=d.database?.predictions??0;$("sysStamp").textContent=new Date(d.generatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const jobs=(d.jobs||[]).map(x=>`${x.status}: ${x.n}`).join(' · ')||'No queued jobs';el.innerHTML=`Database: <b>${d.database?.ok?'connected':'not connected'}</b><br>Stored predictions: <b>${d.database?.predictions??0}</b><br>Worker: <b>${esc(d.worker?.mode||'—')}</b><br>Jobs: <b>${esc(jobs)}</b><br>Protected API reserve: <b>${d.apiReserve||2000}</b>${d.lastWorker?`<br>Last worker: <b>${esc(d.lastWorker.completedAt||d.lastWorker.status||'recorded')}</b>`:''}`;
+ }catch(e){el.innerHTML=`<span class="error">${esc(e.message)}</span>`}
+}
+async function importLegacyFile(){
+ const file=$("legacyImportFile")?.files?.[0],state=$("importState");if(!file){state.textContent='Choose a JSON export first.';return}
+ try{state.textContent='Reading and importing…';const raw=JSON.parse(await file.text());const body={predictionCache:raw.predictionCache||raw.predictions||{},history:raw.history||[],audit:raw.audit||raw.modelAudit||[]};const r=await fetch('/api/import-history',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'Import failed');state.textContent=`Imported ${d.predictions} prediction records, ${d.history} results and ${d.audit} audit rows.`;await hydrateCloudState();renderAll();renderSystem()}catch(e){state.textContent='Import failed: '+e.message}
+}
+async function checkTop25XI(){
+ const btn=$("top25Xi");if(manualXiBusy)return;const rows=predictionRows().slice(0,25),ids=[...new Set(rows.map(x=>x.fixtureId))].slice(0,25);if(!ids.length)return;btn.disabled=true;btn.textContent=`Checking 0/${ids.length}`;let finals=0;
+ for(let i=0;i<ids.length;i++){btn.textContent=`Checking ${i+1}/${ids.length}`;const f=fixtureById(ids[i]);if(!f)continue;try{const r=await fetch('/api/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fixtureId:idOf(f),homeTeam:homeOf(f),awayTeam:awayOf(f),homeTeamId:f.homeTeamId,awayTeamId:f.awayTeamId,competition:compOf(f),fixtureDate:dateOf(f),leagueId:f.leagueId,season:f.season,mode:'deep',forceLineup:true})}),d=await r.json();if(!r.ok)continue;if(d.lineupConfirmed)finals++;const prev=predictionCache[idOf(f)]||{},model=d.model||EXPECTED_MODEL_VERSION,stage=d.analysisStage||'deep',enriched=coherePredictions((d.predictions||[]).map(p=>calibrateFromAudit({...p,model,fixtureId:idOf(f),fixture:`${homeOf(f)} v ${awayOf(f)}`,competition:compOf(f),kickoff:dateOf(f)})));predictionCache[idOf(f)]={...prev,ts:Date.now(),model,stage,lineupConfirmed:!!d.lineupConfirmed,lineupChecked:true,evidence:d.evidence||{},dataLayers:d.dataLayers||null,lineups:d.lineups||null,predictions:enriched};await persistPredictionCloud(idOf(f),predictionCache[idOf(f)])}catch{}await sleep(220)}
+ renderAll();btn.disabled=false;btn.textContent=`${finals} Final XI · Check top 25 XI`;setTimeout(()=>btn.textContent='Check top 25 XI',3500)
+}
 function renderAllPreservingUI(){
  captureOpenStats();
  renderAll();
@@ -1268,8 +1332,8 @@ async function loadFixtures(){
    }
    $("feed").classList.add("on");$("feed").querySelector("span").textContent="LIVE FEED";
    $("matchStamp").textContent=fixtures.length+" fixtures · synced "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-   $("backendStatus").className="ok";$("backendStatus").textContent="API-Football connected. V15 scout/deep/final analysis is active.";
-   renderAll();startQueue();startLiveRefresh();
+   $("backendStatus").className="ok";$("backendStatus").textContent="API-Football connected. V16 stored-first architecture is active.";
+   renderAll();
  }catch(e){
    $("feed").classList.remove("on");$("feed").querySelector("span").textContent="ERROR";$("backendStatus").className="error";$("backendStatus").textContent=e.message;$("queueState").textContent="Error: "+e.message;
    $("leagueLoadText").textContent=e.message;
@@ -1277,7 +1341,7 @@ async function loadFixtures(){
 }
 
 $("predictionList")?.addEventListener("click",handlePredictionClick);
-document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{pageShow(b.dataset.page);if(b.dataset.page==="leagueXI")renderLeagueXI()});
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{pageShow(b.dataset.page);if(b.dataset.page==="oxford")renderOxford();if(b.dataset.page==="leaguePredictor"){}if(b.dataset.page==="accuracy")renderAccuracy();if(b.dataset.page==="system")renderSystem();if(b.dataset.page==="leagueXI")renderLeagueXI()});
 $("moreNav")?.addEventListener("click",e=>{e.stopPropagation();const m=$("moreMenu");const open=m.classList.toggle("open");$("moreNav").classList.toggle("active",open);$("moreNav").setAttribute("aria-expanded",open?"true":"false")});
 document.addEventListener("click",e=>{if(!e.target.closest(".navShell")){$("moreMenu")?.classList.remove("open");$("moreNav")?.classList.remove("active")}});
 $("engineToggle")?.addEventListener("click",()=>{const d=$("engineDetails"),btn=$("engineToggle"),open=d.classList.toggle("open");btn.setAttribute("aria-expanded",open?"true":"false");btn.classList.toggle("open",open)});
@@ -1291,17 +1355,20 @@ document.querySelectorAll("[data-market]").forEach(b=>b.onclick=()=>{document.qu
 document.querySelectorAll("[data-scope]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-scope]").forEach(x=>x.classList.remove("active"));b.classList.add("active");accuracyScope=b.dataset.scope;renderAccuracy()});
 document.querySelectorAll("[data-window]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-window]").forEach(x=>x.classList.remove("active"));b.classList.add("active");accuracyWindow=b.dataset.window;renderAccuracy()});
 document.querySelectorAll("[data-feedview]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-feedview]").forEach(x=>x.classList.remove("active"));b.classList.add("active");feedView=b.dataset.feedview;renderPredictions()});
-$("saveLeagues").onclick=async()=>{save();predictionCache={};localStorage.setItem("fp-api-predictions","{}");await loadFixtures();document.querySelector('[data-page="predictions"]').click()};
+$("saveLeagues").onclick=async()=>{save();await loadFixtures();document.querySelector('[data-page="predictions"]').click()};
 $("restoreLeagues").onclick=()=>{selectedLeagueIds=[...DEFAULT_SELECTED];save();renderLeagueSelector()};
-$("teamSearch").oninput=e=>{teamQuery=e.target.value.trim();renderPredictions();startQueue()};$("clearSearch").onclick=()=>{$("teamSearch").value="";teamQuery="";renderPredictions()};
+$("teamSearch").oninput=e=>{teamQuery=e.target.value.trim();renderPredictions()};$("clearSearch").onclick=()=>{$("teamSearch").value="";teamQuery="";renderPredictions()};
 $("matchSearch").oninput=e=>{matchQuery=e.target.value.trim();renderMatches()};$("clearMatchSearch").onclick=()=>{$("matchSearch").value="";matchQuery="";renderMatches()};
-$("refresh").onclick=loadFixtures;$("exportAudit")?.addEventListener("click",async()=>{const payload=JSON.stringify({exportType:"match-index-v15",exportedAt:new Date().toISOString(),model:EXPECTED_MODEL_VERSION,audit:modelAudit,predictionCache},null,2);try{const file=new File([payload],`match-index-v15-${todayKey()}.json`,{type:"application/json"});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:"Match Index V15 data"});return}const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}catch(e){prompt("Copy model data",payload)}});$("openSlip").onclick=()=>$("drawer").classList.add("open");$("closeSlip").onclick=()=>$("drawer").classList.remove("open");$("drawer").onclick=e=>{if(e.target.id==="drawer")$("drawer").classList.remove("open")};$("lockSlip").onclick=lockCurrent;
+$("refresh").onclick=loadFixtures;$("exportAudit")?.addEventListener("click",async()=>{const payload=JSON.stringify({exportType:"match-index-v16",exportedAt:new Date().toISOString(),model:EXPECTED_MODEL_VERSION,audit:modelAudit,predictionCache},null,2);try{const file=new File([payload],`match-index-v16-${todayKey()}.json`,{type:"application/json"});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:"Match Index V16 data"});return}const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}catch(e){prompt("Copy model data",payload)}});$("openSlip").onclick=()=>$("drawer").classList.add("open");$("closeSlip").onclick=()=>$("drawer").classList.remove("open");$("drawer").onclick=e=>{if(e.target.id==="drawer")$("drawer").classList.remove("open")};$("lockSlip").onclick=lockCurrent;
 
 
 
 $("leagueXiLeague")?.addEventListener("change",()=>{leagueXiLoaded=false;renderLeagueXI(true)});
 document.querySelectorAll("[data-ximode]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-ximode]").forEach(x=>x.classList.remove("active"));b.classList.add("active");leagueXiMode=b.dataset.ximode;leagueXiLoaded=false;renderLeagueXI(true)}));
-$("freezeUpdates")?.addEventListener("click",()=>{manualFreeze=!manualFreeze;save();renderEngineStatus();startQueue()});
+$("freezeUpdates")?.addEventListener("click",()=>{});
+$("top25Xi")?.addEventListener("click",checkTop25XI);
+$("runLeaguePredictor")?.addEventListener("click",runLeaguePredictor);
+$("importLegacy")?.addEventListener("click",importLegacyFile);
 
 function startRollingWindowWatch(){
  if(dayWatchTimer)clearInterval(dayWatchTimer);
@@ -1331,7 +1398,7 @@ function startRollingWindowWatch(){
  });
 }
 
-(async()=>{await loadCatalogue();await loadFixtures();startRollingWindowWatch()})();
+(async()=>{await hydrateCloudState();await loadCatalogue();await loadFixtures();startRollingWindowWatch()})();
 </script>
 </body>
 </html>
@@ -1356,4 +1423,13 @@ function startRollingWindowWatch(){
   .hero{padding:18px 16px}
   .hero h1{font-size:21px}
 }
+</style>
+<style>
+/* V16 world-class foundation */
+.mainnav{grid-template-columns:repeat(5,1fr)!important}
+.mainnav button{font-size:8.2px!important}
+#system .panel,#oxford .panel,#leaguePredictor .panel{box-shadow:0 5px 18px rgba(7,31,79,.05)}
+#leaguePredictor .leaguerow strong{color:var(--navy);font-size:12px}
+#legacyImportFile{border:1px solid var(--line);background:#fafbfc;padding:10px;border-radius:10px}
+@media(max-width:420px){.mainnav button{font-size:7.5px!important;padding-left:1px!important;padding-right:1px!important}}
 </style>

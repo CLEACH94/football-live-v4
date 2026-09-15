@@ -1,0 +1,9 @@
+{
+  "name": "match-index-v16",
+  "version": "16.0.0",
+  "private": true,
+  "description": "Match Index persistent forecasting architecture",
+  "dependencies": {
+    "@libsql/client": "^0.15.15"
+  }
+}
