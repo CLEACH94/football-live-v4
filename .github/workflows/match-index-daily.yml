@@ -1,0 +1,27 @@
+name: Match Index Daily
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * *'
+
+concurrency:
+  group: match-index-daily
+  cancel-in-progress: false
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run persistent forecast worker
+        env:
+          MATCH_INDEX_BASE_URL: ${{ secrets.MATCH_INDEX_BASE_URL }}
+          MAX_FIXTURES_PER_RUN: '35'
+        run: node scripts/daily-worker.mjs
