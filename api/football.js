@@ -10,6 +10,7 @@ module.exports=async function handler(req,res){
     for(const [k,v] of Object.entries(rest)){ if(v!==undefined&&v!==null&&v!=='') qs.set(k,String(v)); }
     const r=await fetch(`${BASE}/${safe}${qs.size?'?'+qs.toString():''}`,{headers:{'x-apisports-key':key}});
     const text=await r.text();
+    for(const h of ['x-ratelimit-requests-remaining','x-ratelimit-remaining','x-ratelimit-requests-limit','x-ratelimit-limit']){const v=r.headers.get(h);if(v)res.setHeader('x-mi-'+h,v)}
     res.setHeader('Cache-Control','s-maxage=30, stale-while-revalidate=120');
     res.status(r.status).send(text);
   }catch(e){res.status(502).json({error:'Football data request failed',detail:e?.message||String(e)})}
