@@ -163,7 +163,7 @@ async function settleRecent(){
 }
 
 async function runWorker({maxTeams=25,maxPredictions=3,fullCycle=false,source='browser'}={}){
-  if(!db.configured())throw new Error('Supabase is not configured');
+  if(!db.configured())throw new Error('Turso is not configured');
   const key=process.env.API_FOOTBALL_KEY;if(!key)throw new Error('API_FOOTBALL_KEY is not configured');
   const locked=await db.rpc('mi_try_engine_lock',{p_seconds:285});const ok=Array.isArray(locked)?locked[0]:locked;
   if(!ok)return{ok:true,skipped:'engine already running'};
@@ -177,7 +177,7 @@ async function runWorker({maxTeams=25,maxPredictions=3,fullCycle=false,source='b
     const discovery=await discoverFixtures(key,teams,{maxTeams,fullCycle});
     const predictions=await predictionQueue(teams,maxPredictions),settled=await settleRecent();
     const budget=(await db.select('mi_api_usage',`usage_date=eq.${londonDate()}&select=calls,last_reason,updated_at&limit=1`).catch(()=>[]))?.[0]||{calls:0};
-    const out={ok:true,version:'v16.3-team-first',source,domesticTeams:domestic,international:intl,priorityTeams:teams.length,discovery,lineups,predictions,settled,budget,durationMs:Date.now()-started};
+    const out={ok:true,version:'v16.3.1-turso-team-first',source,domesticTeams:domestic,international:intl,priorityTeams:teams.length,discovery,lineups,predictions,settled,budget,durationMs:Date.now()-started};
     if(runId)await db.upsert('mi_engine_runs',{id:runId,finished_at:iso(),status:'ok',fixtures_seen:discovery.fixturesFound,lineups_checked:lineups.checked,live_checked:0,predictions_run:predictions.ran,note:JSON.stringify({source,teams:discovery.teamsProcessed,intl:intl.resolved,settled}).slice(0,500)},'id').catch(()=>{});
     return out;
   }catch(e){

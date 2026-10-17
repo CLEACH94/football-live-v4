@@ -5,7 +5,7 @@ function normalise(x){
   return {audit_key:key,payload:x,updated_at:new Date().toISOString()};
 }
 module.exports=async function handler(req,res){
-  if(!db.configured())return res.status(503).json({ok:false,error:'Supabase is not configured'});
+  if(!db.configured())return res.status(503).json({ok:false,error:'Turso is not configured'});
   try{
     if(req.method==='GET'){
       const rows=await db.select('mi_model_audit','select=audit_key,payload,updated_at&order=updated_at.asc&limit=20000');
