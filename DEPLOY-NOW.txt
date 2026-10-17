@@ -1,30 +1,20 @@
-MATCH INDEX V16.3 — FAST DEPLOY
+MATCH INDEX V16.3.1 — TURSO FIX
 
-1) SUPABASE
-   SQL Editor -> paste/run schema.sql
+This replaces the accidental Supabase regression in V16.3.
 
-2) VERCEL/GITHUB
-   Replace the existing project files with the contents of this folder.
-
-3) ENVIRONMENT VARIABLES (keep existing values)
+1. In Vercel -> Project -> Settings -> Environment Variables, keep/add:
    API_FOOTBALL_KEY
-   SUPABASE_URL
-   SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY)
-   CRON_SECRET
+   TURSO_DATABASE_URL
+   TURSO_AUTH_TOKEN
 
-4) DEPLOY PRODUCTION
+2. You do NOT need Supabase variables.
+3. You do NOT need to run schema.sql manually. The app creates its Turso tables on first backend use.
+4. Upload/replace the repo with this folder and redeploy.
+5. Open /api/health. You want:
+   version: v16.3.1-turso-team-first
+   apiFootball: true
+   turso: true
+   database: true
+6. Open Match Index -> System -> Sync now. Leave the page open 2-3 minutes on first build.
 
-5) CHECK
-   Open: https://YOUR-DOMAIN/api/health
-   Look for:
-   version = v16.3-team-first
-   apiFootball = true
-   supabase = true
-   database = true
-
-6) OPEN MATCH INDEX
-   Leave it open for 2-3 minutes on the first run.
-   Go to System -> Sync now once if you want to accelerate the next chunk.
-
-DO NOT UPGRADE VERCEL TO PRO FOR THIS BUILD.
-It is deliberately built around Hobby: one daily cron plus bounded in-app sync.
+The team-first discovery / prediction / Oxford UI remains unchanged from V16.3.
