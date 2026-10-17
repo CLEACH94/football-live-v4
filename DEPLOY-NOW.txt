@@ -1,0 +1,30 @@
+MATCH INDEX V16.3 — FAST DEPLOY
+
+1) SUPABASE
+   SQL Editor -> paste/run schema.sql
+
+2) VERCEL/GITHUB
+   Replace the existing project files with the contents of this folder.
+
+3) ENVIRONMENT VARIABLES (keep existing values)
+   API_FOOTBALL_KEY
+   SUPABASE_URL
+   SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY)
+   CRON_SECRET
+
+4) DEPLOY PRODUCTION
+
+5) CHECK
+   Open: https://YOUR-DOMAIN/api/health
+   Look for:
+   version = v16.3-team-first
+   apiFootball = true
+   supabase = true
+   database = true
+
+6) OPEN MATCH INDEX
+   Leave it open for 2-3 minutes on the first run.
+   Go to System -> Sync now once if you want to accelerate the next chunk.
+
+DO NOT UPGRADE VERCEL TO PRO FOR THIS BUILD.
+It is deliberately built around Hobby: one daily cron plus bounded in-app sync.
