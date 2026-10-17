@@ -1,0 +1,22 @@
+MATCH INDEX V16.3.2 HOTFIX
+
+WHY V16.3.1 STALLED
+The browser worker resolved international teams before fixture discovery. On Vercel Hobby the function could end before any fixtures were saved. Health showed API calls and 116 priority teams, but worker state stayed null.
+
+WHAT THIS FIX DOES
+- Oxford fixture discovery is the first browser job when the database is empty.
+- Reuses the already-seeded 116 English clubs instead of rebuilding the pool every run.
+- Discovers fixtures BEFORE resolving international teams.
+- Browser batches are deliberately smaller so they finish reliably on Hobby.
+- International team resolution is deferred until the English discovery cycle completes.
+- Shorter browser lock prevents a failed/timed-out request from freezing sync for ~5 minutes.
+- Frontend no longer swallows worker errors; System shows the actual worker error.
+- State reload happens even after a worker request fails, so fixtures already saved still appear.
+
+REPLACE ONLY
+/index.html
+/api/_engine.js
+/api/worker.js
+/api/health.js
+
+Do not delete your other API files.
