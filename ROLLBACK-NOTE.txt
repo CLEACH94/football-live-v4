@@ -1,3 +1,0 @@
-Rollback source: the user's uploaded MI153-EMERGENCY-PREDICTIONS(1).zip.
-V16 retains the V15 prediction engine and adds persistence/product architecture around it.
-If deployment fails before Turso is configured, restore the original uploaded V15.3 files.
