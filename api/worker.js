@@ -6,9 +6,10 @@ module.exports=async function handler(req,res){
     // Browser worker is deliberately bounded. The full pool sweep is reserved for the
     // authenticated daily cron so a public URL cannot burn the entire API allowance.
     const out=await runWorker({
-      maxTeams:Math.min(40,Math.max(5,Number(body.maxTeams||req.query?.maxTeams||25))),
-      maxPredictions:Math.min(6,Math.max(0,Number(body.maxPredictions||req.query?.maxPredictions||3))),
+      maxTeams:Math.min(12,Math.max(1,Number(body.maxTeams||req.query?.maxTeams||8))),
+      maxPredictions:Math.min(4,Math.max(0,Number(body.maxPredictions??req.query?.maxPredictions??2))),
       fullCycle:false,
+      focusOxford:body.focusOxford===true||String(req.query?.focusOxford||'')==='1',
       source:'browser'
     });
     return res.status(200).json(out);

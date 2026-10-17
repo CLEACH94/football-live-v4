@@ -71,18 +71,19 @@ async function getWorkerState(){const r=await db.select('mi_worker_state','state
 async function putWorkerState(payload){await db.upsert('mi_worker_state',{state_key:'main',payload,updated_at:iso()},'state_key')}
 async function releaseEngineLock(){await db.upsert('mi_engine_lock',{lock_name:'main',locked_until:'1970-01-01T00:00:00.000Z',updated_at:iso()},'lock_name').catch(()=>{})}
 async function priorityTeams(){return await db.select('mi_priority_teams','active=eq.true&select=*&order=priority.asc')}
-async function discoverFixtures(key,teams,{maxTeams=25,fullCycle=false}={}){
+async function discoverFixtures(key,teams,{maxTeams=25,fullCycle=false,focusOxford=false}={}){
   if(!teams.length)return{teamsProcessed:0,fixturesFound:0,cursor:0,cycleComplete:false};
   const state=await getWorkerState();let cursor=fullCycle?0:Number(state.discoveryCursor||0);if(cursor>=teams.length)cursor=0;
-  const n=fullCycle?teams.length:Math.min(maxTeams,teams.length),batch=[];for(let j=0;j<n;j++)batch.push(teams[(cursor+j)%teams.length]);
+  let batch=[],n=0;
+  if(focusOxford){const ox=teams.find(t=>teamNameMatch(t.name,'Oxford United'));if(ox)batch=[ox];n=batch.length}else{n=fullCycle?teams.length:Math.min(maxTeams,teams.length);for(let j=0;j<n;j++)batch.push(teams[(cursor+j)%teams.length])}
   const from=londonDate(-30),to=londonDate(7),result=await mapLimit(batch,4,async t=>{
     const d=await cachedApiFootball(`/fixtures?team=${t.team_id}&from=${from}&to=${to}&timezone=Europe%2FLondon`,key,{ttlMs:7200000,reason:`discover:team-${t.team_id}`,critical:false});
     return rows(d);
   });
   const map=new Map();for(const r of result){if(!Array.isArray(r))continue;for(const f of r){if(f?.fixture?.id)map.set(Number(f.fixture.id),f)}}
   const fixtures=[...map.values()];if(fixtures.length)await db.upsert('mi_fixtures',fixtures.map(fixtureRow),'fixture_id');
-  const next=(cursor+n)%teams.length,cycleComplete=next===0||n>=teams.length;await putWorkerState({...state,discoveryCursor:next,cycle:Number(state.cycle||0)+(cycleComplete?1:0),lastDiscoveryAt:iso(),lastDiscoveryCount:fixtures.length,lastTeam:batch.at(-1)?.name||null});
-  return{teamsProcessed:batch.length,fixturesFound:fixtures.length,cursor:next,cycleComplete};
+  const next=focusOxford?cursor:(cursor+n)%teams.length,cycleComplete=!focusOxford&&(next===0||n>=teams.length);await putWorkerState({...state,discoveryCursor:next,cycle:Number(state.cycle||0)+(cycleComplete?1:0),lastDiscoveryAt:iso(),lastDiscoveryCount:fixtures.length,lastTeam:batch.at(-1)?.name||null});
+  return{teamsProcessed:batch.length,fixturesFound:fixtures.length,cursor:next,cycleComplete,focusOxford:!!focusOxford};
 }
 
 async function refreshNearKickoff(key){
@@ -162,22 +163,37 @@ async function settleRecent(){
   return settled;
 }
 
-async function runWorker({maxTeams=25,maxPredictions=3,fullCycle=false,source='browser'}={}){
+async function runWorker({maxTeams=8,maxPredictions=2,fullCycle=false,source='browser',focusOxford=false}={}){
   if(!db.configured())throw new Error('Turso is not configured');
   const key=process.env.API_FOOTBALL_KEY;if(!key)throw new Error('API_FOOTBALL_KEY is not configured');
-  const locked=await db.rpc('mi_try_engine_lock',{p_seconds:285});const ok=Array.isArray(locked)?locked[0]:locked;
+  // Browser jobs must finish quickly on Hobby. A short lock also means a timed-out
+  // request cannot freeze the app for nearly five minutes.
+  const lockSeconds=source==='browser'?70:285;
+  const locked=await db.rpc('mi_try_engine_lock',{p_seconds:lockSeconds});const ok=Array.isArray(locked)?locked[0]:locked;
   if(!ok)return{ok:true,skipped:'engine already running'};
   const started=Date.now();let runId=null;
-  try{const rr=await db.insert('mi_engine_runs',{started_at:iso(),status:'running',note:`v16.3 ${source}`});runId=rr?.[0]?.id||null}catch{}
+  try{const rr=await db.insert('mi_engine_runs',{started_at:iso(),status:'running',note:`v16.3.2 ${source}`});runId=rr?.[0]?.id||null}catch{}
   try{
-    // Protect the most time-sensitive job first. Normal discovery/prediction work may
-    // stop at the soft cap, but confirmed-XI checks can still use the reserved calls.
     const lineups=await refreshNearKickoff(key);
-    const domestic=await ensureDomesticPool(key),intl=await resolveInternationalPool(key,fullCycle?60:8),teams=await priorityTeams();
-    const discovery=await discoverFixtures(key,teams,{maxTeams,fullCycle});
-    const predictions=await predictionQueue(teams,maxPredictions),settled=await settleRecent();
+
+    // IMPORTANT: discovery comes before international-pool enrichment. The previous
+    // build could spend its whole function lifetime resolving national teams and die
+    // before saving a single fixture. Reuse the already-seeded domestic pool whenever
+    // possible, discover Oxford/English fixtures immediately, then do optional pool work.
+    let teams=await priorityTeams();
+    let domestic=teams.filter(t=>t.kind==='club').length;
+    if(domestic<100){domestic=await ensureDomesticPool(key);teams=await priorityTeams()}
+
+    const discovery=await discoverFixtures(key,teams,{maxTeams,fullCycle,focusOxford});
+    const predictions=await predictionQueue(teams,maxPredictions);
+
+    // Browser runs keep expensive housekeeping out of the critical path. International
+    // teams are only resolved after a domestic discovery cycle completes.
+    let intl={resolved:0,remaining:Math.max(0,FIFA_TOP_50.length+HOME_NATIONS.filter(x=>!FIFA_TOP_50.includes(x)).length-teams.filter(t=>t.kind==='international').length),deferred:true};
+    if(source!=='browser'||discovery.cycleComplete){intl=await resolveInternationalPool(key,source==='browser'?2:60);teams=await priorityTeams()}
+    const settled=source==='browser'?0:await settleRecent();
     const budget=(await db.select('mi_api_usage',`usage_date=eq.${londonDate()}&select=calls,last_reason,updated_at&limit=1`).catch(()=>[]))?.[0]||{calls:0};
-    const out={ok:true,version:'v16.3.1-turso-team-first',source,domesticTeams:domestic,international:intl,priorityTeams:teams.length,discovery,lineups,predictions,settled,budget,durationMs:Date.now()-started};
+    const out={ok:true,version:'v16.3.2-turso-hotfix',source,domesticTeams:domestic,international:intl,priorityTeams:teams.length,discovery,lineups,predictions,settled,budget,durationMs:Date.now()-started};
     if(runId)await db.upsert('mi_engine_runs',{id:runId,finished_at:iso(),status:'ok',fixtures_seen:discovery.fixturesFound,lineups_checked:lineups.checked,live_checked:0,predictions_run:predictions.ran,note:JSON.stringify({source,teams:discovery.teamsProcessed,intl:intl.resolved,settled}).slice(0,500)},'id').catch(()=>{});
     return out;
   }catch(e){
