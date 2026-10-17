@@ -6,7 +6,7 @@ module.exports=async function handler(req,res){
     const allowed=new Set(['discover','scout','deep','auto']);
     const out=await runWorker({
       maxTeams:Math.min(16,Math.max(0,Number(body.maxTeams??req.query?.maxTeams??8))),
-      maxPredictions:Math.min(8,Math.max(0,Number(body.maxPredictions??req.query?.maxPredictions??4))),
+      maxPredictions:Math.min(8,Math.max(0,Number(body.maxPredictions??req.query?.maxPredictions??6))),
       fullCycle:false,
       focusOxford:body.focusOxford===true||String(req.query?.focusOxford||'')==='1',
       phase:allowed.has(phase)?phase:'auto',

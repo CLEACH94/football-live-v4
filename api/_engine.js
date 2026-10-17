@@ -149,20 +149,100 @@ async function runPrediction(f,mode){
   await db.upsert('mi_predictions',row,'fixture_id');await db.upsert('mi_prediction_stages',{fixture_id:f.fixture_id,stage,model_version:d.model||'',lineup_confirmed:!!d.lineupConfirmed,payload:d,generated_at:iso(),updated_at:iso()},'fixture_id,stage');return d;
 }
 function teamPriorityMap(teams){return new Map(teams.map(x=>[Number(x.team_id),Number(x.priority)]))}
-async function predictionQueue(teams,maxJobs=3,stage='auto'){
-  const today=londonDate(),to=londonDate(7),fx=await db.select('mi_fixtures',`kickoff=gte.${encodeURIComponent(today+'T00:00:00Z')}&kickoff=lt.${encodeURIComponent(to+'T23:59:59Z')}&select=*&order=kickoff.asc`).catch(()=>[]),pm=teamPriorityMap(teams),jobs=[];
+
+function localDayKey(v){
+  const d=new Date(v);if(!Number.isFinite(d.getTime()))return '';
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d).map(x=>[x.type,x.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+function meanWeighted(list,teamId,forGoals=true){
+  let n=0,d=0;
+  for(let i=0;i<Math.min(12,list.length);i++){
+    const f=list[i],home=Number(f?.teams?.home?.id)===Number(teamId),away=Number(f?.teams?.away?.id)===Number(teamId);
+    if(!home&&!away)continue;
+    const gf=home?Number(f?.goals?.home):Number(f?.goals?.away),ga=home?Number(f?.goals?.away):Number(f?.goals?.home);
+    const v=forGoals?gf:ga;if(!Number.isFinite(v))continue;
+    const w=Math.pow(.90,i);n+=v*w;d+=w;
+  }
+  return d?n/d:null;
+}
+function fastProbabilitySet(lh,la){
+  function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r}
+  function pois(k,l){return Math.exp(-l)*Math.pow(l,k)/fact(k)}
+  let h=0,d=0,a=0,total=0;
+  for(let x=0;x<=8;x++)for(let y=0;y<=8;y++){const p=pois(x,lh)*pois(y,la);total+=p;if(x>y)h+=p;else if(x===y)d+=p;else a+=p}
+  h/=total;d/=total;a/=total;
+  const t=lh+la,e=Math.exp(-t),h05=1-Math.exp(-lh),a05=1-Math.exp(-la);
+  return {homeWin:h,draw:d,awayWin:a,btts:h05*a05,over15:1-e*(1+t),over25:1-e*(1+t+t*t/2),under35:e*(1+t+t*t/2+t*t*t/6),homeOrDraw:h+d,awayOrDraw:a+d};
+}
+async function fastScoutPrediction(f,key){
+  const homeId=Number(f.home_team_id),awayId=Number(f.away_team_id);
+  const [hd,ad]=await Promise.all([
+    cachedApiFootball(`/fixtures?team=${homeId}&last=12&timezone=Europe%2FLondon`,key,{ttlMs:21600000,reason:`scout:recent-${homeId}`,critical:false}),
+    cachedApiFootball(`/fixtures?team=${awayId}&last=12&timezone=Europe%2FLondon`,key,{ttlMs:21600000,reason:`scout:recent-${awayId}`,critical:false})
+  ]);
+  const hr=rows(hd).filter(x=>DONE.has(x?.fixture?.status?.short||'')),ar=rows(ad).filter(x=>DONE.has(x?.fixture?.status?.short||''));
+  const base=1.35;
+  const hgf=meanWeighted(hr,homeId,true)??base,hga=meanWeighted(hr,homeId,false)??base;
+  const agf=meanWeighted(ar,awayId,true)??base,aga=meanWeighted(ar,awayId,false)??base;
+  let lh=.56*hgf+.44*aga,la=.56*agf+.44*hga;
+  lh=Math.max(.25,Math.min(3.4,lh*1.08));la=Math.max(.22,Math.min(3.2,la*.96));
+  const q=Math.max(48,Math.min(82,Math.round(50+Math.min(hr.length,12)*1.25+Math.min(ar.length,12)*1.25)));
+  const ps=fastProbabilitySet(lh,la);
+  const result=[['homeWin',`${f.home_team} win`,ps.homeWin,'result'],['draw','Draw',ps.draw,'result'],['awayWin',`${f.away_team} win`,ps.awayWin,'result']];
+  let predictions=result.map(([rule,title,v,type])=>({id:`${f.fixture_id}|${rule}`,rule,title,type,p:Math.round(v*100),rawP:Math.round(v*100),reasons:['Fast Initial pass from recent scoring and conceding form.'],watch:['Deep Dive adds opponent strength, table context, chance creation and availability.'],stats:{expectedHome:+lh.toFixed(2),expectedAway:+la.toFixed(2),dataConfidence:q,analysisStage:'scout',lineupConfirmed:false,homeSample:hr.length,awaySample:ar.length}}));
+  const extras=[['btts','Both teams to score',ps.btts,'btts'],['over1.5','Over 1.5 match goals',ps.over15,'goals'],['over2.5','Over 2.5 match goals',ps.over25,'goals'],['under3.5','Under 3.5 match goals',ps.under35,'goals'],['homeOrDraw',`${f.home_team} or draw`,ps.homeOrDraw,'double'],['awayOrDraw',`${f.away_team} or draw`,ps.awayOrDraw,'double']];
+  predictions.push(...extras.map(([rule,title,v,type])=>({id:`${f.fixture_id}|${rule}`,rule,title,type,p:Math.round(v*100),rawP:Math.round(v*100),reasons:['Fast Initial pass from recent form.'],watch:['Deep Dive pending.'],stats:{expectedHome:+lh.toFixed(2),expectedAway:+la.toFixed(2),dataConfidence:q,analysisStage:'scout',lineupConfirmed:false,homeSample:hr.length,awaySample:ar.length}})));
+  const x1=predictions.filter(x=>['homeWin','draw','awayWin'].includes(x.rule));const sum=x1.reduce((n,x)=>n+x.p,0)||100;for(const x of x1)x.p=Math.round(x.p/sum*100);const drift=100-x1.reduce((n,x)=>n+x.p,0);x1[0].p+=drift;
+  predictions.sort((a,b)=>b.p-a.p);
+  const payload={model:'v16-fast-scout-1',source:'Match Index fast pass',fixtureId:String(f.fixture_id),analysisStage:'scout',lineupConfirmed:false,lineupChecked:false,dataLayers:{teamData:q,squadData:0,contextData:35,overall:q},predictions};
+  const row={fixture_id:f.fixture_id,model_version:payload.model,stage:'scout',lineup_confirmed:false,payload,generated_at:iso(),updated_at:iso()};
+  await db.upsert('mi_predictions',row,'fixture_id');
+  await db.upsert('mi_prediction_stages',{...row},'fixture_id,stage');
+  return payload;
+}
+async function discoverPriorityDates(key,teams,{days=2}={}){
+  const ids=new Set(teams.map(t=>Number(t.team_id)));const found=new Map(),errors=[];
+  for(let i=0;i<days;i++){
+    const day=londonDate(i);
+    try{
+      const d=await cachedApiFootball(`/fixtures?date=${day}&timezone=Europe%2FLondon`,key,{ttlMs:300000,reason:`discover:date-${day}`,critical:false});
+      for(const f of rows(d)){const h=Number(f?.teams?.home?.id),a=Number(f?.teams?.away?.id);if(ids.has(h)||ids.has(a))found.set(Number(f.fixture.id),f)}
+    }catch(e){errors.push(`${day}: ${e?.message||e}`)}
+  }
+  if(found.size)await db.upsert('mi_fixtures',[...found.values()].map(fixtureRow),'fixture_id');
+  return {fixturesFound:found.size,errors:errors.slice(0,3)};
+}
+async function predictionQueue(teams,maxJobs=4,stage='auto'){
+  const today=londonDate(),to=londonDate(7);
+  const fx=await db.select('mi_fixtures',`kickoff=gte.${encodeURIComponent(today+'T00:00:00Z')}&kickoff=lt.${encodeURIComponent(to+'T23:59:59Z')}&select=*&order=kickoff.asc`).catch(()=>[]);
+  const pm=teamPriorityMap(teams),jobs=[];
   for(const f of fx||[]){
     if(DONE.has(f.status)||LIVE.has(f.status))continue;
-    const cur=await one('mi_predictions',f.fixture_id,'stage,lineup_confirmed,updated_at'),lin=await one('mi_lineups',f.fixture_id,'confirmed');
-    let mode=null;if(stage==='scout'){if(!cur)mode='scout'}else if(stage==='deep'){if(cur?.stage==='scout'&&!lin?.confirmed)mode='deep'}else if(stage==='final'){if(lin?.confirmed&&(!cur?.lineup_confirmed||cur.stage!=='final'))mode='deep'}else{if(lin?.confirmed&&(!cur?.lineup_confirmed||cur.stage!=='final'))mode='deep';else if(!cur)mode='scout';else if(cur.stage==='scout')mode='deep'}if(!mode)continue;
-    const ox=/^Oxford United$/i.test(f.home_team)||/^Oxford United$/i.test(f.away_team),pri=Math.min(pm.get(Number(f.home_team_id))??9999,pm.get(Number(f.away_team_id))??9999),isIntl=pri>=1000,finalXi=!!lin?.confirmed;
-    // Queue order: confirmed XI first; Oxford first; then all domestic Initial forecasts
-    // before domestic Deep Dive; internationals follow. This keeps broad coverage visible
-    // before spending the expensive layer on matches lower in the user's priority order.
-    let group=finalXi?-300000:ox?(mode==='scout'?-200000:-150000):!isIntl?(mode==='scout'?0:100000):(mode==='scout'?200000:300000);
-    jobs.push({f,mode,score:group+pri*10+Math.max(0,(new Date(f.kickoff)-Date.now())/3600000)});
+    const cur=await one('mi_predictions',f.fixture_id,'stage,lineup_confirmed,updated_at');
+    const lin=await one('mi_lineups',f.fixture_id,'confirmed');
+    let mode=null;
+    if(stage==='scout'){if(!cur)mode='scout'}
+    else if(stage==='deep'){if(cur?.stage==='scout'&&!lin?.confirmed)mode='deep'}
+    else if(stage==='final'){if(lin?.confirmed&&(!cur?.lineup_confirmed||cur.stage!=='final'))mode='deep'}
+    else{if(lin?.confirmed&&(!cur?.lineup_confirmed||cur.stage!=='final'))mode='deep';else if(!cur)mode='scout';else if(cur.stage==='scout')mode='deep'}
+    if(!mode)continue;
+    const ox=/^Oxford United$/i.test(f.home_team)||/^Oxford United$/i.test(f.away_team);
+    const pri=Math.min(pm.get(Number(f.home_team_id))??9999,pm.get(Number(f.away_team_id))??9999);
+    const isIntl=pri>=1000,finalXi=!!lin?.confirmed,day=localDayKey(f.kickoff);
+    const dayGroup=day===today?0:day===londonDate(1)?20000:40000;
+    let group=finalXi?-300000:mode==='scout'?(isIntl?120000:0):(isIntl?320000:220000);
+    if(ox)group-=100000;
+    jobs.push({f,mode,score:group+dayGroup+pri*5+Math.max(0,(new Date(f.kickoff)-Date.now())/3600000)});
   }
-  jobs.sort((a,b)=>a.score-b.score);let ran=0,errors=[];for(const j of jobs.slice(0,maxJobs)){try{await runPrediction(j.f,j.mode);ran++}catch(e){errors.push(`${j.f.home_team} v ${j.f.away_team}: ${e.message}`)}}return{ran,queued:jobs.length,errors:errors.slice(0,5)};
+  jobs.sort((a,b)=>a.score-b.score);
+  const chosen=jobs.slice(0,maxJobs),errors=[];let ran=0;
+  for(const j of chosen){
+    try{if(j.mode==='scout')await fastScoutPrediction(j.f,process.env.API_FOOTBALL_KEY);else await runPrediction(j.f,j.mode);ran++}
+    catch(e){errors.push(`${j.f.home_team} v ${j.f.away_team}: ${e.message}`)}
+  }
+  const todayQueued=jobs.filter(j=>localDayKey(j.f.kickoff)===today&&j.mode==='scout').length;
+  return{ran,queued:jobs.length,todayQueued,errors:errors.slice(0,5)};
 }
 function correct(rule,h,a){const t=h+a;if(rule==='home0.5')return h>=1;if(rule==='away0.5')return a>=1;if(rule==='home1.5')return h>=2;if(rule==='away1.5')return a>=2;if(rule==='over1.5')return t>=2;if(rule==='over2.5')return t>=3;if(rule==='under3.5')return t<=3;if(rule==='under4.5')return t<=4;if(rule==='btts')return h>0&&a>0;if(rule==='homeCleanSheet')return a===0;if(rule==='awayCleanSheet')return h===0;if(rule==='homeOrDraw')return h>=a;if(rule==='awayOrDraw')return a>=h;if(rule==='homeWin')return h>a;if(rule==='draw')return h===a;if(rule==='awayWin')return a>h;if(String(rule).startsWith('exact:'))return String(rule).slice(6)===`${h}-${a}`;return null}
 async function settleRecent(){
@@ -207,21 +287,25 @@ async function runWorker({maxTeams=8,maxPredictions=2,fullCycle=false,source='br
   const locked=await db.rpc('mi_try_engine_lock',{p_seconds:lockSeconds});const ok=Array.isArray(locked)?locked[0]:locked;
   if(!ok)return{ok:true,skipped:'engine already running'};
   const started=Date.now();let runId=null;
-  try{const rr=await db.insert('mi_engine_runs',{started_at:iso(),status:'running',note:`v16.4 ${source} ${phase}`});runId=rr?.[0]?.id||null}catch{}
+  try{const rr=await db.insert('mi_engine_runs',{started_at:iso(),status:'running',note:`v16.5 ${source} ${phase}`});runId=rr?.[0]?.id||null}catch{}
   try{
     let teams=await priorityTeams();let domestic=teams.filter(t=>t.kind==='club').length;
     if(domestic<100){domestic=await ensureDomesticPool(key);teams=await priorityTeams()}
     let discovery={teamsProcessed:0,fixturesFound:0,cursor:(await getWorkerState()).discoveryCursor||0,cycleComplete:false,errors:[]};
     let predictions={ran:0,queued:0,errors:[]};
     let lineups={checked:0,confirmed:0,pending:0,deferred:true};
-    if(phase==='discover'||phase==='auto')discovery=await discoverFixtures(key,teams,{maxTeams,fullCycle,focusOxford,includeRecent:source!=='browser'});
+    if(phase==='discover'||phase==='auto'){
+      const dates=await discoverPriorityDates(key,teams,{days:2});
+      discovery=await discoverFixtures(key,teams,{maxTeams,fullCycle,focusOxford,includeRecent:source!=='browser'});
+      discovery.fixturesFound+=dates.fixturesFound;discovery.dateErrors=dates.errors;
+    }
     if(phase==='scout'||phase==='auto')predictions=await predictionQueue(teams,maxPredictions,'scout');
     if(phase==='deep')predictions=await predictionQueue(teams,maxPredictions,'deep');
     let intl={resolved:0,remaining:Math.max(0,FIFA_TOP_50.length+HOME_NATIONS.filter(x=>!FIFA_TOP_50.includes(x)).length-teams.filter(t=>t.kind==='international').length),deferred:true};
     if(source!=='browser'&&discovery.cycleComplete){intl=await resolveInternationalPool(key,60);teams=await priorityTeams()}
     const settled=source==='browser'?0:await settleRecent();
     const budget=(await db.select('mi_api_usage',`usage_date=eq.${londonDate()}&select=calls,last_reason,updated_at&limit=1`).catch(()=>[]))?.[0]||{calls:0};
-    const out={ok:true,version:'v16.4-fast-pass',source,phase,domesticTeams:domestic,international:intl,priorityTeams:teams.length,discovery,lineups,predictions,settled,budget,durationMs:Date.now()-started};
+    const out={ok:true,version:'v16.5-usable-today',source,phase,domesticTeams:domestic,international:intl,priorityTeams:teams.length,discovery,lineups,predictions,settled,budget,durationMs:Date.now()-started};
     if(runId)await db.upsert('mi_engine_runs',{id:runId,finished_at:iso(),status:'ok',fixtures_seen:discovery.fixturesFound,lineups_checked:0,live_checked:0,predictions_run:predictions.ran,note:JSON.stringify({source,phase,teams:discovery.teamsProcessed}).slice(0,500)},'id').catch(()=>{});
     return out;
   }catch(e){if(runId)await db.upsert('mi_engine_runs',{id:runId,finished_at:iso(),status:'error',note:String(e.message||e).slice(0,500)},'id').catch(()=>{});throw e}
