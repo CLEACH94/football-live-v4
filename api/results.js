@@ -1,0 +1,6 @@
+const db=require('./_db');
+const {londonDate}=require('./_v17');
+module.exports=async function handler(req,res){
+ res.setHeader('Cache-Control','no-store, max-age=0');
+ try{const days=Math.max(1,Math.min(90,Number(req.query?.days||30))),from=londonDate(-days),rows=await db.select('mi_fixtures',`kickoff=gte.${encodeURIComponent(from+'T00:00:00Z')}&status=in.(FT,AET,PEN)&select=*&order=kickoff.desc&limit=500`).catch(()=>[]),ids=rows.map(x=>Number(x.fixture_id)).filter(Boolean),inq=ids.length?`(${ids.join(',')})`:null,stages=inq?await db.select('mi_prediction_stages',`fixture_id=in.${inq}&select=fixture_id,stage,lineup_confirmed,payload,generated_at&limit=2000`).catch(()=>[]):[];return res.status(200).json({ok:true,version:'v17-results',fixtures:rows.map(f=>({fixture_id:f.fixture_id,league_id:f.league_id,competition:f.competition,kickoff:f.kickoff,home_team:f.home_team,away_team:f.away_team,home_score:f.home_score,away_score:f.away_score,home_logo:f.payload?.teams?.home?.logo||null,away_logo:f.payload?.teams?.away?.logo||null})),stages:stages.map(s=>({fixture_id:s.fixture_id,stage:s.stage,lineup_confirmed:!!s.lineup_confirmed,payload:s.payload}))})}catch(e){return res.status(502).json({ok:false,error:'Results unavailable',detail:e.message||String(e)})}
+}

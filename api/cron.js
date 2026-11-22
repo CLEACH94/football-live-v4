@@ -1,6 +1,4 @@
-const {runWorker}=require('./_engine');
+const {refreshFixtures,settleRecent}=require('./_v17');
 module.exports=async function handler(req,res){
- const auth=req.headers?.authorization||req.headers?.Authorization;
- if(!process.env.CRON_SECRET||auth!==`Bearer ${process.env.CRON_SECRET}`)return res.status(401).json({ok:false,error:'Unauthorized'});
- try{return res.status(200).json(await runWorker({maxTeams:220,maxPredictions:6,fullCycle:true,source:'daily-cron'}))}catch(e){const code=e.code==='API_BUDGET'?429:500;return res.status(code).json({ok:false,error:e.message||String(e),budget:e.budget||null})}
+ try{const secret=process.env.CRON_SECRET;if(secret&&req.headers.authorization!==`Bearer ${secret}`)return res.status(401).json({ok:false,error:'Unauthorized'});const refresh=await refreshFixtures({days:8}),settled=await settleRecent();return res.status(200).json({ok:true,version:'v17',refresh,settled})}catch(e){return res.status(502).json({ok:false,error:'Cron maintenance failed',detail:e.message||String(e)})}
 }

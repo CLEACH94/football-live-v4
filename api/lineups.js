@@ -1,13 +1,9 @@
-const {manualLineupSearch}=require('./_engine');
+const db=require('./_db');
+const {cachedApiFootball}=require('./_cache');
+const {ENGLISH_LEAGUES,mapLimit,deepPredict}=require('./_v17');
+function rows(d){return Array.isArray(d?.response)?d.response:[]}
 module.exports=async function handler(req,res){
-  if(req.method!=='POST')return res.status(405).json({ok:false,error:'Method not allowed'});
-  try{
-    const tier=Number(req.body?.tier||0);
-    if(![1,2,3,4,5].includes(tier))return res.status(400).json({ok:false,error:'Choose a valid English division'});
-    const out=await manualLineupSearch({tier,maxFixtures:24});
-    return res.status(200).json(out);
-  }catch(e){
-    const code=e.code==='API_BUDGET'?429:502;
-    return res.status(code).json({ok:false,error:e.code==='API_BUDGET'?'Daily API reserve protected':'Line-up search failed',detail:e.message||String(e)});
-  }
+ if(req.method!=='POST')return res.status(405).json({ok:false,error:'Method not allowed'});
+ try{const tier=Number(req.body?.tier||0),def=ENGLISH_LEAGUES.find(x=>x.tier===tier);if(!def)return res.status(400).json({ok:false,error:'Choose a valid English division'});const key=process.env.API_FOOTBALL_KEY;if(!key)return res.status(500).json({ok:false,error:'API_FOOTBALL_KEY missing'});const teams=await db.select('mi_priority_teams',`kind=eq.club&tier=eq.${tier}&active=eq.true&select=team_id`).catch(()=>[]),ids=new Set((teams||[]).map(x=>Number(x.team_id)));const now=Date.now(),from=new Date(now-90*60000).toISOString(),to=new Date(now+110*60000).toISOString(),all=await db.select('mi_fixtures',`kickoff=gte.${encodeURIComponent(from)}&kickoff=lte.${encodeURIComponent(to)}&select=*&order=kickoff.asc&limit=100`).catch(()=>[]),fx=(all||[]).filter(f=>ids.has(Number(f.home_team_id))||ids.has(Number(f.away_team_id))).slice(0,40);const scans=await mapLimit(fx,5,async f=>{try{const d=await cachedApiFootball(`/fixtures/lineups?fixture=${f.fixture_id}`,key,{ttlMs:0,reason:`v17:lineups:${f.fixture_id}`,critical:true,force:true}),r=rows(d),sides=r.filter(x=>Array.isArray(x?.startXI)&&x.startXI.length>=11).length,confirmed=sides>=2;await db.upsert('mi_lineups',{fixture_id:f.fixture_id,confirmed,payload:d,checked_at:new Date().toISOString()},'fixture_id');return{f,confirmed,partial:sides===1}}catch(e){return{f,error:e.message||String(e)}}});const confirmedRows=scans.filter(x=>x.confirmed);const updates=await mapLimit(confirmedRows.slice(0,12),2,async x=>{try{const p=await deepPredict(x.f);return{fixtureId:x.f.fixture_id,stage:p.lineupConfirmed?'final':'deep'}}catch(e){return{fixtureId:x.f.fixture_id,error:e.message||String(e)}}});return res.status(200).json({ok:true,league:def.name,fixtures:fx.length,checked:scans.filter(x=>!x.error).length,confirmed:confirmedRows.length,partial:scans.filter(x=>x.partial).length,pending:scans.filter(x=>!x.confirmed&&!x.error).length,finalUpdates:updates.filter(x=>!x.error).length,errors:scans.filter(x=>x.error).map(x=>`${x.f.home_team} v ${x.f.away_team}: ${x.error}`).slice(0,8),note:'All near-kickoff fixtures are checked before any Final XI recalculations begin.'})
+ }catch(e){const code=e.code==='API_BUDGET'?429:502;return res.status(code).json({ok:false,error:e.code==='API_BUDGET'?'Daily API reserve protected':'Lineup search failed',detail:e.message||String(e)})}
 }

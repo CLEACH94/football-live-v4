@@ -1,16 +1,6 @@
 const db=require('./_db');
+const {londonDate}=require('./_v17');
 module.exports=async function handler(req,res){
- res.setHeader('Cache-Control','no-store, max-age=0');
- const out={ok:true,version:'v16.5-usable-today',apiFootball:!!process.env.API_FOOTBALL_KEY,turso:db.configured(),cronSecret:!!process.env.CRON_SECRET,softCap:Number(process.env.API_DAILY_SOFT_CAP||5500),hardCap:Number(process.env.API_DAILY_HARD_CAP||7400),protectedReserve:2000,vercelPlan:'Hobby-compatible: daily cron + in-app worker'};
- if(db.configured())try{
-  const [b,t,w,f,p]=await Promise.all([
-   db.select('mi_api_usage','select=usage_date,calls,updated_at,last_reason&order=usage_date.desc&limit=1'),
-   db.select('mi_priority_teams','select=team_id'),
-   db.select('mi_worker_state','state_key=eq.main&select=payload,updated_at&limit=1').catch(()=>[]),
-   db.select('mi_fixtures','select=fixture_id&limit=2000').catch(()=>[]),
-   db.select('mi_predictions','select=fixture_id,stage,lineup_confirmed&limit=2000').catch(()=>[])
-  ]);
-  out.database=true;out.budget=b?.[0]||null;out.priorityTeams=t?.length||0;out.worker=w?.[0]||null;out.counts={fixtures:f?.length||0,predictions:p?.length||0,initial:(p||[]).filter(x=>x.stage==='scout').length,deep:(p||[]).filter(x=>x.stage==='deep').length,final:(p||[]).filter(x=>x.stage==='final'||x.lineup_confirmed).length};
- }catch(e){out.database=false;out.ok=false;out.databaseError=e.message}
- return res.status(out.ok?200:503).json(out)
+  res.setHeader('Cache-Control','no-store, max-age=0');
+  try{const turso=db.configured();let counts={fixtures:0,predictions:0},budget={calls:0};if(turso){const day=londonDate();const [fx,pr,b]=await Promise.all([db.select('mi_fixtures',`kickoff=gte.${encodeURIComponent(day+'T00:00:00Z')}&select=fixture_id&limit=500`).catch(()=>[]),db.select('mi_predictions','select=fixture_id,stage&limit=5000').catch(()=>[]),db.select('mi_api_usage',`usage_date=eq.${day}&select=calls,last_reason,updated_at&limit=1`).catch(()=>[])]);counts={fixtures:fx.length,predictions:pr.length};budget=b?.[0]||budget}return res.status(200).json({ok:true,version:'v17-beam-me-up',apiFootball:!!process.env.API_FOOTBALL_KEY,turso,database:turso,counts,budget})}catch(e){return res.status(200).json({ok:false,version:'v17-beam-me-up',error:e.message||String(e)})}
 }
