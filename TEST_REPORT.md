@@ -1,14 +1,21 @@
-# Match Index V16.5 local checks
+# V17 test report
 
-- index.html embedded JavaScript syntax: PASS
-- api/_engine.js syntax: PASS
-- api/worker.js syntax: PASS
-- api/state.js syntax: PASS
-- api/health.js syntax: PASS
-- api/audit.js syntax: PASS
-- State endpoint no longer returns audit history or full raw prediction payloads by default.
-- Fast Scout writes the same prediction-table shape expected by the existing UI and Deep Dive worker.
-- Initial 1X2 values are normalised to exactly 100%.
-- Manual confirmed-lineup flow remains handled by the existing api/lineups.js.
+Completed locally:
+- `index.html` embedded JavaScript syntax: PASS
+- all V17 API JavaScript syntax: PASS
+- compact home fixture rendering with mocked state: PASS
+- league-first view rendering with mocked state: PASS
+- dedicated fixture detail rendering with mocked prediction data: PASS
+- fixture detail contains 1X2 / Best / Top 3 / BTTS / confidence / stage movement: PASS
+- responsive 390px mobile visual inspection: PASS
+- no browser interval/polling worker present: PASS
+- package contains Turso database adapter, not Supabase: PASS
+- daily Vercel cron expression only: PASS
 
-Production API-Football/Turso/Vercel execution can only be verified after deployment in the user's live environment.
+Not possible to certify locally:
+- real Turso authentication
+- real API-Football responses/coverage
+- Vercel production environment variables
+- real lineup-provider timing
+
+Those require the deployed production environment.
